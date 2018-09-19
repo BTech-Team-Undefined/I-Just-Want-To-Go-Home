@@ -1,11 +1,14 @@
 /*This source code copyrighted by Lazy Foo' Productions (2004-2015)
 and may not be redistributed without written permission.*/
 
-
-// Using SDL and standard IO
-#include <SDL2\SDL.h>
+// System 
 #include <stdio.h>
 #include <iostream>
+#include <chrono>
+#include <algorithm>
+// Using SDL 
+#include <SDL2\SDL.h>
+#include <stb\stb_image.h>	// this is part of stb 
 // OpenGL support 
 #include "glad.h"
 #include <SDL2\SDL_opengl.h>
@@ -21,6 +24,51 @@ and may not be redistributed without written permission.*/
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
+// Creates a texture and returns the ID 
+unsigned int LoadTexture(const char* texturePath)
+{
+	// https://learnopengl.com/Getting-started/Textures
+
+	// read image file 
+	int width, height, nrChannels;	// nrchannels 3 rgb, 4 rgba
+	unsigned char* data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
+	stbi_set_flip_vertically_on_load(true);
+
+	if (data == NULL)
+	{
+		std::cout << "Failed to load texture: " << texturePath << std::endl;
+		return -1;
+	}
+
+	// generate opengl texture 
+	unsigned int texId;
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	// set texture wrap/filter options (these are all default values)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load source image to opengl 
+	glTexImage2D(
+		GL_TEXTURE_2D,		// for 2D texture (not 1D or 3D)
+		0,					// manual mipmap level. 0 for default.
+		GL_RGB,				// data format. our albedo does not support alpha.
+		width,				// width of texture 
+		height,				// height of texture 
+		0,					// legacy. always set to 0.
+		GL_RGB,				// data format of source. jpg has no alpha.
+		GL_UNSIGNED_BYTE,	// data format of source. stbi_load reads as bytes. 
+		data				// data source. 
+	);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// free source 
+	stbi_image_free(data);
+
+	return texId;
+}
 
 
 int main(int argc, char* args[])
@@ -98,7 +146,9 @@ int main(int argc, char* args[])
 		glm::vec3(2,0,-5),
 		glm::vec3(-2,0,-5),
 		glm::vec3(1,2,-7),
-		glm::vec3(-1,-1,-8)
+		glm::vec3(-1,-2,-8),
+		glm::vec3(-2,-2,-16),
+		glm::vec3(2, 2,-20)
 	};
 
 	float quadVertices[] = {
@@ -168,16 +218,13 @@ int main(int argc, char* args[])
 	Shader* compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
 
 
-
 	// ===== VAO FOR CUBE =====
 	// create VAO for a simple cube 
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	auto f = sizeof(cubeVertices);
-	auto b = sizeof(cubeIndices);
-
+	// create vertex data buffer
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -192,10 +239,15 @@ int main(int argc, char* args[])
 	glEnableVertexAttribArray(2);	
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 
+	// create index buffer 
 	unsigned int EBO;
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
+
+	// create albedo texture 
+	unsigned int cubeColTex = LoadTexture("textures/brickwall.jpg");
+	unsigned int cubeNrmTex = LoadTexture("textures/brickwall_normal.jpg");
 
 	// unbind - finished 
 	glBindVertexArray(0);
@@ -228,7 +280,7 @@ int main(int argc, char* args[])
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	// create textures
 	// position texture 
-	unsigned int posTex, nrmTex, colTex;
+	unsigned int posTex, nrmTex, colTex, dphTex;
 	glGenTextures(1, &posTex);
 	glBindTexture(GL_TEXTURE_2D, posTex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
@@ -251,17 +303,26 @@ int main(int argc, char* args[])
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, colTex, 0);
+	// depth texture (create as texture so we can read from it) 
+	glGenTextures(1, &dphTex);
+	glBindTexture(GL_TEXTURE_2D, dphTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dphTex, 0);
 
 	// Create our render targets. Order in array determines order for shader layout = #. 
 	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, attachments);
 
 	// create depth buffer (you could also make this a texture)
-	unsigned int RBO;
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	//unsigned int RBO;
+	//glGenRenderbuffers(1, &RBO);
+	//glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
 	// check if FBO is ok 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -277,12 +338,71 @@ int main(int argc, char* args[])
 	// ===== CAMERA ======
 	Camera cam(SCREEN_WIDTH / SCREEN_HEIGHT);
 
+	
+	// ===== LIGHT CONFIG ====
+	float ambient = 1.0f;
+
+
+	// ===== PERFORMANCE MEASUREMENTS =====
+	// guess what? this doesn't really work. You want this:
+	// http://www.lighthouse3d.com/tutorials/opengl-timer-query/
+	// but that takes time to implement so until then...
+	std::chrono::high_resolution_clock::time_point startRenderingTime; 
+	std::chrono::high_resolution_clock::time_point endRenderingTime;
 
 	while (1)
 	{
 		// TODO: listen for events 
 		SDL_Event e;
-		SDL_PollEvent(&e);
+		while (SDL_PollEvent(&e) != 0)
+		{
+			//User requests quit
+			if (e.type == SDL_QUIT)
+			{
+				SDL_Quit();
+				return 0;
+			}
+			//User presses a key
+			else if (e.type == SDL_KEYDOWN)
+			{
+				compositionShader->use();
+				compositionShader->setBool("u_DisplayPos", false);
+				compositionShader->setBool("u_DisplayNrm", false);
+				compositionShader->setBool("u_DisplayCol", false);
+				compositionShader->setBool("u_DisplayDph", false);
+
+				//Select surfaces based on key press
+				switch (e.key.keysym.sym)
+				{
+				case SDLK_UP:
+					ambient = glm::clamp(ambient + 0.2f, 0.0f, 2.0f);
+					compositionShader->setFloat("u_AmbientIntensity", ambient);
+					break;
+				case SDLK_DOWN:
+					ambient = glm::clamp(ambient - 0.2f, 0.0f, 2.0f);
+					compositionShader->setFloat("u_AmbientIntensity", ambient);
+					break;
+				case SDLK_q:
+					compositionShader->setBool("u_DisplayPos", true);
+					break;
+				case SDLK_w:
+					compositionShader->setBool("u_DisplayNrm", true);
+					break;
+				case SDLK_e:
+					compositionShader->setBool("u_DisplayCol", true);
+					break;
+				case SDLK_r:
+					compositionShader->setBool("u_DisplayDph", true);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		startRenderingTime = std::chrono::high_resolution_clock::now();
+		GLint64 timer; 
+		glGetInteger64v(GL_TIMESTAMP, &timer);
 
 		// Render cleanup 
 		glClearDepth(1.0f);					// this sets the depth to be cleared to 
@@ -298,9 +418,8 @@ int main(int argc, char* args[])
 		glm::mat4 view = cam.GetViewMatrix();
 		glm::mat4 projection = cam.GetProjectionMatrix();
 		geometryShader->use();
-		geometryShader->setInt("u_PosTex", 0);
+		geometryShader->setInt("u_ColTex", 0);
 		geometryShader->setInt("u_NrmTex", 1);
-		geometryShader->setInt("u_ColTex", 2);
 		geometryShader->setMat4("u_Projection", projection);
 		geometryShader->setMat4("u_View", view);
 
@@ -314,18 +433,29 @@ int main(int argc, char* args[])
 
 			// draw 
 			glBindVertexArray(VAO);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, cubeColTex);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, cubeNrmTex);
+			
 			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);	// VAO is equipped with EBO 
+			
 			glBindVertexArray(0);
 		}
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// ? 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		/// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Render to back buffer (compose textures) 
 		compositionShader->use();
-		
+		compositionShader->setInt("u_PosTex", 0);	// set order 
+		compositionShader->setInt("u_NrmTex", 1);
+		compositionShader->setInt("u_ColTex", 2);
+		compositionShader->setInt("u_DphTex", 3);
+
 		// enable the sampler2D shader variables 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, posTex);
@@ -333,12 +463,20 @@ int main(int argc, char* args[])
 		glBindTexture(GL_TEXTURE_2D, nrmTex);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, colTex);
-		
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, dphTex);
+
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
 
+		endRenderingTime = std::chrono::high_resolution_clock::now();
+
 		SDL_GL_SwapWindow(window);
+
+		// show info 
+		auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endRenderingTime - startRenderingTime).count();
+		std::cout << "Rendering duration:\t" << renderingDuration << "ms\r" << std::flush;
 	}
 
 	//Destroy window

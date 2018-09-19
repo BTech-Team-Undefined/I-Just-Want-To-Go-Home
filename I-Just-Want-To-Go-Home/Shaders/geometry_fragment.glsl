@@ -8,12 +8,13 @@ out layout(location = 0) vec3 o_Pos;
 out layout(location = 1) vec3 o_Nrm; 
 out layout(location = 2) vec4 o_Col; 
 
-uniform sampler2D u_AlbedoTex;
+// opengl 4.2 you can bind this texture 
+uniform sampler2D u_ColTex;
+uniform sampler2D u_NrmTex;
 
 void main() 
 {
     o_Pos = f_Pos;
     o_Nrm = f_Nrm; 
-    o_Col = vec4(1.0, 0, 0, 1.0); 
-    //texture(u_AlbedoTex, f_Uv);
+    o_Col = texture(u_ColTex, f_Uv);
 }
