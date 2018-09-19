@@ -6,6 +6,7 @@ and may not be redistributed without written permission.*/
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <vector>
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
@@ -23,6 +24,15 @@ and may not be redistributed without written permission.*/
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+
+const int MAX_LIGHTS = 32; 
+struct Light
+{
+	glm::vec3 Position; 
+	glm::vec3 Color; 
+};
+std::vector<Light> lights;
+
 
 // Creates a texture and returns the ID 
 unsigned int LoadTexture(const char* texturePath)
@@ -341,7 +351,16 @@ int main(int argc, char* args[])
 	
 	// ===== LIGHT CONFIG ====
 	float ambient = 1.0f;
-
+	for (int i = 0; i < MAX_LIGHTS; i++)
+	{
+		float x = (float)std::rand() / (float)RAND_MAX;
+		float y = (float)std::rand() / (float)RAND_MAX;
+		float z = (float)std::rand() / (float)RAND_MAX;
+		Light light;
+		light.Position = glm::vec3(x * 8 - 4, y * 4 - 2, z * 10);
+		light.Color = glm::vec3(x, y, z);
+		lights.push_back(light);
+	}
 
 	// ===== PERFORMANCE MEASUREMENTS =====
 	// guess what? this doesn't really work. You want this:
@@ -465,6 +484,14 @@ int main(int argc, char* args[])
 		glBindTexture(GL_TEXTURE_2D, colTex);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, dphTex);
+		
+		// attach lights 
+		compositionShader->setVec3("u_ViewPosiion", cam.position);
+		for (int i = 0; i < MAX_LIGHTS; i++)
+		{
+			compositionShader->setVec3("u_Lights[" + std::to_string(i) + "].Position", lights[i].Position);
+			compositionShader->setVec3("u_Lights[" + std::to_string(i) + "].Color", lights[i].Color);
+		}
 
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
