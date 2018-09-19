@@ -18,7 +18,7 @@ uniform bool u_DisplayDph;
 
 // Lighting 
 #define MAX_LIGHTS 32
-#define ATTENUATION 0.1
+#define ATTENUATION 0.05
 struct Light 
 {
     vec3 Position;
@@ -78,8 +78,10 @@ void main()
         {
             float lightDist = length(u_Lights[i].Position - pos);
             vec3 surfToLight = normalize(u_Lights[i].Position - pos);
-            vec3 diffuse = max(dot(nrm, surfToLight), 0.0) * col.rgb * u_Lights[i].Color;
-            float attenuation = 1.0 / (1.0 + ATTENUATION * lightDist * lightDist);
+
+            vec3 diffuse = max(dot(nrm, surfToLight), 0.0) * col.rgb * u_Lights[i].Color * 0.1;	// hardcoded 0.2 to reduce intensity
+            float attenuation = 1.0 / (lightDist * ATTENUATION);
+			attenuation *= attenuation;
             diffuse *= attenuation;
             ambient += vec4(diffuse, 1.0);
         }
