@@ -95,10 +95,10 @@ int main(int argc, char* args[])
 	};
 
 	glm::vec3 cubePositions[] = {
-		glm::vec3(2,0,2),
-		glm::vec3(-2,0,-2),
-		glm::vec3(1,2,-4),
-		glm::vec3(-1,-1,3)
+		glm::vec3(2,0,-5),
+		glm::vec3(-2,0,-5),
+		glm::vec3(1,2,-7),
+		glm::vec3(-1,-1,-8)
 	};
 
 	float quadVertices[] = {
@@ -195,7 +195,7 @@ int main(int argc, char* args[])
 	unsigned int EBO;
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_INDEX);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
 
 	// unbind - finished 
 	glBindVertexArray(0);
@@ -209,7 +209,7 @@ int main(int argc, char* args[])
 	unsigned int quadVBO;
 	glGenBuffers(1, &quadVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);	// reference?
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);	// reference?
 	// enable position data 
 	glEnableVertexAttribArray(0);	// enable the variable in the shader 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -301,8 +301,8 @@ int main(int argc, char* args[])
 		geometryShader->setInt("u_PosTex", 0);
 		geometryShader->setInt("u_NrmTex", 1);
 		geometryShader->setInt("u_ColTex", 2);
-		geometryShader->setMat4("i_Projection", projection);
-		geometryShader->setMat4("i_View", view);
+		geometryShader->setMat4("u_Projection", projection);
+		geometryShader->setMat4("u_View", view);
 
 		for (int i = 0; i < sizeof(cubePositions) / sizeof(cubePositions[0]); i++)
 		{
@@ -310,7 +310,7 @@ int main(int argc, char* args[])
 			model = glm::translate(model, cubePositions[i]);
 			// todo: rotation 
 			// todo: scale 
-			geometryShader->setMat4("i_Model", model);
+			geometryShader->setMat4("u_Model", model);
 
 			// draw 
 			glBindVertexArray(VAO);
