@@ -3,7 +3,7 @@
 #include <fstream>	// file stream. used to handle reading/writing to files.
 #include <sstream>	// string stream. used as a string buffer for streams. 
 #include <iostream>	// std in/out. used to display messages to the user. 
-#include "glad.h"
+
 #include <glm\glm.hpp>
 
 Shader::Shader(const GLchar * vertexPath, const GLchar * fragPath)

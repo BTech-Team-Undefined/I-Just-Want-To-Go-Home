@@ -133,8 +133,10 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="glad.c" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Renderable.cpp" />
+    <ClCompile Include="Rendering\Mesh.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
+    <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -142,9 +144,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="glad.h" />
-    <ClInclude Include="khrplatform.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Renderable.h" />
+    <ClInclude Include="Rendering\Mesh.h" />
+    <ClInclude Include="Rendering\Material.h" />
+    <ClInclude Include="Rendering\Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,14 +8,14 @@
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
 // OpenGL support 
-#include "glad.h"
+#include <GL\glad.h>
 #include <SDL2\SDL_opengl.h>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 // Custom objects 
 #include "Camera.h"
-#include "Shader.h"
+#include "Rendering\Shader.h"
 
 
 //Screen dimension constants
@@ -481,6 +481,9 @@ int main(int argc, char* args[])
 		glBindTexture(GL_TEXTURE_2D, colTex);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, dphTex);
+
+		// material has the uniform name + texture address 
+		// but render system handles setting up the texture num 
 		
 		// attach lights 
 		compositionShader->setVec3("u_ViewPosiion", cam.position);
