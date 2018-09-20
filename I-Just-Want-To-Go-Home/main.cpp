@@ -8,7 +8,7 @@
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
 // OpenGL support 
-#include <GL\glad.h>
+#include <gl\glad.h>
 #include <SDL2\SDL_opengl.h>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
@@ -77,7 +77,7 @@ unsigned int LoadTexture(const char* texturePath)
 	return texId;
 }
 
-
+#include "Rendering\Mesh.h"
 int main(int argc, char* args[])
 {
 	// Debug data 

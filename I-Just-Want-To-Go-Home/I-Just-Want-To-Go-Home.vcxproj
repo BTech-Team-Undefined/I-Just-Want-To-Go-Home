@@ -131,9 +131,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Rendering\GeometryMaterial.cpp" />
+    <ClCompile Include="includes\gl\glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Renderable.cpp" />
+    <ClCompile Include="RENDERINGSYSTEM.CPP" />
+    <ClCompile Include="Rendering\RenderingSystem.cpp" />
+    <ClCompile Include="Rendering\Renderable.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
@@ -144,7 +148,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Renderable.h" />
+    <ClInclude Include="Rendering\GeometryMaterial.h" />
+    <ClInclude Include="includes\gl\glad.h" />
+    <ClInclude Include="includes\gl\khrplatform.h" />
+    <ClInclude Include="Rendering\RenderingSystem.h" />
+    <ClInclude Include="Rendering\Renderable.h" />
     <ClInclude Include="Rendering\Mesh.h" />
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Shader.h" />

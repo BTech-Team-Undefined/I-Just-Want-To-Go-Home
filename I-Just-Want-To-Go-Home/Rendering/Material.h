@@ -15,7 +15,7 @@ public:
 	/// <summary>
 	/// Loads material settings into opengl shader program
 	/// </summary>
-	void LoadMaterial() {}
+	virtual void LoadMaterial();
 
 	/// <summary>
 	/// Loads material settings into opengl shader program
@@ -23,6 +23,6 @@ public:
 	/// </summary>
 	/// <param name="texStartLoc">Start address of the first free texture location.</param>
 	/// <return>Number of textures bound.</return>
-	int LoadMaterial(unsigned int texStartLoc) {}
+	virtual int LoadMaterial(unsigned int texStartLoc);
 };
 
