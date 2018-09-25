@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Material.h"
 
 // Basic material for the geometry shader. 
-class GeometryMaterial
+class GeometryMaterial : Material
 {
 public:
-	GeometryMaterial();
-	~GeometryMaterial();
+	void LoadAlbedoMap(const char* path);
+	void LoadNormalMap(const char* path);
+	void SetSpecular(float level); 
 };
 

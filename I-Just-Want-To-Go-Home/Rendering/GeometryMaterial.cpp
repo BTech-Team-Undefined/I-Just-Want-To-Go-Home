@@ -1,14 +1,14 @@
 #include "GeometryMaterial.h"
 
+void GeometryMaterial::LoadAlbedoMap(const char * path)
+{
+	Material::LoadTexture("i_
+}
 
-
-GeometryMaterial::GeometryMaterial()
+void GeometryMaterial::LoadNormalMap(const char * path)
 {
 }
 
-
-GeometryMaterial::~GeometryMaterial()
+void GeometryMaterial::SetSpecular(float level)
 {
 }
-
-

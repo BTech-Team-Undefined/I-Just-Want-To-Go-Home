@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <glm\glm.hpp>
 #include "Mesh.h"
 #include "Material.h"
@@ -11,6 +12,10 @@ public:
 	Mesh* mesh; 
 	Material* material;
 	Shader* shader;
+	
+	// Debug... (this should be in entity) 
+	std::vector<Renderable*> children; 
+	Renderable* parent; 
 
 public:
 	Renderable();

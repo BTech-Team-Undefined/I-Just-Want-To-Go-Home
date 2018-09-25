@@ -7,8 +7,12 @@ RenderingSystem::RenderingSystem()
 	// debug? initialize the composition shader 
 	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
 	
+	// initialize frame buffers for geometry rendering pass 
+	InitializeFrameBuffers();
+
 	// create a quad that covers the screen for the composition pass 
 	InitializeScreenQuad();
+
 }
 
 RenderingSystem::~RenderingSystem()
@@ -38,21 +42,26 @@ void RenderingSystem::SetCamera(Camera * camera)
 
 void RenderingSystem::RenderGeometryPass()
 {
+	// bind geometry frame buffers 
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	// begin rendering each renderable 
 	auto projection = activeCamera->GetProjectionMatrix();
 	auto view = activeCamera->GetViewMatrix();
-
 	for (int i = 0; i < renderables.size(); i++)
 	{
 		auto model = renderables[i].GetModelMatrix();
 
-		// should this be in material? ....
 		renderables[i].shader->setMat4("u_Model", model);
 		renderables[i].shader->setMat4("u_View", view);
 		renderables[i].shader->setMat4("u_Projection", projection);
 
-		// renderable . material . load material() 
+		// todo: implement geo mat 
+		renderables[i].material->LoadMaterial(0);	// 0 denotes the first free texture location
 
-		// debug 
+		glBindVertexArray(renderables[i].mesh->VAO);
+		glDrawElements(GL_TRIANGLES, renderables[i].mesh->triangleCount, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 	}
 }
 
@@ -68,12 +77,9 @@ void RenderingSystem::InitializeFrameBuffers()
 
 	// ===== FBO FOR DEFERRED RENDERING =====
 	// initialize frame buffer object 
-	// unsigned int FBO;
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	// create textures
 	// position texture 
-	// unsigned int posTex, nrmTex, colTex, dphTex;
 	glGenTextures(1, &posTex);
 	glBindTexture(GL_TEXTURE_2D, posTex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);

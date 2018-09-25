@@ -4,6 +4,20 @@
 
 /* Testing out javadoc style documentation */
 
+struct Vertex
+{
+	glm::vec3 Position;
+	glm::vec2 Uv;
+	glm::vec3 Normal; 
+};
+
+struct Texture
+{
+
+}
+
+
+
 /**
 Geometry data for a model. Includes position, normals, and texture coordinates. 
 Vertex data is sequenced: { x y z u v nx ny nz }
