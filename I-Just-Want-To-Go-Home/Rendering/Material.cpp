@@ -10,9 +10,8 @@ Material::Material(Shader* shader)
 
 Material::Material(Shader * shader, const aiMaterial * material)
 {
-	// todo: implement
+	// todo: implement ... or maybe implement in Assetloader? 
 }
-
 
 Material::~Material()
 {
@@ -21,10 +20,26 @@ Material::~Material()
 void Material::LoadMaterial()
 {
 	// implement in derived class 
+	std::cerr << "This function hasn't been implemented yet" << std::endl;
 }
 
 int Material::LoadMaterial(unsigned int pos)
 {
+	for (auto& elem : uniformsVec3)
+	{
+		shader->setVec3(elem.first, elem.second);
+	}
+
+	for (auto& elem : uniformsFloat)
+	{
+		shader->setFloat(elem.first, elem.second);
+	}
+
+	for (auto& elem : uniformsInt)
+	{
+		shader->setInt(elem.first, elem.second);
+	}
+
 	for (int i = 0; i < textures.size(); i++)
 	{
 		// Set the uniform to point to texture 

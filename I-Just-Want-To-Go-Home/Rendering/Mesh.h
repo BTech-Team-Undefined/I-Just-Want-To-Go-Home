@@ -11,12 +11,6 @@ struct Vertex
 	glm::vec3 Normal; 
 };
 
-struct Texture
-{
-
-}
-
-
 
 /**
 Geometry data for a model. Includes position, normals, and texture coordinates. 
