@@ -52,7 +52,12 @@ private:
 
 	void ProcessNode(aiNode* node, const aiScene* scene)
 	{
-		Renderable* lastNode = renderables[renderables.size() - 1];
+		int idx = renderables.size();
+		Renderable* lastNode;
+		if (idx == 0)
+			lastNode = nullptr;
+		else 
+			lastNode = renderables[renderables.size() - 1];
 
 		// process each mesh located at the current node
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -65,7 +70,8 @@ private:
 			// meshes.push_back(Processmesh(mesh, scene));
 
 			// this won't work, you need pointers (or smart pointers)
-			lastNode->children.push_back(r);
+			if (lastNode != nullptr)
+				lastNode->children.push_back(r);
 		}
 
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes

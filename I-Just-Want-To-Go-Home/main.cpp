@@ -454,11 +454,13 @@ int main(int argc, char* args[])
 	r2.material = new Material();
 	r2.material->AddTexture(texture);
 	r2.position = glm::vec3(2, 0, -5);
+	auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	r3->position = glm::vec3(0, -1, -10);
 
 	// auto r1 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
 	renderingSystem.AddRenderable(r1);
 	renderingSystem.AddRenderable(r2);
-
+	renderingSystem.AddRenderable(*r3);
 	
 	while (1)
 	{

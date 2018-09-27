@@ -132,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
+    <ClCompile Include="Rendering\Constants.cpp" />
     <ClCompile Include="Rendering\GeometryMaterial.cpp" />
     <ClCompile Include="includes\gl\glad.c" />
     <ClCompile Include="main.cpp" />
@@ -149,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Rendering\Constants.h" />
     <ClInclude Include="Rendering\GeometryMaterial.h" />
     <ClInclude Include="includes\gl\glad.h" />
     <ClInclude Include="includes\gl\khrplatform.h" />
