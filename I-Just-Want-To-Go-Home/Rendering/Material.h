@@ -11,12 +11,7 @@
 
 /* Testing out visual studio type documentation */
 
-// Values from AI_MATKEY should be mapped into string variable names that .glsl files can use. 
-// http://assimp.sourceforge.net/lib_html/materials.html
-#define SHADER_DIFFUSE = "i_Diffuse";
-#define SHADER_SPECULAR = "i_Specular";
-#define SHADER_AMBIENT = "i_Ambient";
-// todo etc. 
+
 
 struct TextureInfo
 {
