@@ -39,16 +39,13 @@
     <ClCompile Include="includes\gl\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RenderingSystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RENDERINGSYSTEM.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\GeometryMaterial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AssetLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RenderingSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

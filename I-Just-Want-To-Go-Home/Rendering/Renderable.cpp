@@ -1,5 +1,6 @@
 #include "Renderable.h"
 
+#include <glm\gtc\matrix_transform.hpp>
 
 Renderable::Renderable()
 {
@@ -20,11 +21,8 @@ Renderable::~Renderable()
 
 glm::mat4 Renderable::GetModelMatrix()
 {
-	float x = (float)std::rand() / (float)RAND_MAX;
-	float y = (float)std::rand() / (float)RAND_MAX;
-	float z = (float)std::rand() / (float)RAND_MAX;
-
 	// TODO: no entity / position implemented yet ... dang
-
-	return glm::mat4(1.0f);
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, position);
+	return model;
 }

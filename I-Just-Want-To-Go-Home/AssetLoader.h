@@ -20,7 +20,7 @@ public:
 	AssetLoader();
 	~AssetLoader();
 
-	Renderable LoadModel(const std::string& path)
+	Renderable* LoadModel(const std::string& path)
 	{
 		// read file via assimp 
 		Assimp::Importer importer; 
@@ -31,31 +31,41 @@ public:
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
 			std::cout << "Failed to read file. Assimp Error: " << importer.GetErrorString() << std::endl;
-			return;
+			return nullptr;
 		}
 
 		// retrieve directory 
 		std::string directory = path.substr(0, path.find_last_of('/'));
 
 		// process root node recursively (gather all children)
-		
+		ProcessNode(scene->mRootNode, scene);
+
+		return renderables[0];
 	}
 
 private:
 	std::vector<TextureInfo> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 	std::vector<Mesh> meshes;
+	std::vector<Renderable*> renderables; 
 	std::string directory;
 
 
 	void ProcessNode(aiNode* node, const aiScene* scene)
 	{
+		Renderable* lastNode = renderables[renderables.size() - 1];
+
 		// process each mesh located at the current node
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
 			// the node object only contains indices to index the actual objects in the scene. 
 			// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			meshes.push_back(Processmesh(mesh, scene));
+			auto r = Processmesh(mesh, scene);
+			renderables.push_back(r);
+			// meshes.push_back(Processmesh(mesh, scene));
+
+			// this won't work, you need pointers (or smart pointers)
+			lastNode->children.push_back(r);
 		}
 
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
@@ -65,7 +75,7 @@ private:
 		}
 	}
 
-	Mesh Processmesh(aiMesh* mesh, const aiScene* scene)
+	Renderable* Processmesh(aiMesh* mesh, const aiScene* scene)
 	{
 		// data to fill
 		std::vector<Vertex> vertices;
@@ -147,7 +157,11 @@ private:
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 		// return a mesh object created from the extracted mesh data
-		return Mesh(vertices, indices, textures);
+		Renderable renderable;
+		renderable.mesh = new Mesh(vertices, indices);
+		renderable.material = new Material();
+		renderable.material->AddTextures(textures);
+		return &renderable;
 	}
 
 	// checks all material textures of a given type and loads the textures if they're not loaded yet.
@@ -188,6 +202,8 @@ private:
 		return textures;
 	}
 
+	
+public:
 	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false)
 	{
 		std::string filename = directory + '/' + std::string(path);

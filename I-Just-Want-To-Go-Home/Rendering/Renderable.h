@@ -16,6 +16,8 @@ public:
 	// Debug... (this should be in entity) 
 	std::vector<Renderable*> children; 
 	Renderable* parent; 
+	// (this should be in transform)
+	glm::vec3 position;
 
 public:
 	Renderable();

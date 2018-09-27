@@ -29,7 +29,7 @@ class Material
 // variables 
 protected: 
 	/// Shader that this material is for 
-	Shader* shader;						
+	// Shader* shader;						
 
 	/// Textures that this material has 
 	std::vector<TextureInfo> textures; 
@@ -49,14 +49,14 @@ protected:
 
 // functions 
 public:
+	Material();
 	Material(Shader* shader);
-	Material(Shader* shader, const aiMaterial* material);	// might want to move this into a the loading code 
 	~Material();
 
 	/// <summary>
 	/// Loads material settings into opengl shader program
 	/// </summary>
-	virtual void LoadMaterial();
+	virtual void LoadMaterial(const Shader* shader);
 
 	/// <summary>
 	/// Loads material settings into opengl shader program
@@ -64,13 +64,19 @@ public:
 	/// </summary>
 	/// <param name="texStartLoc">Start address of the first free texture location.</param>
 	/// <return>Number of textures bound.</return>
-	virtual int LoadMaterial(unsigned int texStartLoc);
+	virtual int LoadMaterial(const Shader* shader, unsigned int texStartLoc);
 
 	/// <summary>
 	/// Loads a texture from path.
 	/// </summary>
 	/// <return>True if success, false if failed.</return>
 	bool LoadTexture(const char* uniform, const char* path);
+
+
+	void AddTexture(TextureInfo info);
+
+	void AddTextures(std::vector<TextureInfo> infos);
+
 
 	void SetVec3(const char* uniform, glm::vec3 value);
 

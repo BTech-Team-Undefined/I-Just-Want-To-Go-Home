@@ -9,7 +9,8 @@ class RenderingSystem
 public:
 	std::vector<Renderable> renderables;
 	Camera* activeCamera; 
-	Shader* compositionShader;
+	Shader* geometryShader;		// default geometry shader 
+	Shader* compositionShader;	// default composition shader 
 
 private:
 	unsigned int quadVAO;

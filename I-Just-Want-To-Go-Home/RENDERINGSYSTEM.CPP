@@ -1,1 +1,0 @@
-#include "Rendering\RenderingSystem.h"

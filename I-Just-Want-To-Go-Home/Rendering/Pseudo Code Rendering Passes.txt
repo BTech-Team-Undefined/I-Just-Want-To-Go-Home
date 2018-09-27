@@ -1,0 +1,34 @@
+RenderingSystem 
+
+Render()
+    // geometry pass
+    GBuffer Bind() 
+    for (all Renderables as R)
+        if (R.CustomGeoShader is NULL)
+            DefaultGeometryShader Use() 
+        else 
+            R.CustomGeoShader Use()  
+        R.Mesh LoadVAO()
+        R.Material Load() 
+        Load MVP Uniforms()
+        Draw() // draws object to gbuffer 
+
+    // shadow map (optional)
+    ShadowMapShader Use() 
+    for (all Lights as L)
+        Load MVP Uniforms() 
+        Draw()  // draw depth only to texture 
+
+    // composition (lighting pass) 
+    CompositionShader Use() 
+    for (all Lights as L)
+        Load MVP Uniforms() 
+        L LoadUniforms() // includes shadow map 
+        Draw() // draws a section (preferrably this would be a volume)
+        // DrawQuad() // if no volume support - iterates through entire screen 
+
+    // post process 
+    for (all PostProcess as pp)
+        pp.shader use()
+        pp.material use() 
+        DrawQuad() 

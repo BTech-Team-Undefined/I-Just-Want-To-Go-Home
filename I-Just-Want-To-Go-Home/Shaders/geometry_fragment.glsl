@@ -17,4 +17,5 @@ void main()
     o_Pos = f_Pos;
     o_Nrm = f_Nrm; 
     o_Col = texture(u_ColTex, f_Uv);
+// vec4(1.0, 0.0, 0.0, 1.0);
 }

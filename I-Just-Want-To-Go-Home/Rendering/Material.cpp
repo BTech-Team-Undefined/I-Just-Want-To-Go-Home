@@ -3,27 +3,26 @@
 #include <stb\stb_image.h>
 #include <iostream>
 
-Material::Material(Shader* shader)
+Material::Material()
 {
-	this->shader = shader;
 }
 
-Material::Material(Shader * shader, const aiMaterial * material)
+Material::Material(Shader* shader)
 {
-	// todo: implement ... or maybe implement in Assetloader? 
+	// this->shader = shader;
 }
 
 Material::~Material()
 {
 }
 
-void Material::LoadMaterial()
+void Material::LoadMaterial(const Shader* shader)
 {
 	// implement in derived class 
 	std::cerr << "This function hasn't been implemented yet" << std::endl;
 }
 
-int Material::LoadMaterial(unsigned int pos)
+int Material::LoadMaterial(const Shader* shader, unsigned int pos)
 {
 	for (auto& elem : uniformsVec3)
 	{
@@ -45,9 +44,10 @@ int Material::LoadMaterial(unsigned int pos)
 		// Set the uniform to point to texture 
 		shader->setInt(textures[i].uniform, pos + i);
 		// Activate the uniform variable 
-		glActiveTexture(pos + i);
+		glActiveTexture(GL_TEXTURE0 + pos + i);
 		// Bind the texture 
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
+		std::cout << "Binding uniform to location: " << pos + i << " with name " << textures[i].uniform << std::endl;
 	}
 	return textures.size();
 }
@@ -102,6 +102,16 @@ bool Material::LoadTexture(const char* uniform, const char* texturePath)
 	textures.push_back(info);
 
 	return true;
+}
+
+void Material::AddTexture(TextureInfo info)
+{
+	textures.push_back(info);
+}
+
+void Material::AddTextures(std::vector<TextureInfo> infos)
+{
+	textures.insert(textures.end(), infos.begin(), infos.end());
 }
 
 void Material::SetVec3(const char * uniform, glm::vec3 value)

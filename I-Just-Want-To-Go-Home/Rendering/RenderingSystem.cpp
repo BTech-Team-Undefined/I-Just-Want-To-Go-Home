@@ -1,18 +1,20 @@
 #include "RenderingSystem.h"
 
 #include <iostream>
+#include "Shader.h"
+
 
 RenderingSystem::RenderingSystem()
 {
 	// debug? initialize the composition shader 
-	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
-	
+	 geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
+	 compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+
 	// initialize frame buffers for geometry rendering pass 
 	InitializeFrameBuffers();
-
+	
 	// create a quad that covers the screen for the composition pass 
 	InitializeScreenQuad();
-
 }
 
 RenderingSystem::~RenderingSystem()
@@ -22,6 +24,10 @@ RenderingSystem::~RenderingSystem()
 void RenderingSystem::Update()
 {
 	// Draw everything 
+	glClearDepth(1.0f);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	RenderGeometryPass();
 }
 
@@ -42,8 +48,13 @@ void RenderingSystem::SetCamera(Camera * camera)
 
 void RenderingSystem::RenderGeometryPass()
 {
+	// 1. First pass - Geometry into gbuffers 
+	geometryShader->use();
 	// bind geometry frame buffers 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glDrawBuffers(3, attachments);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// begin rendering each renderable 
 	auto projection = activeCamera->GetProjectionMatrix();
@@ -52,17 +63,39 @@ void RenderingSystem::RenderGeometryPass()
 	{
 		auto model = renderables[i].GetModelMatrix();
 
-		renderables[i].shader->setMat4("u_Model", model);
-		renderables[i].shader->setMat4("u_View", view);
-		renderables[i].shader->setMat4("u_Projection", projection);
+		geometryShader->setMat4("u_Model", model);
+		geometryShader->setMat4("u_View", view);
+		geometryShader->setMat4("u_Projection", projection);
 
-		// todo: implement geo mat 
-		renderables[i].material->LoadMaterial(0);	// 0 denotes the first free texture location
-
+		renderables[i].material->LoadMaterial(geometryShader, 0);	// 0 denotes the first free texture location
+		
 		glBindVertexArray(renderables[i].mesh->VAO);
 		glDrawElements(GL_TRIANGLES, renderables[i].mesh->triangleCount, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// 2. Second pass - composition 
+	compositionShader->use();
+	compositionShader->setInt("u_PosTex", 0);	// set order 
+	compositionShader->setInt("u_NrmTex", 1);
+	compositionShader->setInt("u_ColTex", 2);
+	compositionShader->setInt("u_DphTex", 3);
+
+	// enable the sampler2D shader variables 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, posTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, nrmTex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, colTex);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, dphTex);
+
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
 }
 
 void RenderingSystem::RenderCompositionPass()
@@ -109,8 +142,8 @@ void RenderingSystem::InitializeFrameBuffers()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dphTex, 0);
 
 	// Create our render targets. Order in array determines order for shader layout = #. 
-	// unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	// glDrawBuffers(3, attachments);
+	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments);
 
 	// check if FBO is ok 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -161,3 +194,4 @@ void RenderingSystem::InitializeScreenQuad()
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 */
+
