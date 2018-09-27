@@ -70,7 +70,7 @@ void RenderingSystem::RenderGeometryPass()
 		renderables[i].material->LoadMaterial(geometryShader, 0);	// 0 denotes the first free texture location
 		
 		glBindVertexArray(renderables[i].mesh->VAO);
-		glDrawElements(GL_TRIANGLES, renderables[i].mesh->triangleCount, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, renderables[i].mesh->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 

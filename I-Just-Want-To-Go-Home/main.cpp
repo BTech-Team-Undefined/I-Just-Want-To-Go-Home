@@ -438,9 +438,14 @@ int main(int argc, char* args[])
 	
 	auto loader = AssetLoader();
 	TextureInfo texture;
-	texture.id = loader.TextureFromFile("container.jpg", "textures");
+	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
 	texture.uniform = "u_ColTex";
-	texture.path = "textures/container.jpg";
+	texture.path = "textures/brickwall.jpg";
+
+	TextureInfo texture1;
+	texture1.id = loader.TextureFromFile("brickwall_normal.jpg", "textures");
+	texture1.uniform = "u_NrmTex";
+	texture1.path = "textures/brickwall_normal.jpg";
 
 	std::cout << "Loaded texture with id: " << texture.id << std::endl;
 
@@ -449,19 +454,24 @@ int main(int argc, char* args[])
 	r1.material = new Material();
 	r1.material->AddTexture(texture);
 	r1.position = glm::vec3(-2, 0, -5);
+
 	auto r2 = Renderable();
 	r2.mesh = new Mesh(cubeVertex, cubeIndex);
 	r2.material = new Material();
 	r2.material->AddTexture(texture);
 	r2.position = glm::vec3(2, 0, -5);
-	auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	r3->position = glm::vec3(0, -1, -10);
+	//auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	//r3->position = glm::vec3(0, -1, -10);
 
-	// auto r1 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
 	renderingSystem.AddRenderable(r1);
 	renderingSystem.AddRenderable(r2);
-	renderingSystem.AddRenderable(*r3);
 	
+	auto mesh1 = Mesh(cubeVertex, cubeIndex);
+	auto material1 = Material();
+	material1.AddTexture(texture);
+	material1.AddTexture(texture1);
+
+
 	while (1)
 	{
 		// TODO: listen for events 
@@ -474,42 +484,42 @@ int main(int argc, char* args[])
 				SDL_Quit();
 				return 0;
 			}
-			////User presses a key
-			//else if (e.type == SDL_KEYDOWN)
-			//{
-			//	compositionShader->use();
-			//	compositionShader->setBool("u_DisplayPos", false);
-			//	compositionShader->setBool("u_DisplayNrm", false);
-			//	compositionShader->setBool("u_DisplayCol", false);
-			//	compositionShader->setBool("u_DisplayDph", false);
+			//User presses a key
+			else if (e.type == SDL_KEYDOWN)
+			{
+				compositionShader->use();
+				compositionShader->setBool("u_DisplayPos", false);
+				compositionShader->setBool("u_DisplayNrm", false);
+				compositionShader->setBool("u_DisplayCol", false);
+				compositionShader->setBool("u_DisplayDph", false);
 
-			//	//Select surfaces based on key press
-			//	switch (e.key.keysym.sym)
-			//	{
-			//	case SDLK_UP:
-			//		ambient = glm::clamp(ambient + 0.2f, 0.0f, 2.0f);
-			//		compositionShader->setFloat("u_AmbientIntensity", ambient);
-			//		break;
-			//	case SDLK_DOWN:
-			//		ambient = glm::clamp(ambient - 0.2f, 0.0f, 2.0f);
-			//		compositionShader->setFloat("u_AmbientIntensity", ambient);
-			//		break;
-			//	case SDLK_q:
-			//		compositionShader->setBool("u_DisplayPos", true);
-			//		break;
-			//	case SDLK_w:
-			//		compositionShader->setBool("u_DisplayNrm", true);
-			//		break;
-			//	case SDLK_e:
-			//		compositionShader->setBool("u_DisplayCol", true);
-			//		break;
-			//	case SDLK_r:
-			//		compositionShader->setBool("u_DisplayDph", true);
-			//		break;
-			//	default:
-			//		break;
-			//	}
-			//}
+				//Select surfaces based on key press
+				switch (e.key.keysym.sym)
+				{
+				case SDLK_UP:
+					ambient = glm::clamp(ambient + 0.2f, 0.0f, 2.0f);
+					compositionShader->setFloat("u_AmbientIntensity", ambient);
+					break;
+				case SDLK_DOWN:
+					ambient = glm::clamp(ambient - 0.2f, 0.0f, 2.0f);
+					compositionShader->setFloat("u_AmbientIntensity", ambient);
+					break;
+				case SDLK_q:
+					compositionShader->setBool("u_DisplayPos", true);
+					break;
+				case SDLK_w:
+					compositionShader->setBool("u_DisplayNrm", true);
+					break;
+				case SDLK_e:
+					compositionShader->setBool("u_DisplayCol", true);
+					break;
+				case SDLK_r:
+					compositionShader->setBool("u_DisplayDph", true);
+					break;
+				default:
+					break;
+				}
+			}
 		}
 
 		renderingSystem.Update();
@@ -548,14 +558,11 @@ int main(int argc, char* args[])
 			geometryShader->setMat4("u_Model", model);
 
 			// draw 
-			glBindVertexArray(VAO);
+			glBindVertexArray(mesh1.VAO);
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, cubeColTex);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, cubeNrmTex);
-			
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);	// VAO is equipped with EBO 
+			material1.LoadMaterial(geometryShader, 0);
+
+			glDrawElements(GL_TRIANGLES, mesh1.indices.size(), GL_UNSIGNED_INT, 0);	// VAO is equipped with EBO 
 			
 			glBindVertexArray(0);
 		}
