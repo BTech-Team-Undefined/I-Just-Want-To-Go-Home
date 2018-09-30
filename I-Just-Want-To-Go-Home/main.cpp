@@ -460,8 +460,15 @@ int main(int argc, char* args[])
 	r2.material = new Material();
 	r2.material->AddTexture(texture);
 	r2.position = glm::vec3(2, 0, -5);
-	//auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	//r3->position = glm::vec3(0, -1, -10);
+	
+	auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	r3->position = glm::vec3(0, -1, -10);
+	r3->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, -20));
+	renderingSystem.AddEntity(*r3);
+	for (int i = 0; i < r3->children.size(); i++)
+	{
+		std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
+	}
 
 	renderingSystem.AddRenderable(r1);
 	renderingSystem.AddRenderable(r2);

@@ -13,11 +13,8 @@ public:
 	Material* material;
 	Shader* shader;
 	
-	// Debug... (this should be in entity) 
-	std::vector<Renderable*> children; 
-	Renderable* parent; 
 	// (this should be in transform)
-	glm::vec3 position;
+	glm::vec3 position;	// hardcoded for now 
 
 public:
 	Renderable();

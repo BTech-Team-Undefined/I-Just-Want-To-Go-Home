@@ -47,7 +47,7 @@ int Material::LoadMaterial(const Shader* shader, unsigned int pos)
 		glActiveTexture(GL_TEXTURE0 + pos + i);
 		// Bind the texture 
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
-		std::cout << "Binding uniform to location: " << pos + i << " with name " << textures[i].uniform << std::endl;
+		// std::cout << "Binding uniform to location: " << pos + i << " with name " << textures[i].uniform << std::endl;
 	}
 	return textures.size();
 }

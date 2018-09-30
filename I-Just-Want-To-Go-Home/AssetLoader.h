@@ -7,6 +7,7 @@
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
 #include <stb\stb_image.h>
+#include "Entity.h"
 #include "Rendering\Renderable.h"
 #include "Rendering\Material.h"
 #include "Rendering\Mesh.h"
@@ -20,7 +21,7 @@ public:
 	AssetLoader();
 	~AssetLoader();
 
-	Renderable* LoadModel(const std::string& path)
+	Entity* LoadModel(const std::string& path)
 	{
 		// read file via assimp 
 		Assimp::Importer importer; 
@@ -36,11 +37,13 @@ public:
 
 		// retrieve directory 
 		std::string directory = path.substr(0, path.find_last_of('/'));
+		this->directory = directory;
 
 		// process root node recursively (gather all children)
-		ProcessNode(scene->mRootNode, scene);
+		Entity* rootEntity = new Entity();
+		ProcessNode(rootEntity, scene->mRootNode, scene);
 
-		return renderables[0];
+		return rootEntity;
 	}
 
 private:
@@ -48,17 +51,11 @@ private:
 	std::vector<Mesh> meshes;
 	std::vector<Renderable*> renderables; 
 	std::string directory;
+	std::vector<Entity> entities; 
 
 
-	void ProcessNode(aiNode* node, const aiScene* scene)
+	void ProcessNode(Entity* entity, aiNode* node, const aiScene* scene)
 	{
-		int idx = renderables.size();
-		Renderable* lastNode;
-		if (idx == 0)
-			lastNode = nullptr;
-		else 
-			lastNode = renderables[renderables.size() - 1];
-
 		// process each mesh located at the current node
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
@@ -66,18 +63,18 @@ private:
 			// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			auto r = Processmesh(mesh, scene);
-			renderables.push_back(r);
+			entity->renderables.push_back(r);
 			// meshes.push_back(Processmesh(mesh, scene));
-
-			// this won't work, you need pointers (or smart pointers)
-			if (lastNode != nullptr)
-				lastNode->children.push_back(r);
 		}
 
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 		for (unsigned int i = 0; i < node->mNumChildren; i++)
 		{
-			ProcessNode(node->mChildren[i], scene);
+			Entity* newEntity = new Entity();
+			newEntity->modelMatrix = aiMatrix4x4ToGlm(node->mTransformation);	// debug
+			newEntity->position = glm::vec3(i, i, i);
+			entity->children.push_back(newEntity);	// destroyed twice?
+			ProcessNode(newEntity, node->mChildren[i], scene);
 		}
 	}
 
@@ -163,11 +160,11 @@ private:
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 		// return a mesh object created from the extracted mesh data
-		Renderable renderable;
-		renderable.mesh = new Mesh(vertices, indices);
-		renderable.material = new Material();
-		renderable.material->AddTextures(textures);
-		return &renderable;
+		Renderable* renderable = new Renderable();
+		renderable->mesh = new Mesh(vertices, indices);
+		renderable->material = new Material();
+		renderable->material->AddTextures(textures);
+		return renderable;
 	}
 
 	// checks all material textures of a given type and loads the textures if they're not loaded yet.
@@ -253,6 +250,17 @@ public:
 		stbi_image_free(data);
 		
 		return textureID;
+	}
+
+	glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4 &from)
+	{
+		glm::mat4 to;
+		//the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
+		to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+		to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+		to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+		to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+		return to;
 	}
 };
 

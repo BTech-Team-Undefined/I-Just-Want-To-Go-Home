@@ -41,6 +41,16 @@ void RenderingSystem::RemoveRenderable(Renderable r)
 	// todo: implement 
 }
 
+void RenderingSystem::AddEntity(Entity e)
+{
+	this->entities.push_back(e);
+}
+
+void RenderingSystem::RemoveEntity(Entity e)
+{
+	// todo: implement
+}
+
 void RenderingSystem::SetCamera(Camera * camera)
 {
 	this->activeCamera = camera;
@@ -84,6 +94,12 @@ void RenderingSystem::RenderGeometryPass()
 		glDrawElements(GL_TRIANGLES, renderables[i].mesh->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
+	
+	// alternative 
+	for (int i = 0; i < entities.size(); i++)
+	{
+		RenderEntityGeometry(&entities[i], glm::mat4(1.0f));
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -107,6 +123,26 @@ void RenderingSystem::RenderGeometryPass()
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
+}
+
+void RenderingSystem::RenderEntityGeometry(Entity* e, glm::mat4 transform)
+{
+	auto model = e->modelMatrix * transform;
+	geometryShader->setMat4("u_Model", model);
+
+	for (int i = 0; i < e->renderables.size(); i++)
+	{
+		Renderable* r = e->renderables[i];
+		r->material->LoadMaterial(geometryShader, 0);
+		glBindVertexArray(r->mesh->VAO);
+		glDrawElements(GL_TRIANGLES, r->mesh->indices.size(), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+
+	for (int i = 0; i < e->children.size(); i++)
+	{
+		RenderEntityGeometry(e->children[i], model);
+	}
 }
 
 void RenderingSystem::RenderCompositionPass()

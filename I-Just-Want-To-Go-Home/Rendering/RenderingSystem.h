@@ -3,11 +3,13 @@
 #include <vector>
 #include "Renderable.h"
 #include "../Camera.h"
+#include "../Entity.h"
 
 class RenderingSystem
 {
 public:
 	std::vector<Renderable> renderables;
+	std::vector<Entity> entities; 
 	Camera* activeCamera; 
 	Shader* geometryShader;		// default geometry shader 
 	Shader* compositionShader;	// default composition shader 
@@ -21,12 +23,17 @@ public:
 	RenderingSystem();
 	~RenderingSystem();
 	void Update();
+	void SetCamera(Camera* camera);
+	// Tentative
 	void AddRenderable(Renderable r);
 	void RemoveRenderable(Renderable r);
-	void SetCamera(Camera* camera);
+	// Tentative (alternate)
+	void AddEntity(Entity e);
+	void RemoveEntity(Entity e);
 
 private: 
 	void RenderGeometryPass();
+	void RenderEntityGeometry(Entity* e, glm::mat4 transform);
 	void RenderCompositionPass();
 	void InitializeFrameBuffers();
 	void InitializeScreenQuad();
