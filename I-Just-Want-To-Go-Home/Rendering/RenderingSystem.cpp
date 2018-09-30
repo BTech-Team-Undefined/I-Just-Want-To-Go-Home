@@ -59,14 +59,25 @@ void RenderingSystem::RenderGeometryPass()
 	// begin rendering each renderable 
 	auto projection = activeCamera->GetProjectionMatrix();
 	auto view = activeCamera->GetViewMatrix();
+	geometryShader->setMat4("u_Projection", projection);
+	geometryShader->setMat4("u_View", view);
+
 	for (int i = 0; i < renderables.size(); i++)
 	{
 		auto model = renderables[i].GetModelMatrix();
-
 		geometryShader->setMat4("u_Model", model);
-		geometryShader->setMat4("u_View", view);
-		geometryShader->setMat4("u_Projection", projection);
 
+		// load settings 
+		/* 
+		if (renderables[i].shader != nullptr) 
+		{
+			renderables[i].shader->Use();
+		}
+		else 
+		{
+			geometryShader->Use();	// use default geometry shader 
+		}
+		*/
 		renderables[i].material->LoadMaterial(geometryShader, 0);	// 0 denotes the first free texture location
 		
 		glBindVertexArray(renderables[i].mesh->VAO);
