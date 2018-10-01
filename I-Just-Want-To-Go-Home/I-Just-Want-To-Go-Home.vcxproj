@@ -133,6 +133,7 @@
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Rendering\OpenGLProfiler.cpp" />
     <ClCompile Include="Rendering\Constants.cpp" />
     <ClCompile Include="Rendering\GeometryMaterial.cpp" />
     <ClCompile Include="includes\gl\glad.c" />
@@ -152,6 +153,7 @@
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="Rendering\OpenGLProfiler.h" />
     <ClInclude Include="Rendering\Constants.h" />
     <ClInclude Include="Rendering\GeometryMaterial.h" />
     <ClInclude Include="includes\gl\glad.h" />

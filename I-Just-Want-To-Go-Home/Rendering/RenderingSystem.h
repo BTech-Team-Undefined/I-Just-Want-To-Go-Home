@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "OpenGLProfiler.h"
 #include "Renderable.h"
 #include "../Camera.h"
 #include "../Entity.h"
@@ -15,6 +16,7 @@ public:
 	Shader* compositionShader;	// default composition shader 
 
 private:
+	OpenGLProfiler profiler;
 	unsigned int quadVAO;
 	unsigned int FBO, posTex, nrmTex, colTex, dphTex;
 	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };

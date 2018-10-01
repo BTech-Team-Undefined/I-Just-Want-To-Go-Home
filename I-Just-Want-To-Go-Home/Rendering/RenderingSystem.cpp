@@ -1,6 +1,7 @@
 #include "RenderingSystem.h"
 
 #include <iostream>
+#include <iomanip>
 #include "Shader.h"
 
 
@@ -15,6 +16,9 @@ RenderingSystem::RenderingSystem()
 	
 	// create a quad that covers the screen for the composition pass 
 	InitializeScreenQuad();
+
+	// create profiler 
+	profiler.InitializeTimers(2);	// 1 for each pass so far 
 }
 
 RenderingSystem::~RenderingSystem()
@@ -58,6 +62,8 @@ void RenderingSystem::SetCamera(Camera * camera)
 
 void RenderingSystem::RenderGeometryPass()
 {
+	profiler.StartTimer(0);
+
 	// 1. First pass - Geometry into gbuffers 
 	geometryShader->use();
 	// bind geometry frame buffers 
@@ -103,6 +109,10 @@ void RenderingSystem::RenderGeometryPass()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	profiler.StopTimer(0);
+
+	profiler.StartTimer(1);
+
 	// 2. Second pass - composition 
 	compositionShader->use();
 	compositionShader->setInt("u_PosTex", 0);	// set order 
@@ -123,6 +133,14 @@ void RenderingSystem::RenderGeometryPass()
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
+
+	profiler.StopTimer(1);
+
+	profiler.FrameFinish();
+	
+	std::cout << std::setprecision(2) 
+		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\t" 
+		<< "Composition Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\r" << std::flush;
 }
 
 void RenderingSystem::RenderEntityGeometry(Entity* e, glm::mat4 transform)
