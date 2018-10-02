@@ -5,15 +5,18 @@
 #include "Renderable.h"
 #include "../Camera.h"
 #include "../Entity.h"
+#include "Lighting\Light.h"
 
 class RenderingSystem
 {
 public:
 	std::vector<Renderable> renderables;
 	std::vector<Entity> entities; 
+	std::vector<Light*> lights;
 	Camera* activeCamera; 
 	Shader* geometryShader;		// default geometry shader 
 	Shader* compositionShader;	// default composition shader 
+	Shader* shadowmapShader;	// default shadowmap shader 
 
 private:
 	OpenGLProfiler profiler;
@@ -26,6 +29,10 @@ public:
 	~RenderingSystem();
 	void Update();
 	void SetCamera(Camera* camera);
+	void AddLight(Light* l)
+	{
+		lights.push_back(l);
+	}
 	// Tentative
 	void AddRenderable(Renderable r);
 	void RemoveRenderable(Renderable r);

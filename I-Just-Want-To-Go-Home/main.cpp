@@ -17,6 +17,8 @@
 #include "Camera.h"
 #include "Rendering\Shader.h"
 #include "Rendering\RenderingSystem.h"
+#include "Rendering\Lighting\Light.h"
+#include "Rendering\Lighting\DirectionalLight.h"
 #include "AssetLoader.h"
 
 
@@ -25,12 +27,12 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 const int MAX_LIGHTS = 32; 
-struct Light
+struct LightS
 {
 	glm::vec3 Position; 
 	glm::vec3 Color; 
 };
-std::vector<Light> lights;
+std::vector<LightS> lights;
 
 
 // Creates a texture and returns the ID 
@@ -232,6 +234,18 @@ int main(int argc, char* args[])
 		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	};
 
+	std::vector<Vertex> planeVertex = {
+		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
+		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
+		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
+		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
+	};
+
+	std::vector<unsigned int> planeIndex = {
+		2, 1, 0,
+		1, 2, 3,
+	};
+
 	// ===== INITIAILIZE SDL & OPENGL =====
 	
 	//The window we'll be rendering to
@@ -419,7 +433,7 @@ int main(int argc, char* args[])
 		float x = (float)std::rand() / (float)RAND_MAX;
 		float y = (float)std::rand() / (float)RAND_MAX;
 		float z = (float)std::rand() / (float)RAND_MAX;
-		Light light;
+		LightS light;
 		light.Position = glm::vec3(x * 8 - 4, y * 4 - 2, z * 10);
 		light.Color = glm::vec3(x, y, z);
 		lights.push_back(light);
@@ -470,13 +484,25 @@ int main(int argc, char* args[])
 		std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
 	}
 
+	auto r4 = Renderable();
+	r4.mesh = new Mesh(planeVertex, planeIndex);
+	r4.material = new Material();
+	r4.material->AddTexture(texture);
+	r4.position = glm::vec3(0, -2, -10);
+
 	renderingSystem.AddRenderable(r1);
 	renderingSystem.AddRenderable(r2);
+	renderingSystem.AddRenderable(r4);
 	
 	auto mesh1 = Mesh(cubeVertex, cubeIndex);
 	auto material1 = Material();
 	material1.AddTexture(texture);
 	material1.AddTexture(texture1);
+
+	// LIGHTING 
+	auto dl = new DirectionalLight();
+	dl->position = glm::vec3(4, 5, 4);
+	renderingSystem.AddLight(dl);
 
 
 	while (1)

@@ -21,5 +21,6 @@ public:
 	Renderable(Mesh* mesh, Material* material, Shader* shader);
 	~Renderable();
 	glm::mat4 GetModelMatrix();
+	
 };
 

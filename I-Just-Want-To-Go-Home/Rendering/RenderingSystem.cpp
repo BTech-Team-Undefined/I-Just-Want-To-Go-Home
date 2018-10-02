@@ -10,6 +10,7 @@ RenderingSystem::RenderingSystem()
 	// debug? initialize the composition shader 
 	 geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
 	 compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+	 shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 
 	// initialize frame buffers for geometry rendering pass 
 	InitializeFrameBuffers();
@@ -110,6 +111,23 @@ void RenderingSystem::RenderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	profiler.StopTimer(0);
+
+	// 2. Second pass - directional light shadow map 
+	for (int i = 0; i < lights.size(); i++)
+	{
+		lights[i]->PrepareShadowmap(shadowmapShader);
+		for (int i = 0; i < renderables.size(); i++)
+		{
+			shadowmapShader->setMat4("u_Model", renderables[i].GetModelMatrix());
+			glBindVertexArray(renderables[i].mesh->VAO);
+			glDrawElements(GL_TRIANGLES, renderables[i].mesh->indices.size(), GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+		}
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, 640, 480);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	profiler.StartTimer(1);
 
