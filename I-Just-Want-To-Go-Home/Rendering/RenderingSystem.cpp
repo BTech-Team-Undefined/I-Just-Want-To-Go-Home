@@ -112,7 +112,7 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(0);
 
-	// 2. Second pass - directional light shadow map 
+	// 2nd Pass - lighting shadow map   
 	for (int i = 0; i < lights.size(); i++)
 	{
 		lights[i]->PrepareShadowmap(shadowmapShader);
@@ -124,14 +124,13 @@ void RenderingSystem::RenderGeometryPass()
 			glBindVertexArray(0);
 		}
 	}
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, 640, 480);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	profiler.StartTimer(1);
 
-	// 2. Second pass - composition 
+	// 3rd pass - composition (w/ lighting + shadows)
 	compositionShader->use();
 	compositionShader->setInt("u_PosTex", 0);	// set order 
 	compositionShader->setInt("u_NrmTex", 1);
