@@ -32,6 +32,7 @@ uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_ViewPosition;
 // Shadows 
 uniform mat4 u_LightSpaceMatrix;    // todo: I need to do the shadow mapping calculations here (b/c i don't have a frag in vertex quad)
+uniform vec3 u_LightPos;
 
 float near = 0.1;
 float far  = 25.0; 
@@ -44,11 +45,14 @@ float ShadowCalculation(vec4 lightSpaceFrag)
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(u_ShadowMap, projCoords.xy).r; 
+    float closestDepth = texture(u_ShadowMap, projCoords.xy).x; 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
     float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    if (projCoords.z > 1.0)
+        shadow = 0.0;   // out of frustrum far plane
 
     return shadow;
 }
@@ -136,12 +140,26 @@ void main()
     // float depth = texture(u_DphTex, f_Uv).x;
         vec3 lightColor = vec3(1.0);
         // ambient
-        vec3 ambient = 0.10 * col;
+        vec3 ambient = (0.10 * col).rgb;
         // diffuse 
-        vec3 lightDir = normalize(u_LightPos - pos); 
-        float diff = max(dot(lightDir, nrm), 0.0);
+        // vec3 lightDir = normalize(u_LightPos - pos); 
+        float diff = 0.5; 
+        // max(dot(lightDir, nrm), 0.0);
         vec3 diffuse = diff * lightColor;
         // shadow 
-        float shadow = ShadowCalculation(f_LightPos)
+        float shadow = ShadowCalculation(vec4(pos, 1.0) * u_LightSpaceMatrix);
+        vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * col.rgb;   // not sure what this last * col is for. 
+        o_Col = vec4(lighting, 1.0);
+        
+        // float yup = texture(u_ShadowMap, f_Uv).r;
+        // o_Col = vec4(yup, yup, yup, 1.0);
+        // o_Col = vec4(shadow, shadow, shadow, 1.0);
+
+        // // o_Col = vec4(pos, 1.0);
+        // vec3 huh = (vec4(pos, 1.0) * u_LightSpaceMatrix).xyz;
+        // float hmm = huh.z;
+        // // float hmm = (vec4(pos, 1.0) * u_LightSpaceMatrix).z;
+        // o_Col = vec4(hmm, hmm, hmm, 1.0);
+        // // o_Col = vec4(huh, 1.0);
     }
 }

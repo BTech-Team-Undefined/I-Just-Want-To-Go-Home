@@ -424,7 +424,7 @@ int main(int argc, char* args[])
 
 	// ===== CAMERA ======
 	Camera cam(SCREEN_WIDTH / SCREEN_HEIGHT);
-
+	cam.position = glm::vec3(0, 0, 5);
 	
 	// ===== LIGHT CONFIG ====
 	float ambient = 1.0f;
@@ -467,22 +467,22 @@ int main(int argc, char* args[])
 	r1.mesh = new Mesh(cubeVertex, cubeIndex);
 	r1.material = new Material();
 	r1.material->AddTexture(texture);
-	r1.position = glm::vec3(-2, 0, -5);
+	r1.position = glm::vec3(-1.6, 0.5, -8);
 
 	auto r2 = Renderable();
 	r2.mesh = new Mesh(cubeVertex, cubeIndex);
 	r2.material = new Material();
 	r2.material->AddTexture(texture);
-	r2.position = glm::vec3(2, 0, -5);
+	r2.position = glm::vec3(2, 1.2, -6);
 	
-	auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	r3->position = glm::vec3(0, -1, -10);
-	r3->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, -20));
-	renderingSystem.AddEntity(*r3);
-	for (int i = 0; i < r3->children.size(); i++)
-	{
-		std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
-	}
+	//auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	//r3->position = glm::vec3(0, -1, -10);
+	//r3->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, -20));
+	//renderingSystem.AddEntity(*r3);
+	//for (int i = 0; i < r3->children.size(); i++)
+	//{
+	//	std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
+	//}
 
 	auto r4 = Renderable();
 	r4.mesh = new Mesh(planeVertex, planeIndex);
@@ -501,7 +501,7 @@ int main(int argc, char* args[])
 
 	// LIGHTING 
 	auto dl = new DirectionalLight();
-	dl->position = glm::vec3(4, 5, 4);
+	dl->position = glm::vec3(0, 7, -5);
 	renderingSystem.AddLight(dl);
 
 

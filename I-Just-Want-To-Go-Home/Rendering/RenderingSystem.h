@@ -6,6 +6,7 @@
 #include "../Camera.h"
 #include "../Entity.h"
 #include "Lighting\Light.h"
+#include "Lighting\DirectionalLight.h"
 
 class RenderingSystem
 {

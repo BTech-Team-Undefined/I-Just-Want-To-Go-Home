@@ -10,8 +10,6 @@ class DirectionalLight : public Light
 public:
 	GLuint FBO, TexId; 
 
-	glm::vec3 position;
-
 	DirectionalLight()
 	{
 		// Generate shadow map 
@@ -25,6 +23,8 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);	// make out of border unshadowed 
 
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, TexId, 0);
 
@@ -46,9 +46,9 @@ public:
 	virtual void PrepareShadowmap(Shader* shader)
 	{
 		glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 11.0f);
-		glm::mat4 view = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		// glm::mat4 view = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 view = glm::lookAt(position, position + glm::vec3(1,-5,1), glm::vec3(0.0, 1.0, 0.0));
 		glm::mat4 lightspace = projection * view; 
-
 		shader->use();
 		shader->setMat4("u_LightSpaceMatrix", lightspace);
 

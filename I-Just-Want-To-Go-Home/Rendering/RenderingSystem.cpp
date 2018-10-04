@@ -136,6 +136,7 @@ void RenderingSystem::RenderGeometryPass()
 	compositionShader->setInt("u_NrmTex", 1);
 	compositionShader->setInt("u_ColTex", 2);
 	compositionShader->setInt("u_DphTex", 3);
+	compositionShader->setInt("u_ShadowMap", 4);
 
 	// enable the sampler2D shader variables 
 	glActiveTexture(GL_TEXTURE0);
@@ -146,6 +147,17 @@ void RenderingSystem::RenderGeometryPass()
 	glBindTexture(GL_TEXTURE_2D, colTex);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
+	
+	for (int i = 0; i < lights.size(); i++)
+	{
+		glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 11.0f);
+		glm::mat4 view = glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(1, -5, 1), glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 lightspace = projection * view;
+		compositionShader->setVec3("u_LightPos", lights[i]->position);
+		compositionShader->setMat4("u_LightSpaceMatrix", lightspace);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*lights[i]).TexId);
+	}
 
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
