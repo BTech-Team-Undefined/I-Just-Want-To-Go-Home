@@ -17,8 +17,8 @@ int main( int argc, char* args[] )
 	//component test
 	Entity* e = new Entity();
 	e->AddComponent<Transform>();
-	printf("%d\n\n\n", e->GetComponent<Transform>()->GetTest());
-
+	printf("%d", e->GetComponent<Transform>()->GetTest());
+	e->RemoveComponent<Transform>();
 
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
