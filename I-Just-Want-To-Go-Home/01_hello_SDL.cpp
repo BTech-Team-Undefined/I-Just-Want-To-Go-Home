@@ -15,10 +15,16 @@ const int SCREEN_HEIGHT = 480;
 int main( int argc, char* args[] )
 {
 	//component test
-	Entity* e = new Entity();
+	std::shared_ptr<Entity> e = std::shared_ptr<Entity>(new Entity());
 	e->AddComponent<Transform>();
 	printf("%d", e->GetComponent<Transform>()->GetTest());
+	e->GetComponent<Transform>()->GetEntity()->RemoveComponent<Transform>();
 	e->RemoveComponent<Transform>();
+	auto  a = e->GetComponent<Transform>();
+	if (a == nullptr)
+	{
+		int asd = 0;
+	}
 
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;

@@ -1,9 +1,12 @@
 #pragma once
+#include <memory>
+
+class Entity;
 
 class Component
 {
 public:
-	Component() = default;
+	Component(Entity* e) :_entity(e) {};
 	virtual ~Component() {};
 	virtual Component& operator=(const Component&) = delete;  // Disallow copying
 	Component(const Component&) = delete;
@@ -11,7 +14,9 @@ public:
 	virtual void Update(float dt) = 0;
 	virtual void Draw() = 0;
 	void Kill() { _isAlive = false; }
+	Entity* GetEntity() { return _entity; }
 
 private:
 	bool _isAlive = true;
+	Entity* _entity;
 };
