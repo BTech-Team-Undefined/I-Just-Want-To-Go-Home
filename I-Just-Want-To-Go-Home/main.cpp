@@ -20,6 +20,8 @@
 #include "Rendering\Shader.h"
 #include "Rendering\Renderable.h"
 #include "Rendering\RenderingSystem.h"
+#include "Rendering\Lighting\Light.h"
+#include "Rendering\Lighting\DirectionalLight.h"
 #include "AssetLoader.h"
 
 
@@ -28,12 +30,12 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 const int MAX_LIGHTS = 32; 
-struct Light
+struct LightS
 {
 	glm::vec3 Position; 
 	glm::vec3 Color; 
 };
-std::vector<Light> lights;
+std::vector<LightS> lights;
 
 
 // Creates a texture and returns the ID 
@@ -192,18 +194,6 @@ int main(int argc, char* args[])
 		Vertex(-1, -1, -1, 0, 0,  0,-1, 0), // 23
 	};
 
-	std::vector<Vertex> planeVertex = {
-		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
-		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
-		Vertex(10, 0,  10, 1, 1,  0, 1, 0), // 2
-		Vertex(10, 0, -10, 1, 0,  0, 1, 0), // 3
-	};
-
-	std::vector<unsigned int> planeIndex = {
-		2, 1, 0,
-		1, 2, 3,
-	};
-
 	std::vector<unsigned int> cubeIndex = {
 		// Front
 		0, 1, 2,
@@ -245,6 +235,18 @@ int main(int argc, char* args[])
 		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
 		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+	};
+
+	std::vector<Vertex> planeVertex = {
+		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
+		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
+		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
+		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
+	};
+
+	std::vector<unsigned int> planeIndex = {
+		2, 1, 0,
+		1, 2, 3,
 	};
 
 	// ===== INITIAILIZE SDL & OPENGL =====
@@ -425,7 +427,7 @@ int main(int argc, char* args[])
 
 	// ===== CAMERA ======
 	Camera cam(SCREEN_WIDTH / SCREEN_HEIGHT);
-
+	cam.position = glm::vec3(0, 0, 5);
 	
 	// ===== LIGHT CONFIG ====
 	float ambient = 1.0f;
@@ -434,7 +436,7 @@ int main(int argc, char* args[])
 		float x = (float)std::rand() / (float)RAND_MAX;
 		float y = (float)std::rand() / (float)RAND_MAX;
 		float z = (float)std::rand() / (float)RAND_MAX;
-		Light light;
+		LightS light;
 		light.Position = glm::vec3(x * 8 - 4, y * 4 - 2, z * 10);
 		light.Color = glm::vec3(x, y, z);
 		lights.push_back(light);
@@ -497,11 +499,25 @@ int main(int argc, char* args[])
 	auto e3 = new Entity();
 	e3->AddComponent<RenderComponent>();
 	e3->GetComponent<RenderComponent>()->renderables.push_back(r2);
-	e3->position = glm::vec3(0, -1, -5);
+	e3->position = glm::vec3(0, -2, -5);
+
+	auto e4 = new Entity();
+	e4->AddComponent<RenderComponent>();
+	e4->GetComponent<RenderComponent>()->renderables.push_back(r1);
+	e4->position = glm::vec3(2, 0, -2);
 
 	renderingSystem.AddRenderable(e1->GetComponent<RenderComponent>());
 	renderingSystem.AddRenderable(e2->GetComponent<RenderComponent>());
 	renderingSystem.AddRenderable(e3->GetComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e4->GetComponent<RenderComponent>());
+
+	// LIGHTING 
+	auto eLight = new Entity();
+	eLight->AddComponent<DirectionalLight>();
+	// eLight->GetComponent<DirectionalLight>();
+	eLight->position = glm::vec3(3, 3, -7);
+	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(30.0f), 0);
+	renderingSystem.AddLight(eLight->GetComponent<DirectionalLight>());
 
 	//auto r1 = Renderable();
 	//r1.mesh = new Mesh(cubeVertex, cubeIndex);

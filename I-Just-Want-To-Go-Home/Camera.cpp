@@ -28,4 +28,6 @@ glm::mat4 Camera::GetViewMatrix()
 	v = glm::rotate(v, rotation.y, glm::vec3(0, 1, 0));
 	v = glm::rotate(v, rotation.x, glm::vec3(1, 0, 0));
 	return glm::inverse(v);
+	// return glm::lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+
 }

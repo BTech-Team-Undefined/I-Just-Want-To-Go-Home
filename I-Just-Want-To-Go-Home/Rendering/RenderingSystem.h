@@ -5,14 +5,18 @@
 #include "Renderable.h"
 #include "RenderComponent.h"
 #include "../Camera.h"
+#include "Lighting\Light.h"
+#include "Lighting\DirectionalLight.h"
 
 class RenderingSystem
 {
 public:
 	std::vector<std::shared_ptr<RenderComponent>> components;
+	std::vector<std::shared_ptr<Light>> lights;
 	Camera* activeCamera; 
 	Shader* geometryShader;		// default geometry shader 
 	Shader* compositionShader;	// default composition shader 
+	Shader* shadowmapShader;	// default shadowmap shader 
 
 private:
 	OpenGLProfiler profiler;
@@ -25,6 +29,10 @@ public:
 	~RenderingSystem();
 	void Update();
 	void SetCamera(Camera* camera);
+	void AddLight(std::shared_ptr<Light> l)
+	{
+		lights.push_back(l);
+	}
 	// Tentative
 	void AddRenderable(std::shared_ptr<RenderComponent> rc);
 	void RemoveRenderable(std::shared_ptr<RenderComponent> rc);

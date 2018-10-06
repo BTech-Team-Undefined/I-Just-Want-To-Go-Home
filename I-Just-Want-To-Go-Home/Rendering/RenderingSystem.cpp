@@ -10,6 +10,7 @@ RenderingSystem::RenderingSystem()
 	// debug? initialize the composition shader 
 	 geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
 	 compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+	 shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 
 	// initialize frame buffers for geometry rendering pass 
 	InitializeFrameBuffers();
@@ -18,7 +19,7 @@ RenderingSystem::RenderingSystem()
 	InitializeScreenQuad();
 
 	// create profiler 
-	profiler.InitializeTimers(2);	// 1 for each pass so far 
+	profiler.InitializeTimers(3);	// 1 for each pass so far 
 }
 
 RenderingSystem::~RenderingSystem()
@@ -52,9 +53,10 @@ void RenderingSystem::RemoveRenderable(std::shared_ptr<RenderComponent> rc)
 
 void RenderingSystem::RenderGeometryPass()
 {
-	profiler.StartTimer(0);
 
 	// 1. First pass - Geometry into gbuffers 
+	profiler.StartTimer(0);
+
 	geometryShader->use();
 	// bind geometry frame buffers 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -95,14 +97,50 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(0);
 
+
+	// 2nd Pass - lighting shadow map   
 	profiler.StartTimer(1);
 
-	// 2. Second pass - composition 
+	for (int i = 0; i < lights.size(); i++)
+	{
+		shadowmapShader->use();
+		shadowmapShader->setMat4("u_LightSpaceMatrix", lights[i]->getLightSpaceMatrix());
+		lights[i]->PrepareShadowmap(shadowmapShader);
+
+		// go thru each component 
+		for (int i = 0; i < components.size(); i++)
+		{
+			auto rc = components[i];
+			auto model = rc->GetEntity()->getWorldTransformation();		// this can be optimized 
+			shadowmapShader->setMat4("u_Model", model);
+
+			// go thru each renderable package 
+			for (int i = 0; i < rc->renderables.size(); i++)
+			{
+				auto r = rc->renderables[i];
+				glBindVertexArray(r->mesh->VAO);
+				glDrawElements(GL_TRIANGLES, r->mesh->indices.size(), GL_UNSIGNED_INT, 0);
+				glBindVertexArray(0);
+			}
+		}
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, 640, 480);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	profiler.StopTimer(1);
+
+
+	// 3rd pass - composision
+	profiler.StartTimer(2);
+	
 	compositionShader->use();
 	compositionShader->setInt("u_PosTex", 0);	// set order 
 	compositionShader->setInt("u_NrmTex", 1);
 	compositionShader->setInt("u_ColTex", 2);
 	compositionShader->setInt("u_DphTex", 3);
+	compositionShader->setInt("u_ShadowMap", 4);
 
 	// enable the sampler2D shader variables 
 	glActiveTexture(GL_TEXTURE0);
@@ -113,18 +151,27 @@ void RenderingSystem::RenderGeometryPass()
 	glBindTexture(GL_TEXTURE_2D, colTex);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
+	
+	for (int i = 0; i < lights.size(); i++)
+	{
+		compositionShader->setVec3("u_LightPos", lights[i]->GetEntity()->position);
+		compositionShader->setMat4("u_LightSpaceMatrix", lights[i]->getLightSpaceMatrix());
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*lights[i]).TexId);
+	}
 
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 
-	profiler.StopTimer(1);
+	profiler.StopTimer(2);
 
 	profiler.FrameFinish();
 	
 	std::cout << std::setprecision(2) 
 		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\t" 
-		<< "Composition Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\r" << std::flush;
+		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\t"
+		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\r" << std::flush;
 }
 
 void RenderingSystem::DrawComponent(RenderComponent* component)

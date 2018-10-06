@@ -133,6 +133,8 @@
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="Rendering\RenderComponent.cpp" />
+    <ClCompile Include="Rendering\Lighting\DirectionalLight.cpp" />
+    <ClCompile Include="Rendering\Lighting\Light.cpp" />
     <ClCompile Include="Rendering\OpenGLProfiler.cpp" />
     <ClCompile Include="Rendering\Constants.cpp" />
     <ClCompile Include="Rendering\GeometryMaterial.cpp" />
@@ -153,6 +155,8 @@
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />
+    <ClInclude Include="Rendering\Lighting\DirectionalLight.h" />
+    <ClInclude Include="Rendering\Lighting\Light.h" />
     <ClInclude Include="Rendering\OpenGLProfiler.h" />
     <ClInclude Include="Rendering\Constants.h" />
     <ClInclude Include="Rendering\GeometryMaterial.h" />
