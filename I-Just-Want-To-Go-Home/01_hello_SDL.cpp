@@ -16,11 +16,11 @@ int main( int argc, char* args[] )
 {
 	//component test
 	std::shared_ptr<Entity> e = std::shared_ptr<Entity>(new Entity());
-	e->AddComponent<Transform>();
-	printf("%d", e->GetComponent<Transform>()->GetTest());
-	e->GetComponent<Transform>()->GetEntity()->RemoveComponent<Transform>();
-	e->RemoveComponent<Transform>();
-	auto  a = e->GetComponent<Transform>();
+	e->addComponent<Transform>();
+	printf("%d", e->getComponent<Transform>()->GetTest());
+	e->getComponent<Transform>()->GetEntity()->removeComponent<Transform>();
+	e->removeComponent<Transform>();
+	auto  a = e->getComponent<Transform>();
 	if (a == nullptr)
 	{
 		int asd = 0;

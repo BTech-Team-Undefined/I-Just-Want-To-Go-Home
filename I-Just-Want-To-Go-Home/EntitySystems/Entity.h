@@ -16,37 +16,46 @@ public:
 	glm::vec3 rotation; 
 	glm::vec3 scale; 
 	
+	unsigned int getID() { return _id; }
 	//Adds a component 
 	template<class T>
-	void AddComponent() { _components[typeid(T)] = std::shared_ptr<T>(new T(this)); }
+	void addComponent() { _components[typeid(T)] = std::shared_ptr<T>(new T(this)); }
 	//todo make components in isolation set Entity later in add.
 	template<class T>
-	std::shared_ptr<T> GetComponent() { return std::static_pointer_cast<T>(_components[typeid(T)]); }
+	std::shared_ptr<T> getComponent() { return std::static_pointer_cast<T>(_components[typeid(T)]); }
 	template<class T>
-	void RemoveComponent() 
+	void removeComponent() 
 	{
-		if (GetComponent<T>() != nullptr)
+		if (getComponent<T>() != nullptr)
 		{
-			GetComponent<T>()->Kill();
+			getComponent<T>()->Kill();
 			_components.erase(typeid(T));
 		}
 	}
-	void setParent(std::weak_ptr<Entity> parent)
+	void setParent(Entity* parent)
 	{
 		_parent = parent;
-		_parent->addChild(this);//nani sore
-
+		_parent->addChild(this);
 	}
-	std::weak_ptr<Entity> getParent() { return _parent; }
-	void addChild(std::weak_ptr<Entity> child)
+	Entity* getParent() { return _parent; }
+	void addChild(Entity* child)
 	{
-		child->setParent(this);//also wtf
+		child->setParent(this);
 		_children.push_back(child);
+	}
+	//returns child with id
+	Entity* getChild(unsigned int id) { return *std::find(_children.begin(), _children.end(), [id](Entity* e) {e->getID == id; }); }
+	//removes child with id
+	void removeChild(unsigned int id) 
+	{
+		auto t = std::find(_children.begin(), _children.end(), [id](Entity* e) {e->getID == id; });
+		(*t)->setParent(nullptr);
+		_children.erase(t);
 	}
 
 private:
-	unsigned int id = 0;
+	unsigned int _id = 0;
 	std::unordered_map <std::type_index, std::shared_ptr<Component>> _components;
-	std::vector<std::weak_ptr<Entity>> _children;
-	std::weak_ptr<Entity> _parent;
+	std::vector<Entity*> _children;
+	Entity* _parent;
 };
