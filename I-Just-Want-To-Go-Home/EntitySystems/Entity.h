@@ -31,8 +31,22 @@ public:
 			_components.erase(typeid(T));
 		}
 	}
+	void setParent(std::weak_ptr<Entity> parent)
+	{
+		_parent = parent;
+		_parent->addChild(this);//nani sore
+
+	}
+	std::weak_ptr<Entity> getParent() { return _parent; }
+	void addChild(std::weak_ptr<Entity> child)
+	{
+		child->setParent(this);//also wtf
+		_children.push_back(child);
+	}
+
 private:
 	unsigned int id = 0;
 	std::unordered_map <std::type_index, std::shared_ptr<Component>> _components;
-	std::vector<std::unique_ptr<Entity>> _children;
+	std::vector<std::weak_ptr<Entity>> _children;
+	std::weak_ptr<Entity> _parent;
 };
