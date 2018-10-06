@@ -35,29 +35,19 @@ void RenderingSystem::Update()
 	RenderGeometryPass();
 }
 
-void RenderingSystem::AddRenderable(Renderable r)
-{
-	this->renderables.push_back(r);
-}
-
-void RenderingSystem::RemoveRenderable(Renderable r)
-{
-	// todo: implement 
-}
-
-void RenderingSystem::AddEntity(Entity e)
-{
-	this->entities.push_back(e);
-}
-
-void RenderingSystem::RemoveEntity(Entity e)
-{
-	// todo: implement
-}
-
 void RenderingSystem::SetCamera(Camera * camera)
 {
 	this->activeCamera = camera;
+}
+
+void RenderingSystem::AddRenderable(std::shared_ptr<RenderComponent> rc)
+{
+	this->components.push_back(rc);
+}
+
+void RenderingSystem::RemoveRenderable(std::shared_ptr<RenderComponent> rc)
+{
+	std::cerr << "ERROR: RemoveRenderable() is not implemented yet" << std::endl;
 }
 
 void RenderingSystem::RenderGeometryPass()
@@ -69,7 +59,6 @@ void RenderingSystem::RenderGeometryPass()
 	// bind geometry frame buffers 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	glDrawBuffers(3, attachments);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// begin rendering each renderable 
@@ -78,35 +67,30 @@ void RenderingSystem::RenderGeometryPass()
 	geometryShader->setMat4("u_Projection", projection);
 	geometryShader->setMat4("u_View", view);
 
-	for (int i = 0; i < renderables.size(); i++)
+	// go thru each component 
+	for (int i = 0; i < components.size(); i++)
 	{
-		auto model = renderables[i].GetModelMatrix();
+		auto rc = components[i];
+		auto model = rc->GetEntity()->getWorldTransformation();		// this can be optimized 
 		geometryShader->setMat4("u_Model", model);
 
-		// load settings 
-		/* 
-		if (renderables[i].shader != nullptr) 
+		// go thru each renderable package 
+		for (int i = 0; i < rc->renderables.size(); i++)
 		{
-			renderables[i].shader->Use();
+			auto r = rc->renderables[i];
+			r->material->LoadMaterial(geometryShader, 0);
+			glBindVertexArray(r->mesh->VAO);
+			glDrawElements(GL_TRIANGLES, r->mesh->indices.size(), GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+			/* Proper way
+			if (custom shader has been set) then
+				shader use
+				shader set model 
+				load material (shader) 
+				load mesh () 
+			*/
 		}
-		else 
-		{
-			geometryShader->Use();	// use default geometry shader 
-		}
-		*/
-		renderables[i].material->LoadMaterial(geometryShader, 0);	// 0 denotes the first free texture location
-		
-		glBindVertexArray(renderables[i].mesh->VAO);
-		glDrawElements(GL_TRIANGLES, renderables[i].mesh->indices.size(), GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
 	}
-	
-	// alternative 
-	for (int i = 0; i < entities.size(); i++)
-	{
-		RenderEntityGeometry(&entities[i], glm::mat4(1.0f));
-	}
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	profiler.StopTimer(0);
@@ -143,23 +127,14 @@ void RenderingSystem::RenderGeometryPass()
 		<< "Composition Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\r" << std::flush;
 }
 
-void RenderingSystem::RenderEntityGeometry(Entity* e, glm::mat4 transform)
+void RenderingSystem::DrawComponent(RenderComponent* component)
 {
-	auto model = e->modelMatrix * transform;
-	geometryShader->setMat4("u_Model", model);
+	glm::mat4 model = component->GetEntity()->getWorldTransformation();
 
-	for (int i = 0; i < e->renderables.size(); i++)
+	for (int i = 0; i < component->renderables.size(); i++)
 	{
-		Renderable* r = e->renderables[i];
-		r->material->LoadMaterial(geometryShader, 0);
-		glBindVertexArray(r->mesh->VAO);
-		glDrawElements(GL_TRIANGLES, r->mesh->indices.size(), GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-	}
-
-	for (int i = 0; i < e->children.size(); i++)
-	{
-		RenderEntityGeometry(e->children[i], model);
+		auto r = component->renderables[i];
+		
 	}
 }
 
@@ -244,6 +219,8 @@ void RenderingSystem::InitializeScreenQuad()
 
 	glBindVertexArray(0);
 }
+
+
 
 /* Notes:
 

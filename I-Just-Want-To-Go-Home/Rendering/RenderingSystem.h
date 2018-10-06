@@ -3,14 +3,13 @@
 #include <vector>
 #include "OpenGLProfiler.h"
 #include "Renderable.h"
+#include "RenderComponent.h"
 #include "../Camera.h"
-#include "../Entity.h"
 
 class RenderingSystem
 {
 public:
-	std::vector<Renderable> renderables;
-	std::vector<Entity> entities; 
+	std::vector<std::shared_ptr<RenderComponent>> components;
 	Camera* activeCamera; 
 	Shader* geometryShader;		// default geometry shader 
 	Shader* compositionShader;	// default composition shader 
@@ -27,11 +26,8 @@ public:
 	void Update();
 	void SetCamera(Camera* camera);
 	// Tentative
-	void AddRenderable(Renderable r);
-	void RemoveRenderable(Renderable r);
-	// Tentative (alternate)
-	void AddEntity(Entity e);
-	void RemoveEntity(Entity e);
+	void AddRenderable(std::shared_ptr<RenderComponent> rc);
+	void RemoveRenderable(std::shared_ptr<RenderComponent> rc);
 
 private: 
 	void RenderGeometryPass();
@@ -39,5 +35,6 @@ private:
 	void RenderCompositionPass();
 	void InitializeFrameBuffers();
 	void InitializeScreenQuad();
+	void DrawComponent(RenderComponent* component);
 };
 

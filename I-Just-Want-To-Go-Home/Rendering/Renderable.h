@@ -9,17 +9,18 @@
 class Renderable
 {
 public:
-	Mesh* mesh; 
-	Material* material;
-	Shader* shader;
-	
-	// (this should be in transform)
-	glm::vec3 position;	// hardcoded for now 
+	std::shared_ptr<Mesh> mesh;
+	std::shared_ptr<Material> material;
+	std::shared_ptr<Shader> shader;
 
 public:
-	Renderable();
-	Renderable(Mesh* mesh, Material* material, Shader* shader);
-	~Renderable();
-	glm::mat4 GetModelMatrix();
+	Renderable() {};
+	Renderable(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, std::shared_ptr<Shader> shader)
+	{
+		this->mesh = mesh;
+		this->material = material;
+		this->shader = shader;
+	}
+	~Renderable() {};
 };
 

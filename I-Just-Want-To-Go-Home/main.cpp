@@ -15,7 +15,10 @@
 #include <glm\gtc\type_ptr.hpp>
 // Custom objects 
 #include "Camera.h"
+#include "EntitySystems\Entity.h"
+#include "EntitySystems\Component.h"
 #include "Rendering\Shader.h"
+#include "Rendering\Renderable.h"
 #include "Rendering\RenderingSystem.h"
 #include "AssetLoader.h"
 
@@ -187,6 +190,18 @@ int main(int argc, char* args[])
 		Vertex(1, -1,  1, 1, 1,  0,-1, 0), // 21
 		Vertex(-1, -1,  1, 0, 1,  0,-1, 0), // 22
 		Vertex(-1, -1, -1, 0, 0,  0,-1, 0), // 23
+	};
+
+	std::vector<Vertex> planeVertex = {
+		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
+		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
+		Vertex(10, 0,  10, 1, 1,  0, 1, 0), // 2
+		Vertex(10, 0, -10, 1, 0,  0, 1, 0), // 3
+	};
+
+	std::vector<unsigned int> planeIndex = {
+		2, 1, 0,
+		1, 2, 3,
 	};
 
 	std::vector<unsigned int> cubeIndex = {
@@ -449,34 +464,73 @@ int main(int argc, char* args[])
 
 	std::cout << "Loaded texture with id: " << texture.id << std::endl;
 
-	auto r1 = Renderable();
-	r1.mesh = new Mesh(cubeVertex, cubeIndex);
-	r1.material = new Material();
-	r1.material->AddTexture(texture);
-	r1.position = glm::vec3(-2, 0, -5);
 
-	auto r2 = Renderable();
-	r2.mesh = new Mesh(cubeVertex, cubeIndex);
-	r2.material = new Material();
-	r2.material->AddTexture(texture);
-	r2.position = glm::vec3(2, 0, -5);
-	
-	auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	r3->position = glm::vec3(0, -1, -10);
-	r3->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, -20));
-	renderingSystem.AddEntity(*r3);
-	for (int i = 0; i < r3->children.size(); i++)
-	{
-		std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
-	}
+	// create mesh 
+	auto mesh1 = std::make_shared<Mesh>(cubeVertex, cubeIndex);
+	auto mesh2 = std::make_shared<Mesh>(planeVertex, planeIndex);
+	// create materials 
+	auto material1 = std::make_shared<Material>();
+	material1->AddTexture(texture);
+	// create shaders
+	// (not created, use default shaders) 
 
-	renderingSystem.AddRenderable(r1);
-	renderingSystem.AddRenderable(r2);
-	
-	auto mesh1 = Mesh(cubeVertex, cubeIndex);
-	auto material1 = Material();
-	material1.AddTexture(texture);
-	material1.AddTexture(texture1);
+	// create renderables packages 
+	auto r1 = std::make_shared<Renderable>();	// cube 
+	r1->mesh = mesh1;
+	r1->material = material1;
+	auto r2 = std::make_shared<Renderable>();	// plane 
+	r2->mesh = mesh2;
+	r2->material = material1;
+
+	// create entities 
+	auto e1 = new Entity();
+	e1->AddComponent<RenderComponent>();
+	auto rc1 = e1->GetComponent<RenderComponent>();
+	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
+	e1->position = glm::vec3(-2, 0, -5);
+
+	auto e2 = new Entity();
+	e2->AddComponent<RenderComponent>();
+	e2->GetComponent<RenderComponent>()->renderables.push_back(r1);
+	e2->position = glm::vec3(2, 0, -5);
+
+	auto e3 = new Entity();
+	e3->AddComponent<RenderComponent>();
+	e3->GetComponent<RenderComponent>()->renderables.push_back(r2);
+	e3->position = glm::vec3(0, -1, -5);
+
+	renderingSystem.AddRenderable(e1->GetComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e2->GetComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e3->GetComponent<RenderComponent>());
+
+	//auto r1 = Renderable();
+	//r1.mesh = new Mesh(cubeVertex, cubeIndex);
+	//r1.material = new Material();
+	//r1.material->AddTexture(texture);
+	//r1.position = glm::vec3(-2, 0, -5);
+
+	//auto r2 = Renderable();
+	//r2.mesh = new Mesh(cubeVertex, cubeIndex);
+	//r2.material = new Material();
+	//r2.material->AddTexture(texture);
+	//r2.position = glm::vec3(2, 0, -5);
+	//
+	//auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	//r3->position = glm::vec3(0, -1, -10);
+	//r3->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, -20));
+	//renderingSystem.AddEntity(*r3);
+	//for (int i = 0; i < r3->children.size(); i++)
+	//{
+	//	std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
+	//}
+
+	//renderingSystem.AddRenderable(r1);
+	//renderingSystem.AddRenderable(r2);
+	//
+	//auto mesh1 = Mesh(cubeVertex, cubeIndex);
+	//auto material1 = Material();
+	//material1.AddTexture(texture);
+	//material1.AddTexture(texture1);
 
 
 	while (1)

@@ -7,7 +7,6 @@
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
 #include <stb\stb_image.h>
-#include "Entity.h"
 #include "Rendering\Renderable.h"
 #include "Rendering\Material.h"
 #include "Rendering\Mesh.h"
@@ -18,9 +17,10 @@
 class AssetLoader
 {
 public:
-	AssetLoader();
-	~AssetLoader();
+	AssetLoader() {};
+	~AssetLoader() {};
 
+	/*
 	Entity* LoadModel(const std::string& path)
 	{
 		// read file via assimp 
@@ -45,12 +45,14 @@ public:
 
 		return rootEntity;
 	}
+	*/
 
 private:
 	std::vector<TextureInfo> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 	std::vector<Mesh> meshes;
 	std::vector<Renderable*> renderables; 
 	std::string directory;
+	/*
 	std::vector<Entity> entities; 
 
 
@@ -204,6 +206,7 @@ private:
 		}
 		return textures;
 	}
+	*/
 
 	
 public:

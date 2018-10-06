@@ -51,15 +51,29 @@
     <ClCompile Include="Rendering\Constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Entity.cpp">
+    <ClCompile Include="Rendering\OpenGLProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\OpenGLProfiler.cpp">
+    <ClCompile Include="Rendering\RenderComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EntitySystems\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EntitySystems\Component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EntitySystems\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -93,9 +107,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Constants.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\OpenGLProfiler.h">

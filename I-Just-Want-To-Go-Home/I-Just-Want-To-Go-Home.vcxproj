@@ -132,7 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
-    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Rendering\RenderComponent.cpp" />
     <ClCompile Include="Rendering\OpenGLProfiler.cpp" />
     <ClCompile Include="Rendering\Constants.cpp" />
     <ClCompile Include="Rendering\GeometryMaterial.cpp" />
@@ -152,7 +152,7 @@
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Entity.h" />
+    <ClInclude Include="Rendering\RenderComponent.h" />
     <ClInclude Include="Rendering\OpenGLProfiler.h" />
     <ClInclude Include="Rendering\Constants.h" />
     <ClInclude Include="Rendering\GeometryMaterial.h" />
@@ -163,6 +163,11 @@
     <ClInclude Include="Rendering\Mesh.h" />
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EntitySystems\Component.h" />
+    <ClInclude Include="EntitySystems\Entity.h" />
+    <ClInclude Include="EntitySystems\Transform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
