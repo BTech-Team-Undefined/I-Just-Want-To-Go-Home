@@ -34,14 +34,20 @@ public:
 	}
 	void setParent(Entity* parent)
 	{
-		_parent = parent;
-		_parent->addChild(this);
+		if (_parent != parent)
+		{
+			_parent = parent;
+			_parent->addChild(this);
+		}
 	}
 	Entity* getParent() const { return _parent; }
 	void addChild(Entity* child)
 	{
-		child->setParent(this);
-		_children.push_back(child);
+		if (std::find_if(_children.begin(), _children.end(), [child](const Entity* e) { return e->getID() == child->getID(); }) == _children.end())
+		{
+			child->setParent(this);
+			_children.push_back(child);
+		}
 	}
 	//returns child with id
 	Entity* getChild(unsigned int id) const { return *std::find_if(_children.begin(), _children.end(), [&id](const Entity* e) { return e->getID() == id; }); }
