@@ -16,7 +16,7 @@ public:
 	glm::vec3 rotation; 
 	glm::vec3 scale; 
 	
-	unsigned int getID() { return _id; }
+	unsigned int getID() const { return _id; }
 	//Adds a component 
 	template<class T>
 	void addComponent() { _components[typeid(T)] = std::shared_ptr<T>(new T(this)); }
@@ -37,18 +37,19 @@ public:
 		_parent = parent;
 		_parent->addChild(this);
 	}
-	Entity* getParent() { return _parent; }
+	Entity* getParent() const { return _parent; }
 	void addChild(Entity* child)
 	{
 		child->setParent(this);
 		_children.push_back(child);
 	}
 	//returns child with id
-	Entity* getChild(unsigned int id) { return *std::find(_children.begin(), _children.end(), [id](Entity* e) {e->getID == id; }); }
+	Entity* getChild(unsigned int id) const { return *std::find_if(_children.begin(), _children.end(), [&id](const Entity* e) { return e->getID() == id; }); }
+	std::vector<Entity*>& getChildren() { return _children; }
 	//removes child with id
 	void removeChild(unsigned int id) 
 	{
-		auto t = std::find(_children.begin(), _children.end(), [id](Entity* e) {e->getID == id; });
+		auto t = std::find_if(_children.begin(), _children.end(), [&id](const Entity* e) { return e->getID() == id; });
 		(*t)->setParent(nullptr);
 		_children.erase(t);
 	}
