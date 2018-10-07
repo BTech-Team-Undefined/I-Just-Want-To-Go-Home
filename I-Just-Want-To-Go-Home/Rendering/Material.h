@@ -32,7 +32,7 @@ protected:
 	// Shader* shader;						
 
 	/// Textures that this material has 
-	std::vector<TextureInfo> textures; 
+	std::vector<TextureInfo> textures;	// todo: use shared pointers for automatic gc 
 	// std::pair<std::string, unsigned int> textures; 
 
 	/// Stores uniform values in the form of vector 3.
@@ -67,16 +67,15 @@ public:
 	virtual int LoadMaterial(const Shader* shader, unsigned int texStartLoc);
 
 	/// <summary>
+	/// WARNING: DEPRECATED - Use AssetLoader LoadTexture instead. 
 	/// Loads a texture from path.
 	/// </summary>
 	/// <return>True if success, false if failed.</return>
 	bool LoadTexture(const char* uniform, const char* path);
 
-
 	void AddTexture(TextureInfo info);
 
 	void AddTextures(std::vector<TextureInfo> infos);
-
 
 	void SetVec3(const char* uniform, glm::vec3 value);
 

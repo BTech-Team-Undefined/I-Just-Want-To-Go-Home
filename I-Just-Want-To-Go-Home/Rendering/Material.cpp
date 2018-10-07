@@ -18,12 +18,7 @@ Material::~Material()
 
 void Material::LoadMaterial(const Shader* shader)
 {
-	// implement in derived class 
-	std::cerr << "This function hasn't been implemented yet" << std::endl;
-}
-
-int Material::LoadMaterial(const Shader* shader, unsigned int pos)
-{
+	// load all uniform data 
 	for (auto& elem : uniformsVec3)
 	{
 		shader->setVec3(elem.first, elem.second);
@@ -38,7 +33,13 @@ int Material::LoadMaterial(const Shader* shader, unsigned int pos)
 	{
 		shader->setInt(elem.first, elem.second);
 	}
+}
 
+int Material::LoadMaterial(const Shader* shader, unsigned int pos)
+{
+	// load uniform data
+	LoadMaterial(shader);
+	// load texture data 
 	for (int i = 0; i < textures.size(); i++)
 	{
 		// Set the uniform to point to texture 

@@ -152,17 +152,24 @@ void RenderingSystem::RenderGeometryPass()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glDisable(GL_DEPTH_TEST);
+
 	for (int i = 0; i < lights.size(); i++)
 	{
 		compositionShader->setVec3("u_LightPos", lights[i]->GetEntity()->position);
 		compositionShader->setMat4("u_LightSpaceMatrix", lights[i]->getLightSpaceMatrix());
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*lights[i]).TexId);
+	
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
 	}
 
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 
 	profiler.StopTimer(2);
 

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <gl\glad.h>
 #include <glm\glm.hpp>
+#include <glm\gtc\quaternion.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 #include "Light.h"
 #include "../../EntitySystems/Entity.h"
 
@@ -70,8 +72,8 @@ public:
 	glm::mat4 getLightSpaceMatrix() override
 	{
 		glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
-		glm::mat4 view = glm::lookAt(GetEntity()->position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		//glm::mat4 view = glm::inverse(GetEntity()->getWorldTransformation());
+		//glm::mat4 view = glm::lookAt(GetEntity()->position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 view = GetEntity()->getWorldTransformation();
 		return projection * view;
 	}
 };

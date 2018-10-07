@@ -3,7 +3,6 @@
 
 // { x y z | u v | nx ny nz }
 
-
 Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> idx)
 {
 	// tracking 

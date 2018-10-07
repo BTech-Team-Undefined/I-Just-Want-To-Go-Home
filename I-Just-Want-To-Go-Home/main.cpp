@@ -490,11 +490,13 @@ int main(int argc, char* args[])
 	auto rc1 = e1->GetComponent<RenderComponent>();
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 0, -5);
+	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
 	auto e2 = new Entity();
 	e2->AddComponent<RenderComponent>();
 	e2->GetComponent<RenderComponent>()->renderables.push_back(r1);
 	e2->position = glm::vec3(2, 0, -5);
+	e2->rotation = glm::vec3(0, glm::radians(45.0f), 0);
 
 	auto e3 = new Entity();
 	e3->AddComponent<RenderComponent>();
@@ -514,39 +516,15 @@ int main(int argc, char* args[])
 	// LIGHTING 
 	auto eLight = new Entity();
 	eLight->AddComponent<DirectionalLight>();
-	// eLight->GetComponent<DirectionalLight>();
 	eLight->position = glm::vec3(3, 3, -7);
-	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(30.0f), 0);
+	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
 	renderingSystem.AddLight(eLight->GetComponent<DirectionalLight>());
 
-	//auto r1 = Renderable();
-	//r1.mesh = new Mesh(cubeVertex, cubeIndex);
-	//r1.material = new Material();
-	//r1.material->AddTexture(texture);
-	//r1.position = glm::vec3(-2, 0, -5);
-
-	//auto r2 = Renderable();
-	//r2.mesh = new Mesh(cubeVertex, cubeIndex);
-	//r2.material = new Material();
-	//r2.material->AddTexture(texture);
-	//r2.position = glm::vec3(2, 0, -5);
-	//
-	//auto r3 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	//r3->position = glm::vec3(0, -1, -10);
-	//r3->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, -10, -20));
-	//renderingSystem.AddEntity(*r3);
-	//for (int i = 0; i < r3->children.size(); i++)
-	//{
-	//	std::cout << i << ":" << r3->children[i]->renderables.size() << std::endl;
-	//}
-
-	//renderingSystem.AddRenderable(r1);
-	//renderingSystem.AddRenderable(r2);
-	//
-	//auto mesh1 = Mesh(cubeVertex, cubeIndex);
-	//auto material1 = Material();
-	//material1.AddTexture(texture);
-	//material1.AddTexture(texture1);
+	auto eLight2 = new Entity();
+	eLight2->AddComponent<DirectionalLight>();
+	eLight2->position = glm::vec3(-3, 3, -7);
+	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
+	renderingSystem.AddLight(eLight2->GetComponent<DirectionalLight>());
 
 
 	while (1)
