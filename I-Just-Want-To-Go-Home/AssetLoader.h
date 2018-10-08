@@ -29,7 +29,7 @@ public:
 		// read file via assimp 
 		Assimp::Importer importer; 
 		const aiScene* scene = importer.ReadFile(path, 
-			aiProcess_Triangulate | aiProcess_FlipUVs);
+			aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 		// check for errors 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -46,16 +46,16 @@ public:
 		Entity* rootEntity = new Entity();
 		ProcessNode(rootEntity, scene->mRootNode, scene);
 
+		// cleanup and return 
+		this->directory = "";
 		return rootEntity;
 	}
 
 private:
+	// todo: vector of weak pointers 
 	std::vector<TextureInfo> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 												// currently this works on a per model basis (i.e textures shared between models or reloading a model will not be optimized)
-	std::vector<Mesh> meshes;
-	std::vector<Renderable*> renderables; 
 	std::string directory;
-	std::vector<Entity> entities; 
 
 	void ProcessNode(Entity* entity, aiNode* node, const aiScene* scene)
 	{
@@ -121,16 +121,16 @@ private:
 			{
 				vertex.Uv = glm::vec2(0.0f, 0.0f);
 			}
-			//// tangent
-			//vector.x = mesh->mTangents[i].x;
-			//vector.y = mesh->mTangents[i].y;
-			//vector.z = mesh->mTangents[i].z;
-			//vertex.Tangent = vector;
-			//// bitangent
-			//vector.x = mesh->mBitangents[i].x;
-			//vector.y = mesh->mBitangents[i].y;
-			//vector.z = mesh->mBitangents[i].z;
-			//vertex.Bitangent = vector;
+			// tangent
+			vector.x = mesh->mTangents[i].x;
+			vector.y = mesh->mTangents[i].y;
+			vector.z = mesh->mTangents[i].z;
+			vertex.Tangent = vector;
+			// bitangent
+			vector.x = mesh->mBitangents[i].x;
+			vector.y = mesh->mBitangents[i].y;
+			vector.z = mesh->mBitangents[i].z;
+			vertex.Bitangent = vector;
 			vertices.push_back(vertex);
 		}
 
@@ -216,6 +216,8 @@ private:
 public:
 	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false)
 	{
+		std::cout << "Loading texture name: " << path << std::endl;
+
 		std::string filename = directory + '/' + std::string(path);
 
 		// read image file 

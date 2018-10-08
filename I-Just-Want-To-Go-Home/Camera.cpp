@@ -17,7 +17,7 @@ Camera::~Camera()
 
 glm::mat4 Camera::GetProjectionMatrix()
 {
-	return glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 25.0f);
+	return glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 50.0f);
 }
 
 glm::mat4 Camera::GetViewMatrix()

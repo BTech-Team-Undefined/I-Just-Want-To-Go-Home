@@ -1,8 +1,10 @@
 #version 450 core 
 
-layout (location = 0) in vec3 i_Pos; 
-layout (location = 1) in vec2 i_Uv; 
-layout (location = 2) in vec3 i_Nrm; 
+layout (location = 0) in vec3 i_Pos;	// position
+layout (location = 1) in vec2 i_Uv;		// texture coordinates 
+layout (location = 2) in vec3 i_Nrm;	// normal 
+layout (location = 3) in vec3 i_Tan;	// tangent 
+layout (location = 4) in vec3 i_Btn;	// bitangent
 
 out vec3 f_Pos; 
 out vec2 f_Uv; 

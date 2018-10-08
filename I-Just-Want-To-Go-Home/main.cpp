@@ -511,19 +511,25 @@ int main(int argc, char* args[])
 
 	// e1->addChild(e4);
 
-	auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	e5->position = glm::vec3(0, -10, -20);
-	std::vector<std::shared_ptr<RenderComponent>> e5components; 
-	e5->getComponents<RenderComponent>(e5components);
+	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	//e5->position = glm::vec3(0, -10, -20);
+	//std::vector<std::shared_ptr<RenderComponent>> e5components; 
+	//e5->getComponents<RenderComponent>(e5components);
+
+	auto e6 = loader.LoadModel("Models/tank/M11_39.obj");
+	e6->position = glm::vec3(2, -2, -5);
+	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	std::vector<std::shared_ptr<RenderComponent>> e6components;
+	e6->getComponents<RenderComponent>(e6components);
 	
-	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
-	for (int i = 0; i < e5components.size(); i++)
-	{
-		renderingSystem.AddRenderable(e5components[i]);
-	}
+	//renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
+	//renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
+	//renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
+	//renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
+	//for (int i = 0; i < e5components.size(); i++)
+	//	renderingSystem.AddRenderable(e5components[i]);
+	for (int i = 0; i < e6components.size(); i++)
+		renderingSystem.AddRenderable(e6components[i]);
 
 	// LIGHTING 
 	auto eLight = new Entity();

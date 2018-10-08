@@ -26,6 +26,12 @@ Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> idx)
 	// normal attribute 
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Normal)));
 	glEnableVertexAttribArray(2);
+	// tangent attribute  
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Tangent)));
+	glEnableVertexAttribArray(3);
+	// bitangent attribute 
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Bitangent)));
+	glEnableVertexAttribArray(4);
 
 	unsigned int EBO;
 	glGenBuffers(1, &EBO);
