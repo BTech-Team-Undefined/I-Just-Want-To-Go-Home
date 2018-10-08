@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "I-Just-Want-To-Go-Home", "I-Just-Want-To-Go-Home\I-Just-Want-To-Go-Home.vcxproj", "{4B6144D8-A164-4BCC-9CD0-52C3332B01F5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "I-Just-Want-To-Go-Home-Tests", "I-Just-Want-To-Go-Home-Tests\I-Just-Want-To-Go-Home-Tests.vcxproj", "{415B44DE-1495-4344-BD1C-C51B3E8DF959}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{4B6144D8-A164-4BCC-9CD0-52C3332B01F5}.Release|x64.Build.0 = Release|x64
 		{4B6144D8-A164-4BCC-9CD0-52C3332B01F5}.Release|x86.ActiveCfg = Release|Win32
 		{4B6144D8-A164-4BCC-9CD0-52C3332B01F5}.Release|x86.Build.0 = Release|Win32
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Debug|x64.ActiveCfg = Debug|x64
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Debug|x64.Build.0 = Debug|x64
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Debug|x86.ActiveCfg = Debug|Win32
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Debug|x86.Build.0 = Debug|Win32
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Release|x64.ActiveCfg = Release|x64
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Release|x64.Build.0 = Release|x64
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Release|x86.ActiveCfg = Release|Win32
+		{415B44DE-1495-4344-BD1C-C51B3E8DF959}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
