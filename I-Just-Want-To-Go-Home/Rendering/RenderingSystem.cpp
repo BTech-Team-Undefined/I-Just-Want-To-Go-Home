@@ -8,12 +8,12 @@
 RenderingSystem::RenderingSystem()
 {
 	// debug? initialize the composition shader 
-	 geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
-	 compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
-	 shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
+	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
+	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 
 	// initialize frame buffers for geometry rendering pass 
-	InitializeFrameBuffers();
+	// InitializeFrameBuffers(); waiting for screen size
 	
 	// create a quad that covers the screen for the composition pass 
 	InitializeScreenQuad();
@@ -26,14 +26,40 @@ RenderingSystem::~RenderingSystem()
 {
 }
 
+void RenderingSystem::SetSize(unsigned int width, unsigned int height)
+{
+	if (width == 0 || height == 0)
+	{
+		std::cerr << "ERROR: Screen size cannot be 0" << std::endl;
+		return;
+	}
+
+	screenWidth = width;
+	screenHeight = height;
+	InitializeFrameBuffers();
+}
+
 void RenderingSystem::Update()
 {
-	// Draw everything 
+	// Cleanup 
 	glClearDepth(1.0f);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	RenderGeometryPass();
+	// check for valid state 
+	if (screenWidth == 0 || screenHeight == 0)
+	{
+		std::cerr << "ERROR: Screen dimensions are 0" << std::endl;
+		return;
+	}
+	else if (activeCamera == nullptr)
+	{
+		std::cerr << "ERROR: No camera has been set for rendering" << std::endl;
+		return;
+	}
+
+	// draw everything
+	RenderGeometryPass();	// this actually does all the passes at the moment
 }
 
 void RenderingSystem::SetCamera(Camera * camera)
@@ -126,7 +152,7 @@ void RenderingSystem::RenderGeometryPass()
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, 640, 480);
+	glViewport(0, 0, screenWidth, screenHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	profiler.StopTimer(1);
@@ -196,41 +222,43 @@ void RenderingSystem::RenderCompositionPass()
 {
 }
 
+// initializes a framebuffer object for deferred rendering
 void RenderingSystem::InitializeFrameBuffers()
 {
-	// TODO: DEBUG
-	const int SCREEN_WIDTH = 640;
-	const int SCREEN_HEIGHT = 480;
+	// cleanup any previous FBO 
+	if (FBO != 0)
+	{
+		glDeleteFramebuffers(1, new unsigned int[1] { FBO });
+	}
 
-	// ===== FBO FOR DEFERRED RENDERING =====
 	// initialize frame buffer object 
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	// position texture 
 	glGenTextures(1, &posTex);
 	glBindTexture(GL_TEXTURE_2D, posTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, posTex, 0);
 	// normal texture 
 	glGenTextures(1, &nrmTex);
 	glBindTexture(GL_TEXTURE_2D, nrmTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, nrmTex, 0);
 	// color (albedo) texture
 	glGenTextures(1, &colTex);
 	glBindTexture(GL_TEXTURE_2D, colTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, colTex, 0);
 	// depth texture (create as texture so we can read from it) 
 	glGenTextures(1, &dphTex);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, screenWidth, screenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dphTex, 0);

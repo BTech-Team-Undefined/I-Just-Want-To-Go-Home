@@ -27,8 +27,8 @@
 
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
 
 const int MAX_LIGHTS = 32; 
 struct LightS
@@ -427,9 +427,13 @@ int main(int argc, char* args[])
 
 
 	// ===== CAMERA ======
-	Camera cam(SCREEN_WIDTH / SCREEN_HEIGHT);
-	cam.position = glm::vec3(0, 0, 5);
-	
+	auto eCam = new Entity();
+	eCam->position = glm::vec3(0, 0, 5);
+	eCam->addComponent<Camera>();
+	auto cam = eCam->getComponent<Camera>();
+	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+	cam->fov = 45.0f;
+
 	// ===== LIGHT CONFIG ====
 	float ambient = 1.0f;
 	for (int i = 0; i < MAX_LIGHTS; i++)
@@ -452,7 +456,8 @@ int main(int argc, char* args[])
 
 
 	RenderingSystem renderingSystem = RenderingSystem();
-	renderingSystem.SetCamera(&cam);
+	renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
 	
 	auto loader = AssetLoader();
 	TextureInfo texture;

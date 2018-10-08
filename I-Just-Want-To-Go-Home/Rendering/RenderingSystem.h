@@ -23,10 +23,12 @@ private:
 	unsigned int quadVAO;
 	unsigned int FBO, posTex, nrmTex, colTex, dphTex;
 	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	unsigned int screenWidth, screenHeight; 
 
 public:
 	RenderingSystem();
 	~RenderingSystem();
+	void SetSize(unsigned int width, unsigned int height);
 	void Update();
 	void SetCamera(Camera* camera);
 	void AddLight(std::shared_ptr<Light> l)
