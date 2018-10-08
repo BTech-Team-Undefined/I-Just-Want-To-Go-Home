@@ -3,14 +3,18 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
 #include <stb\stb_image.h>
-#include "Rendering\Renderable.h"
 #include "Rendering\Material.h"
 #include "Rendering\Mesh.h"
+#include "Rendering\Renderable.h"
+#include "Rendering\RenderComponent.h"
 #include "Rendering\Constants.h"
+#include "EntitySystems\Entity.h"
+#include "EntitySystems\Component.h"
 
 // Model loading adapted from tutorial https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/model.h
 
@@ -19,8 +23,7 @@ class AssetLoader
 public:
 	AssetLoader() {};
 	~AssetLoader() {};
-
-	/*
+	
 	Entity* LoadModel(const std::string& path)
 	{
 		// read file via assimp 
@@ -45,42 +48,44 @@ public:
 
 		return rootEntity;
 	}
-	*/
 
 private:
 	std::vector<TextureInfo> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+												// currently this works on a per model basis (i.e textures shared between models or reloading a model will not be optimized)
 	std::vector<Mesh> meshes;
 	std::vector<Renderable*> renderables; 
 	std::string directory;
-	/*
 	std::vector<Entity> entities; 
-
 
 	void ProcessNode(Entity* entity, aiNode* node, const aiScene* scene)
 	{
-		// process each mesh located at the current node
-		for (unsigned int i = 0; i < node->mNumMeshes; i++)
+		// check if there is anything to draw for this node 
+		if (node->mNumMeshes > 0)
 		{
-			// the node object only contains indices to index the actual objects in the scene. 
-			// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			auto r = Processmesh(mesh, scene);
-			entity->renderables.push_back(r);
-			// meshes.push_back(Processmesh(mesh, scene));
+			// add a render component 
+			entity->addComponent<RenderComponent>();
+			// process each mesh located at the current node & add renderable packages 
+			for (unsigned int i = 0; i < node->mNumMeshes; i++)
+			{
+				// the node object only contains indices to index the actual objects in the scene. 
+				// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
+				aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+				auto r = Processmesh(mesh, scene);
+				entity->getComponent<RenderComponent>()->addRenderable(r);
+			}
 		}
 
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 		for (unsigned int i = 0; i < node->mNumChildren; i++)
 		{
 			Entity* newEntity = new Entity();
-			newEntity->modelMatrix = aiMatrix4x4ToGlm(node->mTransformation);	// debug
-			newEntity->position = glm::vec3(i, i, i);
-			entity->children.push_back(newEntity);	// destroyed twice?
+			newEntity->setLocalTransform(aiMatrix4x4ToGlm(node->mTransformation));
+			entity->addChild(newEntity);
 			ProcessNode(newEntity, node->mChildren[i], scene);
 		}
 	}
 
-	Renderable* Processmesh(aiMesh* mesh, const aiScene* scene)
+	std::shared_ptr<Renderable> Processmesh(aiMesh* mesh, const aiScene* scene)
 	{
 		// data to fill
 		std::vector<Vertex> vertices;
@@ -162,9 +167,9 @@ private:
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 		// return a mesh object created from the extracted mesh data
-		Renderable* renderable = new Renderable();
-		renderable->mesh = new Mesh(vertices, indices);
-		renderable->material = new Material();
+		std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
+		renderable->mesh = std::make_shared<Mesh>(vertices, indices);
+		renderable->material = std::make_shared<Material>();
 		renderable->material->AddTextures(textures);
 		return renderable;
 	}
@@ -206,7 +211,6 @@ private:
 		}
 		return textures;
 	}
-	*/
 
 	
 public:

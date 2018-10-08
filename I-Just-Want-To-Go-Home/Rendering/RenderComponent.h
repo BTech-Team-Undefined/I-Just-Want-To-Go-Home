@@ -20,5 +20,10 @@ public:
 
 	virtual void Update(float dt) {};
 	virtual void Draw() {};
+
+	void addRenderable(std::shared_ptr<Renderable> r)
+	{
+		renderables.push_back(r);
+	}
 };
 

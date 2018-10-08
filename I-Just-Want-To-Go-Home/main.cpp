@@ -1,3 +1,4 @@
+
 // System 
 #include <stdio.h>
 #include <iostream>
@@ -486,45 +487,56 @@ int main(int argc, char* args[])
 
 	// create entities 
 	auto e1 = new Entity();
-	e1->AddComponent<RenderComponent>();
-	auto rc1 = e1->GetComponent<RenderComponent>();
+	e1->addComponent<RenderComponent>();
+	auto rc1 = e1->getComponent<RenderComponent>();
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 0, -5);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
 	auto e2 = new Entity();
-	e2->AddComponent<RenderComponent>();
-	e2->GetComponent<RenderComponent>()->renderables.push_back(r1);
+	e2->addComponent<RenderComponent>();
+	e2->getComponent<RenderComponent>()->renderables.push_back(r1);
 	e2->position = glm::vec3(2, 0, -5);
 	e2->rotation = glm::vec3(0, glm::radians(45.0f), 0);
 
 	auto e3 = new Entity();
-	e3->AddComponent<RenderComponent>();
-	e3->GetComponent<RenderComponent>()->renderables.push_back(r2);
+	e3->addComponent<RenderComponent>();
+	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
 	e3->position = glm::vec3(0, -2, -5);
 
 	auto e4 = new Entity();
-	e4->AddComponent<RenderComponent>();
-	e4->GetComponent<RenderComponent>()->renderables.push_back(r1);
+	e4->addComponent<RenderComponent>();
+	e4->getComponent<RenderComponent>()->renderables.push_back(r1);
 	e4->position = glm::vec3(2, 0, -2);
 
-	renderingSystem.AddRenderable(e1->GetComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e2->GetComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e3->GetComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e4->GetComponent<RenderComponent>());
+	// e1->addChild(e4);
+
+	auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
+	e5->position = glm::vec3(0, -10, -20);
+	std::vector<std::shared_ptr<RenderComponent>> e5components; 
+	e5->getComponents<RenderComponent>(e5components);
+	
+	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
+	for (int i = 0; i < e5components.size(); i++)
+	{
+		renderingSystem.AddRenderable(e5components[i]);
+	}
 
 	// LIGHTING 
 	auto eLight = new Entity();
-	eLight->AddComponent<DirectionalLight>();
+	eLight->addComponent<DirectionalLight>();
 	eLight->position = glm::vec3(3, 3, -7);
 	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
-	renderingSystem.AddLight(eLight->GetComponent<DirectionalLight>());
+	renderingSystem.AddLight(eLight->getComponent<DirectionalLight>());
 
 	auto eLight2 = new Entity();
-	eLight2->AddComponent<DirectionalLight>();
+	eLight2->addComponent<DirectionalLight>();
 	eLight2->position = glm::vec3(-3, 3, -7);
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
-	renderingSystem.AddLight(eLight2->GetComponent<DirectionalLight>());
+	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
 
 
 	while (1)
