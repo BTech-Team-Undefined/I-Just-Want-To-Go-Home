@@ -72,3 +72,6 @@ private:
 	}
 };
 
+/* Notes:
+Details on the functions here http://www.lighthouse3d.com/tutorials/opengl-timer-query/
+*/

@@ -132,6 +132,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
+    <ClCompile Include="Rendering\PlaneMesh.cpp" />
+    <ClCompile Include="Rendering\CubeMesh.cpp" />
     <ClCompile Include="Rendering\RenderComponent.cpp" />
     <ClCompile Include="Rendering\Lighting\DirectionalLight.cpp" />
     <ClCompile Include="Rendering\Lighting\Light.cpp" />
@@ -154,6 +156,8 @@
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Rendering\PlaneMesh.h" />
+    <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />
     <ClInclude Include="Rendering\Lighting\DirectionalLight.h" />
     <ClInclude Include="Rendering\Lighting\Light.h" />

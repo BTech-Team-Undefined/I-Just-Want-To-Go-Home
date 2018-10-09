@@ -23,6 +23,9 @@
 #include "Rendering\RenderingSystem.h"
 #include "Rendering\Lighting\Light.h"
 #include "Rendering\Lighting\DirectionalLight.h"
+#include "Rendering\Mesh.h"
+#include "Rendering\CubeMesh.h"
+#include "Rendering\PlaneMesh.h"
 #include "AssetLoader.h"
 
 
@@ -30,226 +33,8 @@
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
-const int MAX_LIGHTS = 32; 
-struct LightS
-{
-	glm::vec3 Position; 
-	glm::vec3 Color; 
-};
-std::vector<LightS> lights;
-
-
-// Creates a texture and returns the ID 
-unsigned int LoadTexture(const char* texturePath)
-{
-	// https://learnopengl.com/Getting-started/Textures
-
-	// read image file 
-	int width, height, nrChannels;	// nrchannels 3 rgb, 4 rgba
-	unsigned char* data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
-	stbi_set_flip_vertically_on_load(true);
-
-	if (data == NULL)
-	{
-		std::cout << "Failed to load texture: " << texturePath << std::endl;
-		return -1;
-	}
-
-	// generate opengl texture 
-	unsigned int texId;
-	glGenTextures(1, &texId);
-	glBindTexture(GL_TEXTURE_2D, texId);
-	// set texture wrap/filter options (these are all default values)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load source image to opengl 
-	glTexImage2D(
-		GL_TEXTURE_2D,		// for 2D texture (not 1D or 3D)
-		0,					// manual mipmap level. 0 for default.
-		GL_RGB,				// data format. our albedo does not support alpha.
-		width,				// width of texture 
-		height,				// height of texture 
-		0,					// legacy. always set to 0.
-		GL_RGB,				// data format of source. jpg has no alpha.
-		GL_UNSIGNED_BYTE,	// data format of source. stbi_load reads as bytes. 
-		data				// data source. 
-	);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// free source 
-	stbi_image_free(data);
-
-	return texId;
-}
-
-#include "Rendering\Mesh.h"
 int main(int argc, char* args[])
 {
-	// Debug data 
-	// 192
-	float cubeVertices[] = {
-		// x y z, u v, nx ny nz
-
-		// Front
-		 1, -1,  1, 1, 0,  0, 0, 1, // 0
-		 1,  1,  1, 1, 1,  0, 0, 1, // 1
-		-1,  1,  1, 0, 1,  0, 0, 1, // 2
-		-1, -1,  1, 0, 0,  0, 0, 1, // 3
-
-		// Back
-		-1, -1, -1, 1, 0,  0, 0,-1, // 4
-		-1,  1, -1, 1, 1,  0, 0,-1, // 5
-		 1,  1, -1, 0, 1,  0, 0,-1, // 6
-		 1, -1, -1, 0, 0,  0, 0,-1, // 7
-
-		// Left
-		-1, -1,  1, 1, 0, -1, 0, 0, // 8
-		-1,  1,  1, 1, 1, -1, 0, 0, // 9
-		-1,  1, -1, 0, 1, -1, 0, 0, // 10
-		-1, -1, -1, 0, 0, -1, 0, 0, // 11
-
-		// Right 
-		 1, -1, -1, 1, 0,  1, 0, 0, // 12
-		 1,  1, -1, 1, 1,  1, 0, 0, // 13
-		 1,  1,  1, 0, 1,  1, 0, 0, // 14
-		 1, -1,  1, 0, 0,  1, 0, 0, // 15
-
-		// Top 
-		 1,  1,  1, 1, 0,  0, 1, 0, // 16
-		 1,  1, -1, 1, 1,  0, 1, 0, // 17
-		-1,  1, -1, 0, 1,  0, 1, 0, // 18
-		-1,  1,  1, 0, 0,  0, 1, 0, // 19
-
-		// Bottom
-		 1, -1, -1, 1, 0,  0,-1, 0, // 20
-		 1, -1,  1, 1, 1,  0,-1, 0, // 21
-		-1, -1,  1, 0, 1,  0,-1, 0, // 22
-		-1, -1, -1, 0, 0,  0,-1, 0, // 23
-	};
-
-	//36
-	unsigned int cubeIndices[] = {
-		// Front
-		0, 1, 2,
-		2, 3, 0,
-
-		// Back
-		4, 5, 6,
-		6, 7, 4,
-
-		// Left
-		8, 9, 10,
-		10, 11, 8,
-
-		// Right
-		12, 13, 14,
-		14, 15, 12,
-
-		// Top
-		16, 17, 18,
-		18, 19, 16,
-
-		// Bottom
-		20, 21, 22,
-		22, 23, 20
-	};
-
-	std::vector<Vertex> cubeVertex = {
-		// Front
-		Vertex(1, -1,  1, 1, 0,  0, 0, 1), // 0
-		Vertex(1,  1,  1, 1, 1,  0, 0, 1), // 1
-		Vertex(-1,  1,  1, 0, 1,  0, 0, 1), // 2
-		Vertex(-1, -1,  1, 0, 0,  0, 0, 1), // 3
-
-		// Back
-		Vertex(-1, -1, -1, 1, 0,  0, 0,-1), // 4
-		Vertex(-1,  1, -1, 1, 1,  0, 0,-1), // 5
-		Vertex(1,  1, -1, 0, 1,  0, 0,-1), // 6
-		Vertex(1, -1, -1, 0, 0,  0, 0,-1), // 7
-
-		// Left
-		Vertex(-1, -1,  1, 1, 0, -1, 0, 0), // 8
-		Vertex(-1,  1,  1, 1, 1, -1, 0, 0), // 9
-		Vertex(-1,  1, -1, 0, 1, -1, 0, 0), // 10
-		Vertex(-1, -1, -1, 0, 0, -1, 0, 0), // 11
-
-		// Right 				 
-		Vertex(1, -1, -1, 1, 0,  1, 0, 0), // 12
-		Vertex(1,  1, -1, 1, 1,  1, 0, 0), // 13
-		Vertex(1,  1,  1, 0, 1,  1, 0, 0), // 14
-		Vertex(1, -1,  1, 0, 0,  1, 0, 0), // 15
-
-		// Top
-		Vertex(1,  1,  1, 1, 0,  0, 1, 0), // 16
-		Vertex(1,  1, -1, 1, 1,  0, 1, 0), // 17
-		Vertex(-1,  1, -1, 0, 1,  0, 1, 0), // 18
-		Vertex(-1,  1,  1, 0, 0,  0, 1, 0), // 19
-
-		// Bottom
-		Vertex(1, -1, -1, 1, 0,  0,-1, 0), // 20
-		Vertex(1, -1,  1, 1, 1,  0,-1, 0), // 21
-		Vertex(-1, -1,  1, 0, 1,  0,-1, 0), // 22
-		Vertex(-1, -1, -1, 0, 0,  0,-1, 0), // 23
-	};
-
-	std::vector<unsigned int> cubeIndex = {
-		// Front
-		0, 1, 2,
-		2, 3, 0,
-
-		// Back
-		4, 5, 6,
-		6, 7, 4,
-
-		// Left
-		8, 9, 10,
-		10, 11, 8,
-
-		// Right
-		12, 13, 14,
-		14, 15, 12,
-
-		// Top
-		16, 17, 18,
-		18, 19, 16,
-
-		// Bottom
-		20, 21, 22,
-		22, 23, 20
-	};
-
-	glm::vec3 cubePositions[] = {
-		glm::vec3(2,0,-5),
-		glm::vec3(-2,0,-5),
-		glm::vec3(1,2,-7),
-		glm::vec3(-1,-2,-8),
-		glm::vec3(-2,-2,-16),
-		glm::vec3(2, 2,-20)
-	};
-
-	float quadVertices[] = {
-		// positions        // texture Coords
-		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-	};
-
-	std::vector<Vertex> planeVertex = {
-		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
-		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
-		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
-		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
-	};
-
-	std::vector<unsigned int> planeIndex = {
-		2, 1, 0,
-		1, 2, 3,
-	};
-
 	// ===== INITIAILIZE SDL & OPENGL =====
 	
 	//The window we'll be rendering to
@@ -304,127 +89,14 @@ int main(int argc, char* args[])
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	// ===== SHADER CREATION ======
-	Shader* geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
-	Shader* compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+	// ===== PERFORMANCE MEASUREMENTS =====
+	// This is only to measure CPU performance. For GPU use OpenGLProfiler. 
+	std::chrono::high_resolution_clock::time_point startRenderingTime;
+	std::chrono::high_resolution_clock::time_point endRenderingTime;
 
-
-	// ===== VAO FOR CUBE =====
-	// create VAO for a simple cube 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	// create vertex data buffer
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-	// enable position data 
-	glEnableVertexAttribArray(0);	// enable the variable in the shader 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	// enable uv data 
-	glEnableVertexAttribArray(1);	
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	// enable normal data 
-	glEnableVertexAttribArray(2);	
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-
-	// create index buffer 
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
-
-	// create albedo texture 
-	unsigned int cubeColTex = LoadTexture("textures/brickwall.jpg");
-	unsigned int cubeNrmTex = LoadTexture("textures/brickwall_normal.jpg");
-
-	// unbind - finished 
-	glBindVertexArray(0);
-
-
-	// ===== VAO FOR QUAD ======
-	// create VAO for a simple cube 
-	unsigned int quadVAO;
-	glGenVertexArrays(1, &quadVAO);
-	glBindVertexArray(quadVAO);
-	unsigned int quadVBO;
-	glGenBuffers(1, &quadVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);	// reference?
-	// enable position data 
-	glEnableVertexAttribArray(0);	// enable the variable in the shader 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	// enable uv data 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	// unbind - finished 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-
-	// ===== FBO FOR DEFERRED RENDERING =====
-	// initialize frame buffer object 
-	unsigned int FBO;
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	// create textures
-	// position texture 
-	unsigned int posTex, nrmTex, colTex, dphTex;
-	glGenTextures(1, &posTex);
-	glBindTexture(GL_TEXTURE_2D, posTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, posTex, 0);
-	// normal texture 
-	glGenTextures(1, &nrmTex);
-	glBindTexture(GL_TEXTURE_2D, nrmTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, nrmTex, 0);
-	// color (albedo) texture
-	glGenTextures(1, &colTex);
-	glBindTexture(GL_TEXTURE_2D, colTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, colTex, 0);
-	// depth texture (create as texture so we can read from it) 
-	glGenTextures(1, &dphTex);
-	glBindTexture(GL_TEXTURE_2D, dphTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dphTex, 0);
-
-	// Create our render targets. Order in array determines order for shader layout = #. 
-	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, attachments);
-
-	// create depth buffer (you could also make this a texture)
-	//unsigned int RBO;
-	//glGenRenderbuffers(1, &RBO);
-	//glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
-
-	// check if FBO is ok 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cerr << "OPENGL: Failed to create FBO. GL ERROR: " << glGetError() << std::endl;
-		return 4;
-	}
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	/* ===== RENDERING DOCUMENTATION =====
+	Check Rendering/DOCUMENTATION.txt
+	*/
 
 	// ===== CAMERA ======
 	auto eCam = new Entity();
@@ -432,34 +104,16 @@ int main(int argc, char* args[])
 	eCam->addComponent<Camera>();
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-	cam->fov = 45.0f;
+	cam->fov = 60.0f;
 
-	// ===== LIGHT CONFIG ====
-	float ambient = 1.0f;
-	for (int i = 0; i < MAX_LIGHTS; i++)
-	{
-		float x = (float)std::rand() / (float)RAND_MAX;
-		float y = (float)std::rand() / (float)RAND_MAX;
-		float z = (float)std::rand() / (float)RAND_MAX;
-		LightS light;
-		light.Position = glm::vec3(x * 8 - 4, y * 4 - 2, z * 10);
-		light.Color = glm::vec3(x, y, z);
-		lights.push_back(light);
-	}
-
-	// ===== PERFORMANCE MEASUREMENTS =====
-	// guess what? this doesn't really work. You want this:
-	// http://www.lighthouse3d.com/tutorials/opengl-timer-query/
-	// but that takes time to implement so until then...
-	std::chrono::high_resolution_clock::time_point startRenderingTime; 
-	std::chrono::high_resolution_clock::time_point endRenderingTime;
-
-
+	// ===== INIT RENDERING SYSTEM =====
 	RenderingSystem renderingSystem = RenderingSystem();
 	renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
 	
+	// ===== INIT DATA ===== 
 	auto loader = AssetLoader();
+	
 	TextureInfo texture;
 	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
 	texture.uniform = "u_ColTex";
@@ -470,15 +124,30 @@ int main(int argc, char* args[])
 	texture1.uniform = "u_NrmTex";
 	texture1.path = "textures/brickwall_normal.jpg";
 
-	std::cout << "Loaded texture with id: " << texture.id << std::endl;
-
-
 	// create mesh 
-	auto mesh1 = std::make_shared<Mesh>(cubeVertex, cubeIndex);
-	auto mesh2 = std::make_shared<Mesh>(planeVertex, planeIndex);
+	auto mesh1 = std::make_shared<CubeMesh>();
+	auto mesh2 = std::make_shared<PlaneMesh>();
+	
+	/* Example: Custom hardcoded data 
+	std::vector<Vertex> planeVertex = {
+		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
+		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
+		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
+		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
+	};
+
+	std::vector<unsigned int> planeIndex = {
+		2, 1, 0,
+		1, 2, 3,
+	};
+
+	auto mesh3 = std::make_shared<Mesh>(planeVertex, planeIndex);
+	*/
+
 	// create materials 
 	auto material1 = std::make_shared<Material>();
 	material1->AddTexture(texture);
+	
 	// create shaders
 	// (not created, use default shaders) 
 
@@ -495,7 +164,7 @@ int main(int argc, char* args[])
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
-	e1->position = glm::vec3(-2, 0, -5);
+	e1->position = glm::vec3(-2, 2, -3);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
 	auto e2 = new Entity();
@@ -522,21 +191,21 @@ int main(int argc, char* args[])
 	//e5->getComponents<RenderComponent>(e5components);
 
 	auto e6 = loader.LoadModel("Models/tank/M11_39.obj");
-	e6->position = glm::vec3(2, -2, -5);
+	e6->position = glm::vec3(-2.5, -2, -5);
 	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
 	std::vector<std::shared_ptr<RenderComponent>> e6components;
 	e6->getComponents<RenderComponent>(e6components);
 	
-	//renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
-	//renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
-	//renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
-	//renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
+	renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
 	//for (int i = 0; i < e5components.size(); i++)
 	//	renderingSystem.AddRenderable(e5components[i]);
 	for (int i = 0; i < e6components.size(); i++)
 		renderingSystem.AddRenderable(e6components[i]);
 
-	// LIGHTING 
+	// ===== LIGHTING ====
 	auto eLight = new Entity();
 	eLight->addComponent<DirectionalLight>();
 	eLight->position = glm::vec3(3, 3, -7);
@@ -549,6 +218,20 @@ int main(int argc, char* args[])
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
 	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
 
+	/* Debug struct - use this if not using shadow maps
+	std::vector<LightSimple> lights;
+	float ambient = 1.0f;
+	for (int i = 0; i < MAX_LIGHTS; i++)
+	{
+		float x = (float)std::rand() / (float)RAND_MAX;
+		float y = (float)std::rand() / (float)RAND_MAX;
+		float z = (float)std::rand() / (float)RAND_MAX;
+		LightS light;
+		light.Position = glm::vec3(x * 8 - 4, y * 4 - 2, z * 10);
+		light.Color = glm::vec3(x, y, z);
+		lights.push_back(light);
+	}
+	*/
 
 	while (1)
 	{
@@ -565,6 +248,7 @@ int main(int argc, char* args[])
 			//User presses a key
 			else if (e.type == SDL_KEYDOWN)
 			{
+				/* TODO: Move debug handling code once input manager is implemented 
 				compositionShader->use();
 				compositionShader->setBool("u_DisplayPos", false);
 				compositionShader->setBool("u_DisplayNrm", false);
@@ -597,99 +281,12 @@ int main(int argc, char* args[])
 				default:
 					break;
 				}
+				*/
 			}
 		}
 
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
-
-		/*
-		startRenderingTime = std::chrono::high_resolution_clock::now();
-		GLint64 timer; 
-		glGetInteger64v(GL_TIMESTAMP, &timer);
-
-		// Render cleanup 
-		glClearDepth(1.0f);					// this sets the depth to be cleared to 
-		glClearColor(0.0, 0.0, 0.0, 1.0);	// this sets the color to be cleared to 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// this actually clears (sets) the buffer 
-
-		// Render to FBO (draw geomtry to textures)
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glDrawBuffers(3, attachments);
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glm::mat4 view = cam.GetViewMatrix();
-		glm::mat4 projection = cam.GetProjectionMatrix();
-		geometryShader->use();
-		geometryShader->setInt("u_ColTex", 0);
-		geometryShader->setInt("u_NrmTex", 1);
-		geometryShader->setMat4("u_Projection", projection);
-		geometryShader->setMat4("u_View", view);
-
-		for (int i = 0; i < sizeof(cubePositions) / sizeof(cubePositions[0]); i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			// todo: rotation 
-			// todo: scale 
-			geometryShader->setMat4("u_Model", model);
-
-			// draw 
-			glBindVertexArray(mesh1.VAO);
-
-			material1.LoadMaterial(geometryShader, 0);
-
-			glDrawElements(GL_TRIANGLES, mesh1.indices.size(), GL_UNSIGNED_INT, 0);	// VAO is equipped with EBO 
-			
-			glBindVertexArray(0);
-		}
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// ? 
-		/// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Render to back buffer (compose textures) 
-		compositionShader->use();
-		compositionShader->setInt("u_PosTex", 0);	// set order 
-		compositionShader->setInt("u_NrmTex", 1);
-		compositionShader->setInt("u_ColTex", 2);
-		compositionShader->setInt("u_DphTex", 3);
-
-		// enable the sampler2D shader variables 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, posTex);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, nrmTex);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, colTex);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, dphTex);
-
-		// material has the uniform name + texture address 
-		// but render system handles setting up the texture num 
-		
-		// attach lights 
-		compositionShader->setVec3("u_ViewPosiion", cam.position);
-		for (int i = 0; i < MAX_LIGHTS; i++)
-		{
-			compositionShader->setVec3("u_Lights[" + std::to_string(i) + "].Position", lights[i].Position);
-			compositionShader->setVec3("u_Lights[" + std::to_string(i) + "].Color", lights[i].Color);
-		}
-
-		glBindVertexArray(quadVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		glBindVertexArray(0);
-
-		endRenderingTime = std::chrono::high_resolution_clock::now();
-
-		SDL_GL_SwapWindow(window);
-
-		// show info 
-		auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endRenderingTime - startRenderingTime).count();
-		std::cout << "Rendering duration:\t" << renderingDuration << "ms\r" << std::flush;
-		*/
 	}
 
 	//Destroy window

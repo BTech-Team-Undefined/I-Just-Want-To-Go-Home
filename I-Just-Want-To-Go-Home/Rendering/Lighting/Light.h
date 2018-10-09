@@ -5,6 +5,15 @@
 #include "..\Rendering\Shader.h"
 #include "..\..\EntitySystems\Component.h"
 
+// Use this struct for simple light handling 
+const int MAX_LIGHTS = 32;
+struct LightSimple
+{
+	glm::vec3 Position;
+	glm::vec3 Color;
+};
+
+// Generic Light class for Point and Directional lights. 
 class Light : public Component
 {
 public:
