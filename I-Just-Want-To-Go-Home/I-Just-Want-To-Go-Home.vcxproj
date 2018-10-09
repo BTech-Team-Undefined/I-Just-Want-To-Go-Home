@@ -177,6 +177,9 @@
     <ClInclude Include="EntitySystems\Entity.h" />
     <ClInclude Include="EntitySystems\Transform.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Rendering\DOCUMENTATION.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\glm.0.9.9\build\native\glm.targets" Condition="Exists('..\packages\glm.0.9.9\build\native\glm.targets')" />
