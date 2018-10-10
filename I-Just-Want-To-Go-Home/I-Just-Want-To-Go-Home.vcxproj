@@ -77,6 +77,7 @@
     <IncludePath>$(ProjectDir)/includes;$(VCInstallDir)UnitTest/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)/libs;$(VCInstallDir)UnitTest/lib;$(LibraryPath)</LibraryPath>
     <ReferencePath>$(ProjectDir)/dll;$(ReferencePath)</ReferencePath>
+    <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,11 +133,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="01_hello_SDL.cpp" />
+    <ClCompile Include="DataTypes\Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DataTypes\Vector.h" />
     <ClInclude Include="TestableClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
