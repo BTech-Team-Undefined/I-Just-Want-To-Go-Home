@@ -32,5 +32,8 @@
     <ClInclude Include="EntitySystems\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EntitySystems\System.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

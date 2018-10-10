@@ -14,11 +14,10 @@ const int SCREEN_HEIGHT = 480;
 
 int main( int argc, char* args[] )
 {
-	//component test
 	std::shared_ptr<Entity> e = std::shared_ptr<Entity>(new Entity());
 	e->addComponent<Transform>();
-	printf("%d", e->getComponent<Transform>()->GetTest());
-	e->getComponent<Transform>()->GetEntity()->removeComponent<Transform>();
+	printf("%d", e->getComponent<Transform>()->getTest());
+	e->getComponent<Transform>()->getEntity()->removeComponent<Transform>();
 	e->removeComponent<Transform>();
 	auto  a = e->getComponent<Transform>();
 	if (a == nullptr)

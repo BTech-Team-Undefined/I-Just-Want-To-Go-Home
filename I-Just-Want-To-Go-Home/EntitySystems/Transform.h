@@ -7,11 +7,8 @@ class Transform : public Component
 {
 public:
 	Transform(Entity* e) : Component(e), test(0) { }
-	void Draw() {}
-	void Update(float dt) {}
-
-	int GetTest() { return test; }
-
+	void update(float dt) {}
+	int getTest() { return test; }
 
 private:
 	int test;

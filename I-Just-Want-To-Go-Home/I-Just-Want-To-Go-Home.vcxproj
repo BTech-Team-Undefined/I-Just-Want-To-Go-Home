@@ -139,6 +139,7 @@
   <ItemGroup>
     <ClInclude Include="EntitySystems\Component.h" />
     <ClInclude Include="EntitySystems\Entity.h" />
+    <ClInclude Include="EntitySystems\System.h" />
     <ClInclude Include="EntitySystems\Transform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
