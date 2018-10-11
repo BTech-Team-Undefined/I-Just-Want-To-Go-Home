@@ -137,6 +137,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EntitySystems\Component.h" />
+    <ClInclude Include="EntitySystems\Entity.h" />
+    <ClInclude Include="EntitySystems\Transform.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="TestableClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

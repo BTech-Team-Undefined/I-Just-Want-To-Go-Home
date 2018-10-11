@@ -4,6 +4,9 @@ and may not be redistributed without written permission.*/
 //Using SDL and standard IO
 #include <SDL2\SDL.h>
 #include <stdio.h>
+#include "EntitySystems/Entity.h"
+#include "EntitySystems/Component.h"
+#include "EntitySystems/Transform.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -11,6 +14,18 @@ const int SCREEN_HEIGHT = 480;
 
 int main( int argc, char* args[] )
 {
+	//component test
+	std::shared_ptr<Entity> e = std::shared_ptr<Entity>(new Entity());
+	e->addComponent<Transform>();
+	printf("%d", e->getComponent<Transform>()->GetTest());
+	e->getComponent<Transform>()->GetEntity()->removeComponent<Transform>();
+	e->removeComponent<Transform>();
+	auto  a = e->getComponent<Transform>();
+	if (a == nullptr)
+	{
+		int asd = 0;
+	}
+
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
 	
