@@ -133,6 +133,7 @@
   <ItemGroup>
     <ClCompile Include="01_hello_SDL.cpp" />
     <ClCompile Include="Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Physics\Point.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -143,6 +144,7 @@
     <ClInclude Include="EntitySystems\Transform.h" />
     <ClInclude Include="Physics\IPhysicsEntity.h" />
     <ClInclude Include="Physics\PhysicsSystem.h" />
+    <ClInclude Include="Physics\Point.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

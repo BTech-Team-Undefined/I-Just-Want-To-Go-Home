@@ -15,10 +15,10 @@ public:
 	int RegisterObject(IPhysicsEntity entity, string entityName);
 
 	map<int, IPhysicsEntity> _entities = {};
-	map<int, string> _entitieNames = {};
 private:
 	PhysicsSystem();
 
 	void CheckCollisions();
+	void RemoveCollision(IPhysicsEntity entityA, IPhysicsEntity entityB);
 };
 

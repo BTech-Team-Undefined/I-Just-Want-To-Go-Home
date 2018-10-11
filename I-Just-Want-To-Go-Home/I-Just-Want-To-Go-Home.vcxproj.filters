@@ -21,6 +21,9 @@
     <ClCompile Include="Physics\PhysicsSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Physics\Point.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Physics\IPhysicsEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Point.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
