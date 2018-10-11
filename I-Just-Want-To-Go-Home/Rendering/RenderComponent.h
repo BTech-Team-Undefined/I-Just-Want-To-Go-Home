@@ -3,8 +3,8 @@
 #include <vector>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
-#include "../EntitySystems/Entity.h";
-#include "../EntitySystems/Component.h";
+#include "../EntitySystems/Entity.h"
+#include "../EntitySystems/Component.h"
 #include "Renderable.h"
 
 class RenderComponent : public Component
