@@ -1,0 +1,34 @@
+===== RENDERING DOCUMENTATION OVERVIEW =====
+	
+Overview:
+1. Create a RenderingSystem to render RenderComponents (attached onto entities)
+2. RenderComponents contain one or more Renderable packages.
+3. Renderable's contain a Mesh (geometry), Material (visuals), Custom shader (for geometry pass)
+4. Create and set Camera for the active view port
+Check the UML for more details.
+
+Notes:
+	RenderComponents, Renderables, Meshes, Materials, Shaders, and Textures are all shared resources.
+	Loading models should work; Ensure the model has the textures as well. 
+	Loading models eats up space right now, investigating.
+	Rendering/Constants.cpp has all the generic shader variable names that are being used. However custom shaders are fully supported, more documentation on that later. 
+	RenderingSystem currently renders RenderComponents one by one inefficiently. 
+		This is because the model matrix (world transformation) has to be calculated by combining parent transforms.
+		A more efficient system would be:
+		a) Rendering root entities and traversing down through it's children. Previous matrices can be reused for calculations. 
+		b) Having and calculating a world position whenever the transform or parent transform is changed. Matrix can be calculated with world info and other systems can also use that.
+
+
+Not implemented yet:
+	Documentation:		This section only gives a broad overview. Exact usage for each class hasn't been written yet.
+	Texture DDS:		Using stbi_image which handles jpg,png,bmp,hdr,psd,tga,gif,pic,pgm,ppm at the moment.
+	Normal mapping:	All inputs are currently received, just haven't calculated the necessary info yet. 
+	Derived materials: Currently only generic material which can handle all cases. Derived materials should abstract shader uniforms. 
+	Skyboxes:			No skybox support yet.
+	Point lights:		Only supports directional lights right now. 
+	Light volumes:		Renders every single pixel for each light right now. 
+
+TODO: 
+	Post Processing
+	Dynamic meshes (maybe)
+	Dynamic materials (maybe)
