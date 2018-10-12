@@ -2,7 +2,8 @@
 
 #include <iostream>
 #include <map>
-#include "IPhysicsEntity.h"
+#include <memory>
+#include "Collider2D.h"
 
 using namespace std;
 
@@ -12,13 +13,13 @@ public:
 	static PhysicsSystem &instance() { static PhysicsSystem ps; return ps; };
 
 	void Update();
-	int RegisterObject(IPhysicsEntity entity, string entityName);
+	int RegisterCollider(shared_ptr<Collider2D> collider);
 
-	map<int, IPhysicsEntity> _entities = {};
+	map<int, shared_ptr<Collider2D>> _colliders = {};
 private:
 	PhysicsSystem();
 
 	void CheckCollisions();
-	void RemoveCollision(IPhysicsEntity entityA, IPhysicsEntity entityB);
+	void RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr<Collider2D> colliderB);
 };
 

@@ -7,12 +7,12 @@ PhysicsSystem::PhysicsSystem()
 {
 }
 
-// registers the physics entity to physics system
-// and returns its physics id
-int PhysicsSystem::RegisterObject(IPhysicsEntity entity, string entityName)
+// registers the collider to physics system
+// and returns its collider id
+int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 {
-	int index = static_cast<int>(this->_entities.size());
-	this->_entities.insert(pair<int, IPhysicsEntity>(index, entity));
+	int index = static_cast<int>(this->_colliders.size());
+	this->_colliders.insert(pair<int, shared_ptr<Collider2D>>(index, collider));
 	return index;
 }
 
@@ -24,46 +24,49 @@ void PhysicsSystem::Update()
 
 void PhysicsSystem::CheckCollisions()
 {
-	for (int from = 0; from < this->_entities.size(); ++from)
+	for (int from = 0; from < this->_colliders.size(); ++from)
 	{
-		for (int to = 0; to < this->_entities.size(); ++to)
+		for (int to = 0; to < this->_colliders.size(); ++to)
 		{
 			// if self
 			if (from == to)
 				continue;
 
-			IPhysicsEntity fromEntity = this->_entities[from];
-			IPhysicsEntity toEntity = this->_entities[to];
+			shared_ptr<Collider2D> fromCollider = this->_colliders[from];
+			shared_ptr<Collider2D> toCollider = this->_colliders[to];
+
+			Point fromOrigin = fromCollider->GetOrigin();
+			Point toOrigin = toCollider->GetOrigin();
 
 			// if too far
-			float innerDistance = fromEntity._roughCenter.Distance(toEntity._roughCenter);
-			float outerDistance = innerDistance - fromEntity._roughRadius - toEntity._roughRadius;
+			float innerDistance = (fromCollider->roughCenter + fromOrigin).Distance(toCollider->roughCenter + toOrigin);
+			float outerDistance = innerDistance - fromCollider->roughRadius - toCollider->roughRadius;
 			if (outerDistance > 0)
 			{
-				this->RemoveCollision(fromEntity, toEntity);
+				this->RemoveCollision(fromCollider, toCollider);
 				continue;
 			}
 
 			// calculate collisions
-			vector<Point> fromPoints = fromEntity._collider;
-			vector<Point> toPoints = toEntity._collider;
+			vector<Point> fromPoints = fromCollider->collider;
+			vector<Point> toPoints = toCollider->collider;
 
 			bool collision = false;
 			for (int fep = 0; fep < fromPoints.size(); ++fep)
 			{
 				// line points for collider A
-				Point pointA = fromPoints[fep];
-				Point pointB = fromPoints[0];
+				Point pointA = fromPoints[fep] + fromOrigin;
+				Point pointB = fromPoints[0] + fromOrigin;
 				if (fep < fromPoints.size() - 1)
-					pointB = fromPoints[fep + 1];
+					pointB = fromPoints[fep + 1] + fromOrigin;
 
-				for (int tep = 0; fep < toPoints.size(); ++tep)
+				for (int tep = 0; tep < toPoints.size(); ++tep)
 				{
 					// line points for collider B
-					Point pointC = toPoints[tep];
-					Point pointD = toPoints[0];
+					Point pointC = toPoints[tep] + toOrigin;
+					Point pointD = toPoints[0] + toOrigin;
 					if (tep < toPoints.size() - 1)
-						pointD = toPoints[tep + 1];
+						pointD = toPoints[tep + 1] + toOrigin;
 
 					if (pointA.Near(pointC) || pointA.Near(pointD) || pointB.Near(pointC) || pointB.Near(pointD))
 					{
@@ -136,43 +139,43 @@ void PhysicsSystem::CheckCollisions()
 			if (collision)
 			{
 				// if not already colliding
-				if (find(fromEntity._collidingIds.begin(), fromEntity._collidingIds.end(), toEntity._physicsId) == fromEntity._collidingIds.end())
+				if (find(fromCollider->collidingIds.begin(), fromCollider->collidingIds.end(), toCollider->colliderId) == fromCollider->collidingIds.end())
 				{
-					fromEntity.OnCollision(toEntity._physicsId, toEntity._physicsName);
-					fromEntity._collidingIds.push_back(toEntity._physicsId);
+					fromCollider->OnCollision(toCollider->colliderId, toCollider->colliderName);
+					fromCollider->collidingIds.push_back(toCollider->colliderId);
 				}
-				if (find(toEntity._collidingIds.begin(), toEntity._collidingIds.end(), fromEntity._physicsId) == toEntity._collidingIds.end())
+				if (find(toCollider->collidingIds.begin(), toCollider->collidingIds.end(), fromCollider->colliderId) == toCollider->collidingIds.end())
 				{
-					toEntity.OnCollision(fromEntity._physicsId, fromEntity._physicsName);
-					toEntity._collidingIds.push_back(fromEntity._physicsId);
+					toCollider->OnCollision(fromCollider->colliderId, fromCollider->colliderName);
+					toCollider->collidingIds.push_back(fromCollider->colliderId);
 				}
 			}
 			else
 			{
 				// no collision
-				this->RemoveCollision(fromEntity, toEntity);
+				this->RemoveCollision(fromCollider, toCollider);
 			}
 		}
 	}
 }
 
-void PhysicsSystem::RemoveCollision(IPhysicsEntity entityA, IPhysicsEntity entityB)
+void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr<Collider2D> colliderB)
 {
 	// if already colliding
 	// todo: add OnExitCollision?
 	vector<int>::iterator it;
 
-	it = find(entityA._collidingIds.begin(), entityA._collidingIds.end(), entityB._physicsId);
-	if (it != entityA._collidingIds.end())
+	it = find(colliderA->collidingIds.begin(), colliderA->collidingIds.end(), colliderB->colliderId);
+	if (it != colliderA->collidingIds.end())
 	{
-		int index = static_cast<int>(distance(entityA._collidingIds.begin(), it));
-		entityA._collidingIds.erase(entityA._collidingIds.begin() + index);
+		int index = static_cast<int>(distance(colliderA->collidingIds.begin(), it));
+		colliderA->collidingIds.erase(colliderA->collidingIds.begin() + index);
 	}
 
-	it = find(entityB._collidingIds.begin(), entityB._collidingIds.end(), entityA._physicsId);
-	if (it != entityB._collidingIds.end())
+	it = find(colliderB->collidingIds.begin(), colliderB->collidingIds.end(), colliderA->colliderId);
+	if (it != colliderB->collidingIds.end())
 	{
-		int index = static_cast<int>(distance(entityB._collidingIds.begin(), it));
-		entityB._collidingIds.erase(entityB._collidingIds.begin() + index);
+		int index = static_cast<int>(distance(colliderB->collidingIds.begin(), it));
+		colliderB->collidingIds.erase(colliderB->collidingIds.begin() + index);
 	}
 }

@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Physics\PhysicsComponent.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />
     <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />
@@ -178,7 +179,7 @@
     <ClInclude Include="EntitySystems\Component.h" />
     <ClInclude Include="EntitySystems\Entity.h" />
     <ClInclude Include="EntitySystems\Transform.h" />
-    <ClInclude Include="Physics\IPhysicsEntity.h" />
+    <ClInclude Include="Physics\Collider2D.h" />
     <ClInclude Include="Physics\PhysicsSystem.h" />
     <ClInclude Include="Physics\Point.h" />
   </ItemGroup>

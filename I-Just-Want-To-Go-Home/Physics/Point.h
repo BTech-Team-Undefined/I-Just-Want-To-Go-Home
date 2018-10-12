@@ -12,6 +12,7 @@ public:
 	bool Near(Point p);
 	bool Near(Point p, float distance);
 	float Distance(Point p);
+	Point operator+(const Point& p);
 
 	float x;
 	float y;
