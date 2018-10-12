@@ -21,6 +21,7 @@ int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 void PhysicsSystem::Update()
 {
 	this->CheckCollisions();
+	this->Accelerate();
 }
 
 void PhysicsSystem::CheckCollisions()
@@ -219,4 +220,8 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 		int index = static_cast<int>(distance(colliderB->collidingIds.begin(), it));
 		colliderB->collidingIds.erase(colliderB->collidingIds.begin() + index);
 	}
+}
+
+void PhysicsSystem::Accelerate() {
+
 }

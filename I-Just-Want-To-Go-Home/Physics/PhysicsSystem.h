@@ -24,5 +24,6 @@ private:
 
 	void CheckCollisions();
 	void RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr<Collider2D> colliderB);
+	void Accelerate();
 };
 

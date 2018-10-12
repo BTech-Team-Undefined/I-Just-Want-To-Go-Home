@@ -104,7 +104,8 @@ int main(int argc, char* args[])
 
 	// ===== CAMERA ======
 	auto eCam = new Entity();
-	eCam->position = glm::vec3(0, 0, 5);
+	eCam->position = glm::vec3(0, 40, -5); //replace the camera position back if finished.
+	eCam->rotation = glm::vec3(-1.6, 0, 0);
 	eCam->addComponent<Camera>();
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
