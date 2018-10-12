@@ -140,4 +140,9 @@
   <ItemGroup>
     <Text Include="Rendering\DOCUMENTATION.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestableClass.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

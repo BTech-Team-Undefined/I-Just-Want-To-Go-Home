@@ -74,8 +74,8 @@
     <LibraryPath>$(ProjectDir)\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)/includes;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)/libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)/includes;$(VCInstallDir)UnitTest/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)/libs;$(VCInstallDir)UnitTest/lib;$(LibraryPath)</LibraryPath>
     <ReferencePath>$(ProjectDir)/dll;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -179,6 +179,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Rendering\DOCUMENTATION.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestableClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

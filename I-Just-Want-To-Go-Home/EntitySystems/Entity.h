@@ -22,7 +22,7 @@ public:
 	glm::vec3 rotation;
 	glm::vec3 scale = glm::vec3(1.0f);
 
-	unsigned int getID() { return _id; }
+	unsigned int getID() const { return _id; }
 
 	//Adds a component 
 	template<class T>
@@ -118,7 +118,6 @@ private:
 	std::unordered_map <std::type_index, std::shared_ptr<Component>> _components;
 	std::vector<Entity*> _children;
 	Entity* _parent;
-	glm::mat4 _modelMatrix; 
 	// may want to store world position,scale,rotation for optimization
 };
 
