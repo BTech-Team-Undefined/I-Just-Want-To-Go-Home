@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <vector>
 #include "Collider2D.h"
 
 using namespace std;
@@ -17,6 +18,8 @@ public:
 
 	map<int, shared_ptr<Collider2D>> _colliders = {};
 private:
+	vector<string> _justChecked;
+
 	PhysicsSystem();
 
 	void CheckCollisions();

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <string>
 #include "PhysicsSystem.h"
 
 using namespace std;
@@ -24,9 +25,7 @@ void PhysicsSystem::Update()
 
 void PhysicsSystem::CheckCollisions()
 {
-	// todo: avoid double check
-	// for example, if we checked for from1 and to2,
-	// we dont check from2 and to1 again.
+	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)
 	{
 		for (int to = 0; to < this->_colliders.size(); ++to)
@@ -34,6 +33,12 @@ void PhysicsSystem::CheckCollisions()
 			// if self
 			if (from == to)
 				continue;
+
+			// if just checked
+			string hash = from < to ? to_string(from) + "_" + to_string(to) : to_string(to) + "_" + to_string(from);
+			if (find(this->_justChecked.begin(), this->_justChecked.end(), hash) != this->_justChecked.end())
+				continue;
+			this->_justChecked.push_back(hash);
 
 			shared_ptr<Collider2D> fromCollider = this->_colliders[from];
 			shared_ptr<Collider2D> toCollider = this->_colliders[to];
