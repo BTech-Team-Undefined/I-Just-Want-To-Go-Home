@@ -25,6 +25,8 @@ void PhysicsSystem::Update()
 
 void PhysicsSystem::CheckCollisions()
 {
+	const float NEAR_THRESHOLD = 0.2f;
+
 	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)
 	{
@@ -82,16 +84,16 @@ void PhysicsSystem::CheckCollisions()
 						break;
 					}
 
-					bool lineAVertical = fabs(pointA.x - pointB.x) < 0.2f;
-					bool lineBVertical = fabs(pointC.x - pointD.x) < 0.2f;
-					bool lineAHorizontal = fabs(pointA.y - pointB.y) < 0.2f;
-					bool lineBHorizontal = fabs(pointC.y - pointD.y) < 0.2f;
+					bool lineAVertical = fabs(pointA.x - pointB.x) < NEAR_THRESHOLD;
+					bool lineBVertical = fabs(pointC.x - pointD.x) < NEAR_THRESHOLD;
+					bool lineAHorizontal = fabs(pointA.y - pointB.y) < NEAR_THRESHOLD;
+					bool lineBHorizontal = fabs(pointC.y - pointD.y) < NEAR_THRESHOLD;
 
 					// if both are vertical
 					if (lineAVertical && lineBVertical)
 					{
 						// no overlap
-						if (fabs(pointA.x - pointC.x) >= 0.2f)
+						if (fabs(pointA.x - pointC.x) >= NEAR_THRESHOLD)
 						{
 							continue;
 						}
@@ -109,7 +111,7 @@ void PhysicsSystem::CheckCollisions()
 					// if both are horizontal and they overlap
 					if (lineAHorizontal && lineBHorizontal)
 					{
-						if (fabs(pointA.y - pointC.y) >= 0.2f)
+						if (fabs(pointA.y - pointC.y) >= NEAR_THRESHOLD)
 						{
 							continue;
 						}
@@ -155,10 +157,10 @@ void PhysicsSystem::CheckCollisions()
 					float a2 = (pointD.y - pointC.y) / (pointD.x - pointC.x);
 					float b2 = pointC.y - a2 * pointC.x;
 
-					if (fabs(a1 - a2) < 0.2f && fabs(b1 - b2) < 0.2f)
+					if (fabs(a1 - a2) < NEAR_THRESHOLD && fabs(b1 - b2) < NEAR_THRESHOLD)
 					{
-						if (fabs(pointA.x - pointC.x) < 0.2f && fabs(pointB.x - pointD.x) < 0.2f ||
-							fabs(pointA.x - pointD.x) < 0.2f && fabs(pointB.x - pointC.x) < 0.2f)
+						if (fabs(pointA.x - pointC.x) < NEAR_THRESHOLD && fabs(pointB.x - pointD.x) < NEAR_THRESHOLD ||
+							fabs(pointA.x - pointD.x) < NEAR_THRESHOLD && fabs(pointB.x - pointC.x) < NEAR_THRESHOLD)
 						{
 							collision = true;
 							break;
