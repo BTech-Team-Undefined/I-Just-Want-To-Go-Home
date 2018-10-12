@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <ctime>
 #include "Collider2D.h"
 
 using namespace std;
@@ -19,6 +20,7 @@ public:
 	map<int, shared_ptr<Collider2D>> _colliders = {};
 private:
 	vector<string> _justChecked;
+	clock_t _lastUpdate;
 
 	PhysicsSystem();
 

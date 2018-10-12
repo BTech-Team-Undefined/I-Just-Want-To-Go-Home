@@ -6,6 +6,7 @@ using namespace std;
 
 PhysicsSystem::PhysicsSystem()
 {
+	this->_lastUpdate = clock();
 }
 
 // registers the collider to physics system
@@ -20,7 +21,19 @@ int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 // should be called every update frame
 void PhysicsSystem::Update()
 {
+	// update once every 20ms (50 times in 1 second)
+	// same as unity's default setting for FixedUpdate
+	const double UPDATE_THRESHOLD = 20;
+
+	clock_t currentTime = clock();
+	double diff = currentTime - this->_lastUpdate;
+	double diffMilliseconds = (diff) / (CLOCKS_PER_SEC / 1000);
+	if (diffMilliseconds < UPDATE_THRESHOLD)
+		return;
+
 	this->CheckCollisions();
+
+	this->_lastUpdate = currentTime;
 }
 
 void PhysicsSystem::CheckCollisions()
