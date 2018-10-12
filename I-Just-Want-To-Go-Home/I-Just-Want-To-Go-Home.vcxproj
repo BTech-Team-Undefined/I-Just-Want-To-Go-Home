@@ -104,7 +104,10 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)SDL2.dll" "$(TargetDir)"
-xcopy "$(ProjectDir)glew32.dll" "$(TargetDir)"</Command>
+xcopy "$(ProjectDir)glew32.dll" "$(TargetDir)"
+xcopy "$(ProjectDir)Textures" "$(TargetDir)Textures" /s /i /e /y
+xcopy "$(ProjectDir)Models" "$(TargetDir)Models" /s /i /e /y
+xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
