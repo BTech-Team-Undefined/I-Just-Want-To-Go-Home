@@ -177,7 +177,7 @@ int main(int argc, char* args[])
 	e1ColliderBox.push_back(Point(1, -1)); // top right
 	e1ColliderBox.push_back(Point(1, 1)); // bottom right
 	e1ColliderBox.push_back(Point(-1, 1)); // bottom left
-	e1Collider->SetCollider(e1ColliderBox, Point(0, 0), 1); // collider points and center point are relative to the origin
+	e1Collider->SetCollider(e1ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
 	e1->addComponent<PhysicsComponent>();
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	pc1->AddCollider(e1Collider);
@@ -204,7 +204,7 @@ int main(int argc, char* args[])
 	e4ColliderBox.push_back(Point(1, -1));
 	e4ColliderBox.push_back(Point(1, 1));
 	e4ColliderBox.push_back(Point(-1, 1));
-	e4Collider->SetCollider(e4ColliderBox, Point(0, 0), 1);
+	e4Collider->SetCollider(e4ColliderBox, Point(0, 0), 1.5f);
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
