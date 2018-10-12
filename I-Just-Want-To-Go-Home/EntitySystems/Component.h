@@ -10,11 +10,9 @@ public:
 	virtual ~Component() {};
 	virtual Component& operator=(const Component&) = delete;  // Disallow copying
 	Component(const Component&) = delete;
-	//virtual std::shared_ptr<Component> clone() = 0;
-	virtual void Update(float dt) = 0;
-	virtual void Draw() = 0;
+	virtual void update(float dt) = 0;
 	void Kill() { _isAlive = false; }
-	Entity* GetEntity() { return _entity; }
+	Entity* getEntity() { return _entity; }
 
 private:
 	bool _isAlive = true;

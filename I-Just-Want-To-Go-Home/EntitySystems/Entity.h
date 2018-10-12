@@ -12,10 +12,20 @@
 class Entity
 {
 public:
-	glm::vec3 position;
-	glm::vec3 rotation; 
-	glm::vec3 scale; 
-	
+	Entity() :_id(0) {}
+	Entity(Entity* parent) :_id(0)
+	{
+		setParent(parent);
+	}
+
+	void update(float dt)
+	{
+		for (const auto& c : _components)
+			c.second->update(dt);
+		for (const auto& c : _children)
+			c->update(dt);
+	}
+
 	unsigned int getID() const { return _id; }
 	//Adds a component 
 	template<class T>
@@ -34,14 +44,20 @@ public:
 	}
 	void setParent(Entity* parent)
 	{
-		_parent = parent;
-		_parent->addChild(this);
+		if (_parent != parent)
+		{
+			_parent = parent;
+			_parent->addChild(this);
+		}
 	}
 	Entity* getParent() const { return _parent; }
 	void addChild(Entity* child)
 	{
-		child->setParent(this);
-		_children.push_back(child);
+		if (std::find_if(_children.begin(), _children.end(), [child](const Entity* e) { return e->getID() == child->getID(); }) == _children.end())
+		{
+			_children.push_back(child);
+			child->setParent(this);
+		}
 	}
 	//returns child with id
 	Entity* getChild(unsigned int id) const { return *std::find_if(_children.begin(), _children.end(), [&id](const Entity* e) { return e->getID() == id; }); }
@@ -50,12 +66,22 @@ public:
 	void removeChild(unsigned int id) 
 	{
 		auto t = std::find_if(_children.begin(), _children.end(), [&id](const Entity* e) { return e->getID() == id; });
-		(*t)->setParent(nullptr);
 		_children.erase(t);
+		(*t)->setParent(nullptr);
 	}
 
 private:
-	unsigned int _id = 0;
+	unsigned int _id = 0;//todo add bullshit with id generation
+	bool _enabled = true;
+
+	glm::vec3 _position;
+	glm::vec3 _rotation;
+	glm::vec3 _scale;
+
+	glm::vec3 _worldPosition;
+	glm::vec3 _worldRotation;
+	glm::vec3 _worldScale;
+
 	std::unordered_map <std::type_index, std::shared_ptr<Component>> _components;
 	std::vector<Entity*> _children;
 	Entity* _parent;
