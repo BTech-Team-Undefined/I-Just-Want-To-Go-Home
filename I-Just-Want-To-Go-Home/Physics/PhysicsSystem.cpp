@@ -24,6 +24,9 @@ void PhysicsSystem::Update()
 
 void PhysicsSystem::CheckCollisions()
 {
+	// todo: avoid double check
+	// for example, if we checked for from1 and to2,
+	// we dont check from2 and to1 again.
 	for (int from = 0; from < this->_colliders.size(); ++from)
 	{
 		for (int to = 0; to < this->_colliders.size(); ++to)
@@ -74,37 +77,70 @@ void PhysicsSystem::CheckCollisions()
 						break;
 					}
 
-					if (fabs(pointA.x - pointB.x) < 0.2f || fabs(pointC.x - pointD.x) < 0.2f)
+					bool lineAVertical = fabs(pointA.x - pointB.x) < 0.2f;
+					bool lineBVertical = fabs(pointC.x - pointD.x) < 0.2f;
+					bool lineAHorizontal = fabs(pointA.y - pointB.y) < 0.2f;
+					bool lineBHorizontal = fabs(pointC.y - pointD.y) < 0.2f;
+
+					// if both are vertical
+					if (lineAVertical && lineBVertical)
 					{
-						if (fabs(pointA.x - pointB.x) < 0.2f && fabs(pointC.x - pointD.x) < 0.2f && fabs(pointA.x - pointC.x) >= 0.2f)
+						// no overlap
+						if (fabs(pointA.x - pointC.x) >= 0.2f)
 						{
-							// no collision
 							continue;
 						}
 
-						// if there's horizontal line
-						if (fabs(pointA.y - pointB.y) < 0.2f || fabs(pointC.y - pointD.y) < 0.2f)
+						if (fmin(pointC.y, pointD.y) <= pointA.y && pointA.y <= fmax(pointC.y, pointD.y) ||
+							fmin(pointC.y, pointD.y) <= pointB.y && pointB.y <= fmax(pointC.y, pointD.y) ||
+							fmin(pointA.y, pointB.y) <= pointC.y && pointC.y <= fmax(pointA.y, pointB.y) ||
+							fmin(pointA.y, pointB.y) <= pointD.y && pointD.y <= fmax(pointA.y, pointB.y))
 						{
-							// if lineA is vertical
-							if (fabs(pointA.x - pointB.x) < 0.2f)
-							{
-								if (fmin(pointC.x, pointD.x) < pointA.x && fmax(pointC.x, pointD.x) > pointA.x &&
-									fmin(pointC.y, pointD.y) < fmax(pointA.y, pointB.y) && fmax(pointC.y, pointD.y) > fmin(pointA.y, pointB.y))
-								{
-									collision = true;
-									break;
-								}
-							}
+							collision = true;
+							break;
+						}
+					}
 
-							// if lineB is vertical
-							if (fabs(pointC.x - pointD.x) < 0.2f)
+					// if both are horizontal and they overlap
+					if (lineAHorizontal && lineBHorizontal)
+					{
+						if (fabs(pointA.y - pointC.y) >= 0.2f)
+						{
+							continue;
+						}
+
+						if (fmin(pointC.x, pointD.x) <= pointA.x && pointA.x <= fmax(pointC.x, pointD.x) ||
+							fmin(pointC.x, pointD.x) <= pointB.x && pointB.x <= fmax(pointC.x, pointD.x) ||
+							fmin(pointA.x, pointB.x) <= pointC.x && pointC.x <= fmax(pointA.x, pointB.x) ||
+							fmin(pointA.x, pointB.x) <= pointD.x && pointD.x <= fmax(pointA.x, pointB.x))
+						{
+							collision = true;
+							break;
+						}
+					}
+
+					// if one is vertical and one is horizontal
+					if ((lineAVertical || lineBVertical) && (lineAHorizontal || lineBHorizontal))
+					{
+						// if lineA is vertical
+						if (lineAVertical)
+						{
+							if (fmin(pointC.x, pointD.x) < pointA.x && fmax(pointC.x, pointD.x) > pointA.x &&
+								fmin(pointC.y, pointD.y) < fmax(pointA.y, pointB.y) && fmax(pointC.y, pointD.y) > fmin(pointA.y, pointB.y))
 							{
-								if (fmin(pointA.x, pointB.x) < pointC.x && fmax(pointA.x, pointB.x) > pointC.x &&
-									fmin(pointA.y, pointB.y) < fmax(pointC.y, pointD.y) && fmax(pointA.y, pointB.y) > fmin(pointC.y, pointD.y))
-								{
-									collision = true;
-									break;
-								}
+								collision = true;
+								break;
+							}
+						}
+
+						// if lineB is vertical
+						if (lineBVertical)
+						{
+							if (fmin(pointA.x, pointB.x) < pointC.x && fmax(pointA.x, pointB.x) > pointC.x &&
+								fmin(pointA.y, pointB.y) < fmax(pointC.y, pointD.y) && fmax(pointA.y, pointB.y) > fmin(pointC.y, pointD.y))
+							{
+								collision = true;
+								break;
 							}
 						}
 					}
