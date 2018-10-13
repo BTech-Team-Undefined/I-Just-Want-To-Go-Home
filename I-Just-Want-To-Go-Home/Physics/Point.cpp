@@ -30,7 +30,7 @@ float Point::Distance(Point p)
 
 bool Point::Near(Point p)
 {
-	return this->Near(p, 0.2f);
+	return this->Near(p, 0.01f);
 }
 
 bool Point::Near(Point p, float distance)
@@ -44,4 +44,14 @@ Point Point::operator+(const Point& p)
 	newPoint.x += p.x;
 	newPoint.y += p.y;
 	return newPoint;
+}
+
+Point Point::Rotate(float angleRadian)
+{
+	float s = sin(angleRadian);
+	float c = cos(angleRadian);
+	Point *newPoint = &Point(this->x, this->y);
+	newPoint->x = newPoint->x * c - newPoint->y * s;
+	newPoint->y = newPoint->x * s + newPoint->y * c;
+	return *newPoint;
 }

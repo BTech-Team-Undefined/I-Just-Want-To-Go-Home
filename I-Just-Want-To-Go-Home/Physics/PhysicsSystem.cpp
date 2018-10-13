@@ -74,22 +74,32 @@ void PhysicsSystem::CheckCollisions()
 			vector<Point> fromPoints = fromCollider->collider;
 			vector<Point> toPoints = toCollider->collider;
 
+			// radians
+			float fromRotation = fromCollider->GetRotationY();
+			float toRotation = toCollider->GetRotationY();
+
 			bool collision = false;
 			for (int fep = 0; fep < fromPoints.size(); ++fep)
 			{
 				// line points for collider A
-				Point pointA = fromPoints[fep] + fromOrigin;
-				Point pointB = fromPoints[0] + fromOrigin;
+				Point pointA = fromPoints[fep].Rotate(fromRotation) + fromOrigin;
+				Point pointB = fromPoints[0];
 				if (fep < fromPoints.size() - 1)
-					pointB = fromPoints[fep + 1] + fromOrigin;
+					pointB = fromPoints[fep + 1];
+				pointB = pointB.Rotate(fromRotation) + fromOrigin;
+
+				//cout << fep << "f. " << fromRotation << " (" << pointA.x << ", " << pointA.y << ")\n" << endl;
 
 				for (int tep = 0; tep < toPoints.size(); ++tep)
 				{
 					// line points for collider B
-					Point pointC = toPoints[tep] + toOrigin;
-					Point pointD = toPoints[0] + toOrigin;
+					Point pointC = toPoints[tep].Rotate(toRotation) + toOrigin;
+					Point pointD = toPoints[0];
 					if (tep < toPoints.size() - 1)
-						pointD = toPoints[tep + 1] + toOrigin;
+						pointD = toPoints[tep + 1];
+					pointD = pointD.Rotate(toRotation) + toOrigin;
+					
+					//cout << tep << "t. " << toRotation << " (" << pointC.x << ", " << pointC.y << ")\n" << endl;
 
 					if (pointA.Near(pointC) || pointA.Near(pointD) || pointB.Near(pointC) || pointB.Near(pointD))
 					{
@@ -105,11 +115,9 @@ void PhysicsSystem::CheckCollisions()
 					// if both are vertical
 					if (lineAVertical && lineBVertical)
 					{
-						// no overlap
+						// parallel
 						if (fabs(pointA.x - pointC.x) >= NEAR_THRESHOLD)
-						{
 							continue;
-						}
 
 						if (fmin(pointC.y, pointD.y) <= pointA.y && pointA.y <= fmax(pointC.y, pointD.y) ||
 							fmin(pointC.y, pointD.y) <= pointB.y && pointB.y <= fmax(pointC.y, pointD.y) ||
@@ -119,15 +127,16 @@ void PhysicsSystem::CheckCollisions()
 							collision = true;
 							break;
 						}
+						else
+							continue;
 					}
 
-					// if both are horizontal and they overlap
+					// if both are horizontal
 					if (lineAHorizontal && lineBHorizontal)
 					{
+						// parallel
 						if (fabs(pointA.y - pointC.y) >= NEAR_THRESHOLD)
-						{
 							continue;
-						}
 
 						if (fmin(pointC.x, pointD.x) <= pointA.x && pointA.x <= fmax(pointC.x, pointD.x) ||
 							fmin(pointC.x, pointD.x) <= pointB.x && pointB.x <= fmax(pointC.x, pointD.x) ||
@@ -137,13 +146,14 @@ void PhysicsSystem::CheckCollisions()
 							collision = true;
 							break;
 						}
+						else
+							continue;
 					}
 
-					// if one is vertical and one is horizontal
-					if ((lineAVertical || lineBVertical) && (lineAHorizontal || lineBHorizontal))
+					// if lineA is vertical
+					if (lineAVertical)
 					{
-						// if lineA is vertical
-						if (lineAVertical)
+						if (lineBHorizontal)
 						{
 							if (fmin(pointC.x, pointD.x) < pointA.x && fmax(pointC.x, pointD.x) > pointA.x &&
 								fmin(pointC.y, pointD.y) < fmax(pointA.y, pointB.y) && fmax(pointC.y, pointD.y) > fmin(pointA.y, pointB.y))
@@ -151,10 +161,34 @@ void PhysicsSystem::CheckCollisions()
 								collision = true;
 								break;
 							}
+							else
+								continue;
 						}
+						else
+						{
+							float x = pointA.x;
+							if (fmin(pointC.x, pointD.x) <= x && x <= fmax(pointC.x, pointD.x))
+							{
+								float m = (pointD.y - pointC.y) / (pointD.x - pointC.x);
+								float b = pointC.y - pointC.x * m;
+								float iY = m * x + b;
+								if (fmin(pointA.y, pointB.y) <= iY && iY <= fmax(pointA.y, pointB.y))
+								{
+									collision = true;
+									break;
+								}
+								else
+									continue;
+							}
+							else
+								continue;
+						}
+					}
 
-						// if lineB is vertical
-						if (lineBVertical)
+					// if lineB is vertical
+					if (lineBVertical)
+					{
+						if (lineAHorizontal)
 						{
 							if (fmin(pointA.x, pointB.x) < pointC.x && fmax(pointA.x, pointB.x) > pointC.x &&
 								fmin(pointA.y, pointB.y) < fmax(pointC.y, pointD.y) && fmax(pointA.y, pointB.y) > fmin(pointC.y, pointD.y))
@@ -162,6 +196,27 @@ void PhysicsSystem::CheckCollisions()
 								collision = true;
 								break;
 							}
+							else
+								continue;
+						}
+						else
+						{
+							float x = pointC.x;
+							if (fmin(pointA.x, pointB.x) <= x && x <= fmax(pointA.x, pointB.x))
+							{
+								float m = (pointB.y - pointA.y) / (pointB.x - pointA.x);
+								float b = pointA.y - pointA.x * m;
+								float iY = m * x + b;
+								if (fmin(pointC.y, pointD.y) <= iY && iY <= fmax(pointC.y, pointD.y))
+								{
+									collision = true;
+									break;
+								}
+								else
+									continue;
+							}
+							else
+								continue;
 						}
 					}
 

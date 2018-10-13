@@ -276,17 +276,23 @@ int main(int argc, char* args[])
 			{
 				switch (e.key.keysym.sym)
 				{
-				case SDLK_UP:
-					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.5f);
+				case SDLK_w:
+					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
 					break;
-				case SDLK_DOWN:
-					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.5f);
+				case SDLK_s:
+					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
 					break;
-				case SDLK_LEFT:
-					e4->position = glm::vec3(e4->position.x - 0.5f, e4->position.y, e4->position.z);
+				case SDLK_a:
+					e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 					break;
-				case SDLK_RIGHT:
-					e4->position = glm::vec3(e4->position.x + 0.5f, e4->position.y, e4->position.z);
+				case SDLK_d:
+					e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
+					break;
+				case SDLK_q:
+					e4->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					break;
+				case SDLK_e:
+					e4->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
 					break;
 				}
 				/* TODO: Move debug handling code once input manager is implemented 

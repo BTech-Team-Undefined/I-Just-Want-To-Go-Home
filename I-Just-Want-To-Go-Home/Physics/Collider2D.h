@@ -59,6 +59,11 @@ public:
 		return Point(pos.x, pos.z);
 	}
 
+	float GetRotationY()
+	{
+		return this->_entity->rotation.y;
+	}
+
 private:
 	Entity * _entity;
 };
