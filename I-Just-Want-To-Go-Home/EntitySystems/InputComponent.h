@@ -10,7 +10,10 @@ class InputComponent : public Component
 {
 public:
 
-	InputComponent(Entity* e) : Component(e) {}
+	InputComponent(Entity* e) : Component(e)
+	{
+		_actions[SDL_EventType::SDL_KEYDOWN] = [](SDL_Event e) { printf(SDL_GetKeyName(e.key.keysym.sym)); };
+	}
 	void update(float dt)
 	{
 		//Event handler
@@ -26,11 +29,6 @@ public:
 				return;
 			}
 		}
-	}
-
-	void test()
-	{
-		_actions[SDL_EventType::SDL_KEYDOWN] = [](SDL_Event e) { printf(SDL_GetKeyName(e.key.keysym.sym)); };
 	}
 
 private:

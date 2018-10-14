@@ -241,7 +241,6 @@ int main(int argc, char* args[])
 	printf("%d", t1->getComponent<Transform>()->getTest());
 	t1->removeComponent<Transform>();
 	t1->addComponent<InputComponent>();
-	t1->getComponent<InputComponent>()->test();
 
 
 	while (1)

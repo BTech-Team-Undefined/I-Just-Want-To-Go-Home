@@ -22,36 +22,35 @@ public:
 	glm::vec3 rotation;
 	glm::vec3 scale = glm::vec3(1.0f);
 
-	Entity() :_id(0) {}
-	Entity(Entity* parent) :_id(0)
-	{
-		setParent(parent);
-	}
+	Entity();
 
-	void update(float dt)
-	{
-		for (const auto& c : _components)
-			c.second->update(dt);
-		for (const auto& c : _children)
-			c->update(dt);
-	}
+	Entity(Entity* parent);
 
-	unsigned int getID() const { return _id; }
+	void update(float dt);
+
+	unsigned int getID() const;
 
 	//Adds a component 
 	template<class T>
-	void addComponent() { _components[typeid(T)] = std::shared_ptr<T>(new T(this)); }
+	void addComponent()
+	{
+		_components[typeid(T)] = std::shared_ptr<T>(new T(this));
+	}
 
 	//todo make components in isolation set Entity later in add.
 	template<class T>
-	std::shared_ptr<T> getComponent() { return std::static_pointer_cast<T>(_components[typeid(T)]); }
+	std::shared_ptr<T> getComponent()
+	{
+		return std::static_pointer_cast<T>(_components[typeid(T)]);
+	}
 
 	template<class T>
 	void getComponents(std::vector<std::shared_ptr<T>>& results)
 	{
 		// add component on this entity 
 		auto comp = getComponent<T>();
-		if (comp) results.push_back(comp);
+		if (comp)
+			results.push_back(comp);
 		// add components on children 
 		for (int i = 0; i < getChildren().size(); i++)
 		{
@@ -69,64 +68,29 @@ public:
 		}
 	}
 
-	void setParent(Entity* parent)
-	{
-		_parent = parent;
-		_parent->addChild(this);
-	}
+	void setParent(Entity* parent);
 
-	Entity* getParent() { return _parent; }
-	void addChild(Entity* child)
-	{
-		child->_parent = this;
-		_children.push_back(child);
-	}
+	Entity* getParent();
+	
+	void addChild(Entity* child);
 
 	//returns child with id
-	Entity* getChild(unsigned int id) { return *std::find_if(_children.begin(), _children.end(), [id](Entity* e) { return e->getID() == id; }); }
+	Entity* getChild(unsigned int id);
 
 	//removes child with id
-	void removeChild(unsigned int id)
-	{
-		auto t = std::find_if(_children.begin(), _children.end(), [&id](const Entity* e) { return e->getID() == id; });
-		_children.erase(t);
-		(*t)->setParent(nullptr);
-	}
+	void removeChild(unsigned int id);
 
-	glm::mat4 getLocalTransformation()
-	{
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
-		model = glm::rotate(model, rotation.y, glm::vec3(0, 1, 0));
-		model = glm::rotate(model, rotation.x, glm::vec3(1, 0, 0));
-		model = glm::rotate(model, rotation.z, glm::vec3(0, 0, 1));
-		model = glm::scale(model, scale);
-		return model;
-	}
+	glm::mat4 getLocalTransformation();
 
-	glm::mat4 getWorldTransformation()
-	{
-		glm::mat4 transform = getLocalTransformation();
-		if (getParent() == nullptr)
-			return transform;
-		else
-			return transform * getParent()->getWorldTransformation();
-	}
+	glm::mat4 getWorldTransformation();
 
-	void setLocalTransform(glm::mat4 matrix)
-	{
-		// warning: assuming matrix bottom-right value is 1. If not divide everything in matrix by that value. 
-		glm::quat rot; 
-		glm::vec3 skew;
-		glm::vec4 perspective; 
-		glm::decompose(matrix, scale, rot, position, skew, perspective);
-		rotation = glm::eulerAngles(rot);
-	}
+	void setLocalTransform(glm::mat4 matrix);
 
-	std::vector<Entity*> const& getChildren() const { return _children; }
+	std::vector<Entity*> const& getChildren() const;
 
 private:
-	unsigned int _id = 0;//todo add bullshit with id generation
+	unsigned int _id = 0;
+	static unsigned int _curID;
 	bool _enabled = true;
 
 	glm::vec3 _position;
@@ -142,10 +106,3 @@ private:
 	Entity* _parent;
 	// may want to store world position,scale,rotation for optimization
 };
-
-
-
-#pragma once
-
-
-

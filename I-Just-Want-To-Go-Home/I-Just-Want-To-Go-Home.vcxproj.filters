@@ -19,6 +19,7 @@
     <ClCompile Include="Rendering\RenderingSystem.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
+    <ClCompile Include="EntitySystems\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
