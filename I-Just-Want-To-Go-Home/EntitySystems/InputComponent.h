@@ -12,7 +12,48 @@ public:
 
 	InputComponent(Entity* e) : Component(e)
 	{
-		_actions[SDL_EventType::SDL_KEYDOWN] = [](SDL_Event e) { printf(SDL_GetKeyName(e.key.keysym.sym)); };
+		_actions[SDL_EventType::SDL_KEYDOWN] = [](SDL_Event e)
+		{
+			switch (e.key.keysym.sym)
+			{
+			case SDLK_LEFT:
+				// = -1;
+				break;
+			case SDLK_RIGHT:
+				//alien_xvel = 1;
+				break;
+			case SDLK_UP:
+				//alien_yvel = -1;
+				break;
+			case SDLK_DOWN:
+				//alien_yvel = 1;
+				break;
+			default:
+				break;
+			}
+		};
+
+		_actions[SDL_EventType::SDL_KEYUP] = [](SDL_Event e)
+		{
+			switch (e.key.keysym.sym)
+			{
+			case SDLK_LEFT:
+				// = -1;
+				break;
+			case SDLK_RIGHT:
+				//alien_xvel = 1;
+				break;
+			case SDLK_UP:
+				//alien_yvel = -1;
+				break;
+			case SDLK_DOWN:
+				//alien_yvel = 1;
+				break;
+			default:
+				break;
+			}
+		};
+
 	}
 	void update(float dt)
 	{
