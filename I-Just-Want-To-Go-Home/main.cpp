@@ -266,6 +266,7 @@ int main(int argc, char* args[])
 		SDL_Event e;
 		while (SDL_PollEvent(&e) != 0)
 		{
+			e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - PhysicsSystem::instance().curPos); //moves the entity based on its velocity and acceleration
 			//User requests quit
 			if (e.type == SDL_QUIT)
 			{
@@ -275,6 +276,7 @@ int main(int argc, char* args[])
 			//User presses a key
 			else if (e.type == SDL_KEYDOWN)
 			{
+				
 				switch (e.key.keysym.sym)
 				{
 				case SDLK_UP:
@@ -330,6 +332,7 @@ int main(int argc, char* args[])
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 		PhysicsSystem::instance().Update();
+		
 	}
 
 	//Destroy window
@@ -337,6 +340,6 @@ int main(int argc, char* args[])
 
 	//Quit SDL subsystems
 	SDL_Quit();
-
+	
 	return 0;
 }

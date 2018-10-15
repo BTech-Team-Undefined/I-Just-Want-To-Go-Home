@@ -223,5 +223,18 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 }
 
 void PhysicsSystem::Accelerate() {
+	
+	ConstantAcceleration = 2;
+	VelocityInitial = 2; //dummy velocity initial
+	//std::cout <<"\n Current velocity is: "<< velocity<< endl; //debugging to see if frame & timeelapsed is being added
+	//timeelapsed = frame * fixedDeltatime; //I think this is not necessary
+	
+	velocity = VelocityInitial + (ConstantAcceleration * fixedDeltatime);
+	curPos = curPos + (VelocityInitial * fixedDeltatime);// use the curPos variable to move the entity
+
+
 
 }
+
+
+
