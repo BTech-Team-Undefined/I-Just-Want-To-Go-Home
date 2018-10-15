@@ -18,6 +18,15 @@ public:
 	int RegisterCollider(shared_ptr<Collider2D> collider);
 
 	map<int, shared_ptr<Collider2D>> _colliders = {};
+	float timeelapsed;
+	float curPos;
+	int frame = 0;
+	float VelocityInitial;
+	float fixedDeltatime = 1.0/60.0;
+	float velocity;
+    float ConstantAcceleration;
+	void Accelerate();
+
 private:
 	vector<string> _justChecked;
 	clock_t _lastUpdate;
@@ -26,5 +35,7 @@ private:
 
 	void CheckCollisions();
 	void RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr<Collider2D> colliderB);
+
+	
 };
 
