@@ -38,7 +38,7 @@ void PhysicsSystem::Update()
 
 void PhysicsSystem::CheckCollisions()
 {
-	const float NEAR_THRESHOLD = 0.2f;
+	const float NEAR_THRESHOLD = 0.02f;
 
 	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)

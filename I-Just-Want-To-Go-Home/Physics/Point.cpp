@@ -50,8 +50,6 @@ Point Point::Rotate(float angleRadian)
 {
 	float s = sin(angleRadian);
 	float c = cos(angleRadian);
-	Point *newPoint = &Point(this->x, this->y);
-	newPoint->x = newPoint->x * c - newPoint->y * s;
-	newPoint->y = newPoint->x * s + newPoint->y * c;
-	return *newPoint;
+	Point newPoint = Point(this->x * c - this->y * s, this->x * s + this->y * c);
+	return newPoint;
 }
