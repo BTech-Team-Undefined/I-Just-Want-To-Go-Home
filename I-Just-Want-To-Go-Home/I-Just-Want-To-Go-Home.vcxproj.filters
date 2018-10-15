@@ -23,6 +23,7 @@
     <ClCompile Include="stb_image_config.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
+    <ClCompile Include="EntitySystems\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -50,6 +51,7 @@
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="TestableClass.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
+    <ClInclude Include="EntitySystems\InputComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
