@@ -27,6 +27,8 @@
 #include "Rendering\CubeMesh.h"
 #include "Rendering\PlaneMesh.h"
 #include "AssetLoader.h"
+#include "EntitySystems/InputComponent.h"
+#include "EntitySystems/Transform.h"
 
 
 //Screen dimension constants
@@ -182,7 +184,7 @@ int main(int argc, char* args[])
 	e4->addComponent<RenderComponent>();
 	e4->getComponent<RenderComponent>()->renderables.push_back(r1);
 	e4->position = glm::vec3(2, 0, -2);
-
+	e4->addComponent<InputComponent>();
 	// e1->addChild(e4);
 
 	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
@@ -217,6 +219,7 @@ int main(int argc, char* args[])
 	eLight2->position = glm::vec3(-3, 3, -7);
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
 	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
+	
 
 	/* Debug struct - use this if not using shadow maps
 	std::vector<LightSimple> lights;
@@ -233,10 +236,16 @@ int main(int argc, char* args[])
 	}
 	*/
 
+	std::shared_ptr<Entity> t1 = std::shared_ptr<Entity>(new Entity());
+	t1->addComponent<Transform>();
+	printf("%d", t1->getComponent<Transform>()->getTest());
+	t1->removeComponent<Transform>();
+
+
 	while (1)
 	{
 		// TODO: listen for events 
-		SDL_Event e;
+		/*SDL_Event e;
 		while (SDL_PollEvent(&e) != 0)
 		{
 			//User requests quit
@@ -281,10 +290,10 @@ int main(int argc, char* args[])
 				default:
 					break;
 				}
-				*/
+				
 			}
-		}
-
+		}*/
+		e4->update(0.05f);
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 	}
