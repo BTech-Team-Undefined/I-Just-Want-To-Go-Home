@@ -6,7 +6,7 @@
 class Transform : public Component
 {
 public:
-	Transform(Entity* e) : Component(e), test(0) { }
+	Transform() : Component(std::type_index(typeid(Transform))), test(0) { }
 	void update(float dt) {}
 	int getTest() { return test; }
 

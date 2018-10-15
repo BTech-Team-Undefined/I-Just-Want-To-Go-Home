@@ -30,6 +30,7 @@
 #include "EntitySystems/InputComponent.h"
 #include "EntitySystems/Transform.h"
 
+#include "Core\Game.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1280;
@@ -101,18 +102,128 @@ int main(int argc, char* args[])
 	*/
 
 	// ===== CAMERA ======
+	//auto eCam = new Entity();
+	//eCam->position = glm::vec3(0, 0, 5);
+	//eCam->addComponent<Camera>();
+	//auto cam = eCam->getComponent<Camera>();
+	//cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+	//cam->fov = 60.0f;
+
+
+	// ===== INIT SCENE =====
+	Scene* scene = new Scene();
+	Game::instance().setActiveScene(scene);
+		
+	// ===== INIT RENDERING SYSTEM =====
+	auto rs = std::make_unique<RenderingSystem>();
+	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	Game::instance().addSystem(std::move(rs));
+
+	// ===== CAMERA =====
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 0, 5);
 	eCam->addComponent<Camera>();
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
 	cam->fov = 60.0f;
+	Game::instance().activeScene->rootEntity->addChild(eCam);
 
-	// ===== INIT RENDERING SYSTEM =====
-	RenderingSystem renderingSystem = RenderingSystem();
-	renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
+	// ===== INIT STUFF =====
+	auto e = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
+	e->position = glm::vec3(-2.5, -2, -5);
+	e->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	Game::instance().activeScene->rootEntity->addChild(e.get());
+
+	// ===== INIT DATA ===== 
+	auto loader = AssetLoader();
+
+	TextureInfo texture;
+	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
+	texture.uniform = "u_ColTex";
+	texture.path = "textures/brickwall.jpg";
+
+	TextureInfo texture1;
+	texture1.id = loader.TextureFromFile("brickwall_normal.jpg", "textures");
+	texture1.uniform = "u_NrmTex";
+	texture1.path = "textures/brickwall_normal.jpg";
+
+	// create mesh 
+	auto mesh1 = std::make_shared<CubeMesh>();
+	auto mesh2 = std::make_shared<PlaneMesh>();
+
+	// create materials 
+	auto material1 = std::make_shared<Material>();
+	material1->AddTexture(texture);
+
+	// create shaders
+	// (not created, use default shaders) 
+
+	// create renderables packages 
+	auto r1 = std::make_shared<Renderable>();	// cube 
+	r1->mesh = mesh1;
+	r1->material = material1;
+	auto r2 = std::make_shared<Renderable>();	// plane 
+	r2->mesh = mesh2;
+	r2->material = material1;
+
+	// create entities 
+	auto e1 = new Entity();
+	e1->addComponent<RenderComponent>();
+	auto rc1 = e1->getComponent<RenderComponent>();
+	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
+	e1->position = glm::vec3(-2, 2, -3);
+	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
+	Game::instance().activeScene->rootEntity->addChild(e1);
+
+	auto e3 = new Entity();
+	e3->addComponent<RenderComponent>();
+	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
+	e3->position = glm::vec3(0, -2, -5);
+	Game::instance().activeScene->rootEntity->addChild(e3);
+
+	// ===== LIGHTING ====
+	auto eLight = new Entity();
+	eLight->addComponent<DirectionalLight>();
+	eLight->position = glm::vec3(3, 3, -7);
+	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
+	Game::instance().activeScene->rootEntity->addChild(eLight);
+
+	auto eLight2 = new Entity();
+	eLight2->addComponent<DirectionalLight>();
+	eLight2->position = glm::vec3(-3, 3, -7);
+	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
+	Game::instance().activeScene->rootEntity->addChild(eLight2);
+
+
+	// ===== START GAME ======
+	Game::instance().window = window;
+	Game::instance().loop();
+
+	//Component* r = new RenderComponent();
+	//auto ctype = std::type_index(typeid(Component));
+	//auto rctype = std::type_index(typeid(RenderComponent));
+
+	//if (std::type_index(typeid(*r)) == ctype)
+	//{
+	//	std::cout << "it's a ctype" << std::endl;
+	//}
+	//else if (std::type_index(typeid(*r)) == rctype)
+	//{
+	//	std::cout << "it's a RC type" << std::endl;
+	//}
+	//else
+	//{
+	//	std::cout << "it's what?" << std::endl;
+	//}
+
+	//Game::instance().componentCreated(std::type_index(typeid(*r)), r);
+
+	// RenderingSystem renderingSystem = RenderingSystem();
+	// renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
+	// renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
+	
+	/*
 	// ===== INIT DATA ===== 
 	auto loader = AssetLoader();
 	
@@ -130,22 +241,6 @@ int main(int argc, char* args[])
 	auto mesh1 = std::make_shared<CubeMesh>();
 	auto mesh2 = std::make_shared<PlaneMesh>();
 	
-	/* Example: Custom hardcoded data 
-	std::vector<Vertex> planeVertex = {
-		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
-		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
-		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
-		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
-	};
-
-	std::vector<unsigned int> planeIndex = {
-		2, 1, 0,
-		1, 2, 3,
-	};
-
-	auto mesh3 = std::make_shared<Mesh>(planeVertex, planeIndex);
-	*/
-
 	// create materials 
 	auto material1 = std::make_shared<Material>();
 	material1->AddTexture(texture);
@@ -221,6 +316,7 @@ int main(int argc, char* args[])
 	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
 	
 
+	*/
 	/* Debug struct - use this if not using shadow maps
 	std::vector<LightSimple> lights;
 	float ambient = 1.0f;
@@ -241,11 +337,11 @@ int main(int argc, char* args[])
 	printf("%d", t1->getComponent<Transform>()->getTest());
 	t1->removeComponent<Transform>();
 
-
+	/*
 	while (1)
 	{
 		// TODO: listen for events 
-		/*SDL_Event e;
+		SDL_Event e;
 		while (SDL_PollEvent(&e) != 0)
 		{
 			//User requests quit
@@ -292,11 +388,12 @@ int main(int argc, char* args[])
 				}
 				
 			}
-		}*/
-		e4->update(0.05f);
-		renderingSystem.Update();
+		}
+
+		// renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 	}
+	*/
 
 	//Destroy window
 	SDL_DestroyWindow( window );

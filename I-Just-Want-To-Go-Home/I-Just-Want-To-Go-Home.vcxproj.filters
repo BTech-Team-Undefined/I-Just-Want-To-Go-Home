@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
+    <ClCompile Include="Core\Game.cpp" />
     <ClCompile Include="Rendering\PlaneMesh.cpp" />
     <ClCompile Include="Rendering\CubeMesh.cpp" />
     <ClCompile Include="Rendering\RenderComponent.cpp" />
@@ -18,12 +19,16 @@
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\RenderingSystem.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
+    <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
+    <ClCompile Include="EntitySystems\System.cpp" />
+    <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Core\Game.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />
     <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />
@@ -43,7 +48,9 @@
     <ClInclude Include="EntitySystems\Entity.h" />
     <ClInclude Include="EntitySystems\System.h" />
     <ClInclude Include="EntitySystems\Transform.h" />
+    <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="TestableClass.h" />
+    <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
   </ItemGroup>
   <ItemGroup>

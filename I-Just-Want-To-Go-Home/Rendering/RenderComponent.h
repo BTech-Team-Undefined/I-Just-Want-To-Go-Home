@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include "../EntitySystems/Entity.h"
@@ -15,8 +16,7 @@ public:
 
 // functions 
 public:
-	RenderComponent(Entity* e) : Component(e) {};
-	~RenderComponent() { printf("rendercomponent DEAD"); };
+	RenderComponent();
 
 	void update(float dt) {};
 

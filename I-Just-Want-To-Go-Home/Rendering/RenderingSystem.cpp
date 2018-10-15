@@ -1,11 +1,12 @@
 #include "RenderingSystem.h"
 
+#include <typeinfo>
+#include <typeindex>
 #include <iostream>
 #include <iomanip>
 #include "Shader.h"
 
-
-RenderingSystem::RenderingSystem()
+RenderingSystem::RenderingSystem() : System()
 {
 	// debug? initialize the composition shader 
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
@@ -24,6 +25,7 @@ RenderingSystem::RenderingSystem()
 
 RenderingSystem::~RenderingSystem()
 {
+	System::~System();
 }
 
 void RenderingSystem::SetSize(unsigned int width, unsigned int height)
@@ -39,42 +41,10 @@ void RenderingSystem::SetSize(unsigned int width, unsigned int height)
 	InitializeFrameBuffers();
 }
 
-void RenderingSystem::Update()
-{
-	// Cleanup 
-	glClearDepth(1.0f);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// check for valid state 
-	if (screenWidth == 0 || screenHeight == 0)
-	{
-		std::cerr << "ERROR: Screen dimensions are 0" << std::endl;
-		return;
-	}
-	else if (activeCamera == nullptr)
-	{
-		std::cerr << "ERROR: No camera has been set for rendering" << std::endl;
-		return;
-	}
-
-	// draw everything
-	RenderGeometryPass();	// this actually does all the passes at the moment
-}
-
+// todo: refactor with current system
 void RenderingSystem::SetCamera(Camera * camera)
 {
 	this->activeCamera = camera;
-}
-
-void RenderingSystem::AddRenderable(std::shared_ptr<RenderComponent> rc)
-{
-	this->components.push_back(rc);
-}
-
-void RenderingSystem::RemoveRenderable(std::shared_ptr<RenderComponent> rc)
-{
-	std::cerr << "ERROR: RemoveRenderable() is not implemented yet" << std::endl;
 }
 
 void RenderingSystem::RenderGeometryPass()
@@ -96,9 +66,9 @@ void RenderingSystem::RenderGeometryPass()
 	geometryShader->setMat4("u_View", view);
 
 	// go thru each component 
-	for (int i = 0; i < components.size(); i++)
+	for (int i = 0; i < _components.size(); i++)
 	{
-		auto rc = components[i];
+		auto rc = _components[i];
 		auto model = rc->getEntity()->getWorldTransformation();		// this can be optimized 
 		geometryShader->setMat4("u_Model", model);
 
@@ -127,16 +97,16 @@ void RenderingSystem::RenderGeometryPass()
 	// 2nd Pass - lighting shadow map   
 	profiler.StartTimer(1);
 
-	for (int i = 0; i < lights.size(); i++)
+	for (int i = 0; i < _dlights.size(); i++)
 	{
 		shadowmapShader->use();
-		shadowmapShader->setMat4("u_LightSpaceMatrix", lights[i]->getLightSpaceMatrix());
-		lights[i]->PrepareShadowmap(shadowmapShader);
+		shadowmapShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
+		_dlights[i]->PrepareShadowmap(shadowmapShader);
 
 		// go thru each component 
-		for (int i = 0; i < components.size(); i++)
+		for (int i = 0; i < _components.size(); i++)
 		{
-			auto rc = components[i];
+			auto rc = _components[i];
 			auto model = rc->getEntity()->getWorldTransformation();		// this can be optimized 
 			shadowmapShader->setMat4("u_Model", model);
 
@@ -182,12 +152,12 @@ void RenderingSystem::RenderGeometryPass()
 	glBlendFunc(GL_ONE, GL_ONE);
 	glDisable(GL_DEPTH_TEST);
 
-	for (int i = 0; i < lights.size(); i++)
+	for (int i = 0; i < _dlights.size(); i++)
 	{
-		compositionShader->setVec3("u_LightPos", lights[i]->getEntity()->position);
-		compositionShader->setMat4("u_LightSpaceMatrix", lights[i]->getLightSpaceMatrix());
+		compositionShader->setVec3("u_LightPos", _dlights[i]->getEntity()->position);
+		compositionShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
 		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*lights[i]).TexId);
+		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*_dlights[i]).TexId);
 	
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -303,6 +273,91 @@ void RenderingSystem::InitializeScreenQuad()
 }
 
 
+void RenderingSystem::update(float dt)
+{
+	// Cleanup 
+	glClearDepth(1.0f);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// check for valid state 
+	if (screenWidth == 0 || screenHeight == 0)
+	{
+		std::cerr << "ERROR: Screen dimensions are 0" << std::endl;
+		return;
+	}
+	else if (_cameras.size() == 0)
+	{
+		std::cerr << "ERROR: There are no cameras" << std::endl;
+		return;
+	}
+
+	// use first main camera
+	SetCamera(nullptr);
+	for (int i = 0; i < _cameras.size(); i++)
+	{
+		if (_cameras[i]->isMain)
+		{
+			SetCamera(_cameras[i]);
+			break;
+		}
+	}
+	if (activeCamera == nullptr)
+	{
+		std::cerr << "ERROR: No camera has been set for rendering" << std::endl;
+	}
+
+	// draw everything
+	RenderGeometryPass();	// this actually does all the passes at the moment
+}
+
+void RenderingSystem::onComponentCreated(std::type_index t, Component* c)
+{
+	if (t == std::type_index(typeid(RenderComponent)))
+	{
+		std::cout << "RenderingSystem adding render component" << std::endl;
+		_components.push_back(static_cast<RenderComponent*>(c));
+	}
+	else if (t == std::type_index(typeid(DirectionalLight)))
+	{
+		std::cout << "RenderingSystem adding light" << std::endl;
+		_dlights.push_back(static_cast<DirectionalLight*>(c));
+	}
+	else if (t == std::type_index(typeid(Camera)))
+	{
+		std::cout << "RenderingSystem adding camera" << std::endl;
+		_cameras.push_back(static_cast<Camera*>(c));
+	}
+}
+
+void RenderingSystem::onComponentDestroyed(std::type_index t, Component* c)
+{
+	if (t == std::type_index(typeid(RenderComponent)))
+	{
+		auto target = std::find(_components.begin(), _components.end(), c);
+		if (target != _components.end())
+			_components.erase(target);
+		else
+			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
+	}
+	else if (t == std::type_index(typeid(DirectionalLight)))
+	{
+		auto target = std::find(_dlights.begin(), _dlights.end(), c);
+		if (target != _dlights.end())
+			_dlights.erase(target);
+		else
+			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
+	}
+	else if (t == std::type_index(typeid(Camera)))
+	{
+		std::cout << "Camera destroyed" << std::endl;
+		auto target = std::find(_cameras.begin(), _cameras.end(), c);
+		if (target != _cameras.end())
+			_cameras.erase(target);
+		else
+			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
+	}
+}
 
 /* Notes:
 

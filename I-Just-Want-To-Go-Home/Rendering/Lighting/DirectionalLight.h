@@ -13,7 +13,7 @@ class DirectionalLight : public Light
 public:
 	GLuint FBO, TexId; 
 
-	DirectionalLight(Entity* e) : Light(e)
+	DirectionalLight() : Light(std::type_index(typeid(DirectionalLight)))
 	{
 		// Generate shadow map 
 		glGenFramebuffers(1, &FBO);
@@ -41,12 +41,12 @@ public:
 	}
 	~DirectionalLight() {};
 
-	virtual void LoadUniforms(Shader* shader) 
+	virtual void LoadUniforms(Shader* shader) override
 	{
 	}
 
 	// TODO: TONS OF MAGIC NUMBERS
-	virtual void PrepareShadowmap(Shader* shader)
+	virtual void PrepareShadowmap(Shader* shader) override
 	{
 		//glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 11.0f);
 		//// glm::mat4 view = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
@@ -62,7 +62,7 @@ public:
 	}
 
 	// don't call this 
-	virtual void CleanupShadowmap(Shader* shader) 
+	virtual void CleanupShadowmap(Shader* shader) override
 	{
 		std::cerr << "I SAID DONT CALL CLEANUPSHADOWMAP" << std::endl;
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

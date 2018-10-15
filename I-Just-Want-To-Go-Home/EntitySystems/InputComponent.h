@@ -10,7 +10,7 @@ class InputComponent : public Component
 {
 public:
 
-	InputComponent(Entity* e) : Component(e)
+	InputComponent() : Component(std::type_index(typeid(InputComponent)))
 	{
 		test = getEntity();
 		_actions[SDL_EventType::SDL_KEYDOWN] = [this](SDL_Event e)
