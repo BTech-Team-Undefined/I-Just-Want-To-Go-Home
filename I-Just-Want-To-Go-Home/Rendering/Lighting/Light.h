@@ -1,5 +1,7 @@
 #pragma once
 
+#include <typeinfo>
+#include <typeindex>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include "..\Rendering\Shader.h"
@@ -17,12 +19,11 @@ struct LightSimple
 class Light : public Component
 {
 public:
-	Light(Entity* e) : Component(e) {};
-	~Light() {};
+	Light(std::type_index t) : Component(t) {};
 	
-	virtual void LoadUniforms(Shader* shader) {};
-	virtual void PrepareShadowmap(Shader* shader) {};
-	virtual void CleanupShadowmap(Shader* shader) {};
+	virtual void LoadUniforms(Shader* shader)	  = 0;
+	virtual void PrepareShadowmap(Shader* shader) = 0;
+	virtual void CleanupShadowmap(Shader* shader) = 0;
 	virtual glm::mat4 getLightSpaceMatrix() { return glm::mat4(1.0f); };
 
 	virtual void update(float dt) override {};
