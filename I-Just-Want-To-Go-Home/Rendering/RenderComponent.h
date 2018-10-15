@@ -16,9 +16,9 @@ public:
 // functions 
 public:
 	RenderComponent(Entity* e) : Component(e) {};
-	~RenderComponent() {};
+	~RenderComponent() { printf("rendercomponent DEAD"); };
 
-	virtual void update(float dt) {};
+	void update(float dt) {};
 
 	void addRenderable(std::shared_ptr<Renderable> r)
 	{

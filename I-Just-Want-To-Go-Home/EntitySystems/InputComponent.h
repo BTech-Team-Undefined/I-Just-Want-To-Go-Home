@@ -12,48 +12,54 @@ public:
 
 	InputComponent(Entity* e) : Component(e)
 	{
-		_actions[SDL_EventType::SDL_KEYDOWN] = [](SDL_Event e)
+		test = getEntity();
+		_actions[SDL_EventType::SDL_KEYDOWN] = [this](SDL_Event e)
 		{
 			switch (e.key.keysym.sym)
 			{
 			case SDLK_LEFT:
-				// = -1;
+				xvel = -1.0f;
 				break;
 			case SDLK_RIGHT:
-				//alien_xvel = 1;
+				xvel = 1.0f;
 				break;
 			case SDLK_UP:
-				//alien_yvel = -1;
+				yvel = -1;
 				break;
 			case SDLK_DOWN:
-				//alien_yvel = 1;
+				yvel = 1;
 				break;
 			default:
 				break;
 			}
 		};
 
-		_actions[SDL_EventType::SDL_KEYUP] = [](SDL_Event e)
+		_actions[SDL_EventType::SDL_KEYUP] = [this](SDL_Event e)
 		{
 			switch (e.key.keysym.sym)
 			{
 			case SDLK_LEFT:
-				// = -1;
+				xvel = 0;
 				break;
 			case SDLK_RIGHT:
-				//alien_xvel = 1;
+				xvel = 0;
 				break;
 			case SDLK_UP:
-				//alien_yvel = -1;
+				yvel = 0;
 				break;
 			case SDLK_DOWN:
-				//alien_yvel = 1;
+				yvel = 0;
 				break;
 			default:
 				break;
 			}
 		};
 
+		_actions[SDL_EventType::SDL_MOUSEMOTION] = [](SDL_Event e)
+		{
+			
+		};
+		
 	}
 	void update(float dt)
 	{
@@ -70,8 +76,14 @@ public:
 				return;
 			}
 		}
+		test->position.x += xvel * dt * 2.0f;
+		test->position.y += yvel * dt * 2.0f;
 	}
 
 private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
+	Entity* test;
+	float xvel;
+	float yvel;
+
 };

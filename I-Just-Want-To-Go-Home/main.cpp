@@ -184,7 +184,7 @@ int main(int argc, char* args[])
 	e4->addComponent<RenderComponent>();
 	e4->getComponent<RenderComponent>()->renderables.push_back(r1);
 	e4->position = glm::vec3(2, 0, -2);
-
+	e4->addComponent<InputComponent>();
 	// e1->addChild(e4);
 
 	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
@@ -240,7 +240,6 @@ int main(int argc, char* args[])
 	t1->addComponent<Transform>();
 	printf("%d", t1->getComponent<Transform>()->getTest());
 	t1->removeComponent<Transform>();
-	t1->addComponent<InputComponent>();
 
 
 	while (1)
@@ -294,7 +293,7 @@ int main(int argc, char* args[])
 				
 			}
 		}*/
-		t1->update(.05f);
+		e4->update(0.05f);
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 	}
