@@ -173,6 +173,7 @@ int main(int argc, char* args[])
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 2, -3);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
+	e1->addComponent<InputComponent>();
 	Game::instance().activeScene->rootEntity->addChild(e1);
 
 	auto e3 = new Entity();
@@ -331,11 +332,6 @@ int main(int argc, char* args[])
 		lights.push_back(light);
 	}
 	*/
-
-	std::shared_ptr<Entity> t1 = std::shared_ptr<Entity>(new Entity());
-	t1->addComponent<Transform>();
-	printf("%d", t1->getComponent<Transform>()->getTest());
-	t1->removeComponent<Transform>();
 
 	/*
 	while (1)

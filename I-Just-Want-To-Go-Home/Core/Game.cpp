@@ -32,19 +32,9 @@ void Game::loop()
 
 	while (_running)
 	{
-		SDL_Event e;
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return;
-			}
-		}
-
+		
 		// todo: update entities (components)
-
+		activeScene->rootEntity->update(0.16f);
 		// update systems 
 		for (int i = 0; i < _systems.size(); i++)
 		{

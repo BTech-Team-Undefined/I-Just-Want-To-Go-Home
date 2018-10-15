@@ -12,7 +12,6 @@ public:
 
 	InputComponent() : Component(std::type_index(typeid(InputComponent)))
 	{
-		test = getEntity();
 		_actions[SDL_EventType::SDL_KEYDOWN] = [this](SDL_Event e)
 		{
 			switch (e.key.keysym.sym)
@@ -55,9 +54,9 @@ public:
 			}
 		};
 
-		_actions[SDL_EventType::SDL_MOUSEMOTION] = [](SDL_Event e)
+		_actions[SDL_EventType::SDL_MOUSEMOTION] = [this](SDL_Event e)
 		{
-			
+			rot = static_cast<float>(e.motion.xrel);
 		};
 		
 	}
@@ -76,8 +75,9 @@ public:
 				return;
 			}
 		}
-		test->position.x += xvel * dt * 2.0f;
-		test->position.y += yvel * dt * 2.0f;
+		getEntity()->position.x += xvel * dt * 20.0f;
+		getEntity()->position.y += yvel * dt * 20.0f;
+		getEntity()->rotation.y = rot * dt * 20.0f;
 	}
 
 private:
@@ -85,5 +85,6 @@ private:
 	Entity* test;
 	float xvel;
 	float yvel;
+	float rot;
 
 };
