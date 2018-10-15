@@ -24,7 +24,7 @@ public:
 	AssetLoader() {};
 	~AssetLoader() {};
 	
-	Entity* LoadModel(const std::string& path)
+	std::unique_ptr<Entity> LoadModel(const std::string& path)
 	{
 		// read file via assimp 
 		Assimp::Importer importer; 
@@ -43,8 +43,10 @@ public:
 		this->directory = directory;
 
 		// process root node recursively (gather all children)
-		Entity* rootEntity = new Entity();
-		ProcessNode(rootEntity, scene->mRootNode, scene);
+		// TODO: FIX EVERYTHING
+		auto rootEntity = std::make_unique<Entity>();
+		// Entity* rootEntity = new Entity();
+		ProcessNode(rootEntity.get(), scene->mRootNode, scene);
 
 		// cleanup and return 
 		this->directory = "";

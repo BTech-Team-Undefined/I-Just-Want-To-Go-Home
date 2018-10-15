@@ -15,6 +15,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include "Component.h"
 
+// TODO: Make everything unique_ptr - Entities own children and own components. 
 class Entity
 {
 public:
@@ -40,7 +41,10 @@ public:
 
 	//Adds a component 
 	template<class T>
-	void addComponent() { _components[typeid(T)] = std::shared_ptr<T>(new T(this)); }
+	void addComponent() { 
+		_components[typeid(T)] = std::shared_ptr<T>(new T()); 
+		_components[typeid(T)]->setEntity(this);
+	}
 
 	//todo make components in isolation set Entity later in add.
 	template<class T>

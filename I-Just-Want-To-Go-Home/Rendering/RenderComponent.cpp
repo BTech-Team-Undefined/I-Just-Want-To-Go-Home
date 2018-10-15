@@ -1,12 +1,7 @@
 #include "RenderComponent.h"
+#include "../Core/Game.h"
 
-
-//
-//RenderComponent::RenderComponent()
-//{
-//}
-//
-//
-//RenderComponent::~RenderComponent()
-//{
-//}
+RenderComponent::RenderComponent() : Component(std::type_index(typeid(RenderComponent)))
+{
+	std::cout << "RenderComponent created" << std::endl;
+}
