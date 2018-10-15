@@ -27,6 +27,10 @@
 #include "Rendering\CubeMesh.h"
 #include "Rendering\PlaneMesh.h"
 #include "AssetLoader.h"
+#include "Physics\PhysicsSystem.h"
+#include "Physics\PhysicsComponent.h"
+#include "Physics\Collider2D.h"
+#include "Physics\Point.h"
 
 
 //Screen dimension constants
@@ -164,8 +168,19 @@ int main(int argc, char* args[])
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
-	e1->position = glm::vec3(-2, 2, -3);
+	e1->position = glm::vec3(-2, 0, -2);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
+
+	auto e1Collider = std::make_shared<Collider2D>("e1Box");
+	vector<Point> e1ColliderBox;
+	e1ColliderBox.push_back(Point(-1, -1)); // top left
+	e1ColliderBox.push_back(Point(1, -1)); // top right
+	e1ColliderBox.push_back(Point(1, 1)); // bottom right
+	e1ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e1Collider->SetCollider(e1ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
+	e1->addComponent<PhysicsComponent>();
+	auto pc1 = e1->getComponent<PhysicsComponent>();
+	pc1->AddCollider(e1Collider);
 
 	auto e2 = new Entity();
 	e2->addComponent<RenderComponent>();
@@ -182,6 +197,17 @@ int main(int argc, char* args[])
 	e4->addComponent<RenderComponent>();
 	e4->getComponent<RenderComponent>()->renderables.push_back(r1);
 	e4->position = glm::vec3(2, 0, -2);
+
+	auto e4Collider = std::make_shared<Collider2D>("e4Box");
+	vector<Point> e4ColliderBox;
+	e4ColliderBox.push_back(Point(-1, -1));
+	e4ColliderBox.push_back(Point(1, -1));
+	e4ColliderBox.push_back(Point(1, 1));
+	e4ColliderBox.push_back(Point(-1, 1));
+	e4Collider->SetCollider(e4ColliderBox, Point(0, 0), 1.5f);
+	e4->addComponent<PhysicsComponent>();
+	auto pc4 = e4->getComponent<PhysicsComponent>();
+	pc4->AddCollider(e4Collider);
 
 	// e1->addChild(e4);
 
@@ -248,6 +274,27 @@ int main(int argc, char* args[])
 			//User presses a key
 			else if (e.type == SDL_KEYDOWN)
 			{
+				switch (e.key.keysym.sym)
+				{
+				case SDLK_w:
+					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
+					break;
+				case SDLK_s:
+					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
+					break;
+				case SDLK_a:
+					e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
+					break;
+				case SDLK_d:
+					e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
+					break;
+				case SDLK_q:
+					e4->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					break;
+				case SDLK_e:
+					e4->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					break;
+				}
 				/* TODO: Move debug handling code once input manager is implemented 
 				compositionShader->use();
 				compositionShader->setBool("u_DisplayPos", false);
@@ -287,6 +334,7 @@ int main(int argc, char* args[])
 
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
+		PhysicsSystem::instance().Update();
 	}
 
 	//Destroy window
