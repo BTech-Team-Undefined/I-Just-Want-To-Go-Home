@@ -6,6 +6,10 @@
 #include <vector>
 #include <ctime>
 #include "Collider2D.h"
+#include "PhysicsVector.h"
+#include "PhysicsComponent.h"
+
+class Collider2D;
 
 using namespace std;
 
@@ -16,16 +20,14 @@ public:
 
 	void Update();
 	int RegisterCollider(shared_ptr<Collider2D> collider);
-
+	int RegisterEntity(Entity* entity);
 	map<int, shared_ptr<Collider2D>> _colliders = {};
+	map<int, Entity*> _entities = {};
 	float timeelapsed;
-	float curPos;
 	int frame = 0;
-	float VelocityInitial;
-	float fixedDeltatime = 1.0/60.0;
-	float velocity;
-    float ConstantAcceleration;
-	void Accelerate();
+	float fixedDeltatime = 20.0/1000.0;
+    float constantAcceleration;
+	void physicsUpdate(Entity* e);
 
 private:
 	vector<string> _justChecked;

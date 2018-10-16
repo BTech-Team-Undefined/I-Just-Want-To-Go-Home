@@ -31,6 +31,7 @@
 #include "Physics\PhysicsComponent.h"
 #include "Physics\Collider2D.h"
 #include "Physics\Point.h"
+#include "Physics\PhysicsVector.h"
 
 
 //Screen dimension constants
@@ -186,6 +187,8 @@ int main(int argc, char* args[])
 	e1->addComponent<PhysicsComponent>();
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	pc1->AddCollider(e1Collider);
+	pc1->force.y = 1;
+	pc1->Register(); // Temporary way of registering with the physics system
 
 	auto e2 = new Entity();
 	e2->addComponent<RenderComponent>();
@@ -212,7 +215,7 @@ int main(int argc, char* args[])
 	e4Collider->SetCollider(e4ColliderBox, Point(0, 0), 1.5f);
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
-	pc4->AddCollider(e4Collider);
+	pc4->Register(); // Temporary way of registering with the physics system
 
 	// e1->addChild(e4);
 
@@ -270,7 +273,7 @@ int main(int argc, char* args[])
 		SDL_Event e;
 		while (SDL_PollEvent(&e) != 0)
 		{
-			e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - PhysicsSystem::instance().curPos); //moves the entity based on its velocity and acceleration
+			e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z); //moves the entity based on its velocity and acceleration
 			//User requests quit
 			if (e.type == SDL_QUIT)
 			{

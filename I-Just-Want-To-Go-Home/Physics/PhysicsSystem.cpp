@@ -18,6 +18,13 @@ int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 	return index;
 }
 
+int PhysicsSystem::RegisterEntity(Entity* entity)
+{
+	int index = static_cast<int>(this->_entities.size());
+	this->_entities.insert(pair<int, Entity*>(index, entity));
+	return index;
+}
+
 // should be called every update frame
 void PhysicsSystem::Update()
 {
@@ -30,15 +37,17 @@ void PhysicsSystem::Update()
 	double diffMilliseconds = (diff) / (CLOCKS_PER_SEC / 1000);
 	if (diffMilliseconds < UPDATE_THRESHOLD)
 		return;
-
 	this->CheckCollisions();
-	this->Accelerate();
 	this->_lastUpdate = currentTime;
 }
 
 void PhysicsSystem::CheckCollisions()
 {
 	const float NEAR_THRESHOLD = 0.02f;
+
+	for (int i = 0; i < this->_entities.size(); ++i) {
+		this->physicsUpdate(this->_entities[i]);
+	}
 
 	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)
@@ -291,18 +300,22 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 	}
 }
 
-void PhysicsSystem::Accelerate() {
+void PhysicsSystem::physicsUpdate(Entity* e) {
+	auto pc = e->getComponent<PhysicsComponent>();
 	
-	ConstantAcceleration = 2;
-	VelocityInitial = 2; //dummy velocity initial
-	//std::cout <<"\n Current velocity is: "<< velocity<< endl; //debugging to see if frame & timeelapsed is being added
-	//timeelapsed = frame * fixedDeltatime; //I think this is not necessary
-	
-	velocity = VelocityInitial + (ConstantAcceleration * fixedDeltatime);
-	curPos = curPos + (VelocityInitial * fixedDeltatime);// use the curPos variable to move the entity
+	PhysicsVector f = pc->force;
+	PhysicsVector a = f * (1 / pc->mass);
+	PhysicsVector v = pc->velocity;
+	PhysicsVector pos = PhysicsVector(e->position.x, e->position.z);
+	pos += v * fixedDeltatime + 0.5 * v * fixedDeltatime * fixedDeltatime;// use the curPos variable to move the entity
+	v += a * fixedDeltatime;
 
+	pc->velocity.x = v.x;
+	pc->velocity.y = v.y;
 
+	e->position = glm::vec3(pos.x, e->position.y, pos.y);
 
+	cout << "Force: " << pc->force.x << ", " << pc->force.y << ", Velocity: " << pc->velocity.x << ", " << pc->velocity.y << endl;
 }
 
 

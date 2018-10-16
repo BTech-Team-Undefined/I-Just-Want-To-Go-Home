@@ -4,13 +4,18 @@
 #include "../EntitySystems/Entity.h"
 #include "../EntitySystems/Component.h"
 #include "Collider2D.h"
-
+#include "PhysicsVector.h"
 using namespace std;
+
+class Collider2D;
 
 class PhysicsComponent : public Component
 {
 public:
 	vector<shared_ptr<Collider2D>> colliders;
+	float mass = 1.0f;
+	PhysicsVector velocity;
+	PhysicsVector force;
 
 public:
 	PhysicsComponent(Entity* e) : Component(e) {};
@@ -19,11 +24,7 @@ public:
 	virtual void Update(float dt) {};
 	virtual void Draw() {};
 
-	void AddCollider(shared_ptr<Collider2D> c)
-	{
-		c->SetEntity(this->GetEntity());
-		int id = PhysicsSystem::instance().RegisterCollider(c);
-		c->colliderId = id;
-		colliders.push_back(c);
-	}
+	void AddCollider(shared_ptr<Collider2D> c);
+
+	void Register();
 };
