@@ -17,10 +17,23 @@
 
 class Entity
 {
+private:
+	static unsigned int _curID;
 public:
 	glm::vec3 position;
 	glm::vec3 rotation;
 	glm::vec3 scale = glm::vec3(1.0f);
+
+	Entity() :_id(Entity::_curID)
+	{
+		Entity::_curID++;
+	}
+
+	Entity(Entity* parent) :_id(Entity::_curID)
+	{
+		Entity::_curID++;
+		setParent(parent);
+	}
 
 	unsigned int getID() const { return _id; }
 
@@ -120,8 +133,6 @@ private:
 	Entity* _parent;
 	// may want to store world position,scale,rotation for optimization
 };
-
-
 
 #pragma once
 

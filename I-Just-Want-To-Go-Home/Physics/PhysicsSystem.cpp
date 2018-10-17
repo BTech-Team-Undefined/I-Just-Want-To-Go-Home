@@ -46,8 +46,8 @@ void PhysicsSystem::CheckCollisions()
 	map<string, pair<Entity*, Entity*>> collisions = {};
 	const float NEAR_THRESHOLD = 0.02f;
 
-	for (int i = 0; i < this->_entities.size(); ++i) {
-		this->physicsUpdate(this->_entities[i]);
+	for (auto i = _entities.begin(); i != _entities.end(); ++i) {
+		this->physicsUpdate(i->second);
 	}
 
 	this->_justChecked.clear();
@@ -317,11 +317,20 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 }
 
 void PhysicsSystem::physicsUpdate(Entity* e) {
+	const float gravity = 9.8; // Acceleration from gravity; for purpose of calculating friction
 	auto pc = e->getComponent<PhysicsComponent>();
 	
 	PhysicsVector f = pc->force;
-	PhysicsVector a = f * (1 / pc->mass);
 	PhysicsVector v = pc->velocity;
+
+	if (v.length() > 0) {
+		float drag = -v.dot(v) * pc->mass * pc->dragCoefficient;
+		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		f += (drag + fric) * v.unit(); // fric is already negative so we don't need to worry about sign
+	}
+
+	PhysicsVector a = f * (1 / pc->mass);
+
 	PhysicsVector pos = PhysicsVector(e->position.x, e->position.z);
 	pos += v * fixedDeltatime + 0.5 * v * fixedDeltatime * fixedDeltatime;// use the curPos variable to move the entity
 	v += a * fixedDeltatime;
@@ -329,14 +338,24 @@ void PhysicsSystem::physicsUpdate(Entity* e) {
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;
 
+
 	e->position = glm::vec3(pos.x, e->position.y, pos.y);
 }
 
 void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	auto pc2 = e2->getComponent<PhysicsComponent>();
+	if (pc1->isStatic && pc2->isStatic) {
+		return; // Both are static; no point in calculating anything
+	}
 	float im1 = 1 / pc1->mass;
 	float im2 = 1 / pc2->mass;
+	if (pc1->isStatic) {
+		im1 = 0;
+	}
+	if (pc2->isStatic) {
+		im2 = 0;
+	}
 	PhysicsVector n = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z).unit();
 	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
 	if (vNorm > 0) {
