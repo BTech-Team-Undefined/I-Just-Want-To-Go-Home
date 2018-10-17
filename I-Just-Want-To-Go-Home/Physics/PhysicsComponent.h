@@ -20,6 +20,8 @@ public:
 	bool isStatic = false;
 	PhysicsVector velocity;
 	PhysicsVector force;
+	float angularForce;
+	float angularVelocity;
 
 public:
 	PhysicsComponent(Entity* e) : Component(e) {};

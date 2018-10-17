@@ -307,6 +307,7 @@ int main(int argc, char* args[])
 	}
 	*/
 
+	float thrust = 0;
 	while (1)
 	{
 		// TODO: listen for events 
@@ -326,27 +327,33 @@ int main(int argc, char* args[])
 				
 				switch (e.key.keysym.sym)
 				{
-				case SDLK_w:
+				case SDLK_w: {
 					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-					e6->getComponent<PhysicsComponent>()->force.y = -10;
+					thrust = 15.0;
 					break;
-				case SDLK_s:
+				}
+				case SDLK_s: {
 					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
-					e6->getComponent<PhysicsComponent>()->force.y = 10;
+					thrust = -5.0;
 					break;
+				}
 				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
-					e6->getComponent<PhysicsComponent>()->force.x = -10;
+					//e6->getComponent<PhysicsComponent>()->force.x = -10;
+					e6->getComponent<PhysicsComponent>()->angularForce = 3;
 					break;
 				case SDLK_d:
 					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
-					e6->getComponent<PhysicsComponent>()->force.x = 10;
+					//e6->getComponent<PhysicsComponent>()->force.x = 10;
+					e6->getComponent<PhysicsComponent>()->angularForce = -3;
 					break;
 				case SDLK_q:
-					e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 3;
 					break;
 				case SDLK_e:
-					e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = -3;
 					break;
 				}
 				/* TODO: Move debug handling code once input manager is implemented 
@@ -391,29 +398,44 @@ int main(int argc, char* args[])
 				{
 				case SDLK_w:
 					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-					e6->getComponent<PhysicsComponent>()->force.y = 0;
+					thrust = 0;
 					break;
 				case SDLK_s:
 					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
-					e6->getComponent<PhysicsComponent>()->force.y = 0;
+					thrust = 0;
 					break;
 				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
-					e6->getComponent<PhysicsComponent>()->force.x = 0;
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
 					break;
 				case SDLK_d:
 					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
-					e6->getComponent<PhysicsComponent>()->force.x = 0;
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
 					break;
 				case SDLK_q:
-					e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
 					break;
 				case SDLK_e:
-					e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
 					break;
 				}
 			}
 		}
+
+		float dir = e6->rotation.y;
+		e6->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust;
+		e6->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust;
+
+		static float camDist = 8;
+		eCam->position = glm::vec3(
+			e6->position.x + std::sin(dir + 3.141) * camDist,
+			e6->position.y + 10,
+			e6->position.z + std::cos(dir + 3.141) * camDist
+		);
+		eCam->rotation = glm::vec3(-0.7, dir + 3.141, 0);
+
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 		PhysicsSystem::instance().Update();

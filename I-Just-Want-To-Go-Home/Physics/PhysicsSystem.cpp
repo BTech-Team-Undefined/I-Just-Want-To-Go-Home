@@ -319,9 +319,12 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 void PhysicsSystem::physicsUpdate(Entity* e) {
 	const float gravity = 9.8; // Acceleration from gravity; for purpose of calculating friction
 	auto pc = e->getComponent<PhysicsComponent>();
+	float im = 1 / pc->mass;
 	
 	PhysicsVector f = pc->force;
+	float af = pc->angularForce;
 	PhysicsVector v = pc->velocity;
+	float av = pc->angularVelocity;
 
 	if (v.length() > 0) {
 		float drag = -v.dot(v) * pc->mass * pc->dragCoefficient;
@@ -329,17 +332,29 @@ void PhysicsSystem::physicsUpdate(Entity* e) {
 		f += (drag + fric) * v.unit(); // fric is already negative so we don't need to worry about sign
 	}
 
-	PhysicsVector a = f * (1 / pc->mass);
+	if (av != 0) {
+		float adrag = -av * av * pc->mass * pc->dragCoefficient;
+		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		af += (adrag + fric) * (av > 0 ? 1 : -1);
+	}
+
+	PhysicsVector a = f * im;
+	float aa = af * im;
 
 	PhysicsVector pos = PhysicsVector(e->position.x, e->position.z);
-	pos += v * fixedDeltatime + 0.5 * v * fixedDeltatime * fixedDeltatime;// use the curPos variable to move the entity
+	pos += v * fixedDeltatime + 0.5 * a * fixedDeltatime * fixedDeltatime;// use the curPos variable to move the entity
 	v += a * fixedDeltatime;
+
+	float rot = e->rotation.y;
+	rot += av * fixedDeltatime + 0.5 * aa * fixedDeltatime * fixedDeltatime;
+	av += aa * fixedDeltatime;
 
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;
-
+	pc->angularVelocity = av;
 
 	e->position = glm::vec3(pos.x, e->position.y, pos.y);
+	e->rotation = glm::vec3(e->rotation.x, rot, e->rotation.z);
 }
 
 void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
