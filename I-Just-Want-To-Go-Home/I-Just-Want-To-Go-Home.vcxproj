@@ -141,6 +141,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="Core\Game.cpp" />
+    <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
@@ -170,6 +171,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="EntitySystems\DestructionComponent.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />

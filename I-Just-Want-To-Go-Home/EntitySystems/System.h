@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <unordered_map>
+#include <typeindex>
+#include <typeinfo>
 #include "Component.h"
 
 class Game;	// circular dependencies
@@ -9,14 +11,29 @@ class Game;	// circular dependencies
 
 class System
 {
+	typedef std::unordered_map<std::type_index, std::vector<Component*>> ComponentMap;
 public:
 	System();
 	~System();
 	virtual void update(float dt) = 0;
+	// TODO: Fix
+	virtual void addComponent(std::type_index t, Component* component)
+	{
+		auto type = std::type_index(typeid(component));
+		_componentMap[type].push_back(component);
+	}
+	virtual void clearComponents()
+	{
+		for (ComponentMap::iterator it = _componentMap.begin(); it != _componentMap.end(); ++it)
+		{
+			it->second.resize(0);
+		}
+	}
 
 protected:
 	virtual void onComponentCreated(std::type_index t, Component* c) = 0;
 	virtual void onComponentDestroyed(std::type_index t, Component* c) = 0;
+	ComponentMap _componentMap;
 };
 
 

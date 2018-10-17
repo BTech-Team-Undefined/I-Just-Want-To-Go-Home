@@ -24,6 +24,7 @@
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
+    <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -52,6 +53,7 @@
     <ClInclude Include="TestableClass.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
+    <ClInclude Include="EntitySystems\DestructionComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

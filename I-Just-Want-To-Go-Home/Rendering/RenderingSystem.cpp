@@ -311,6 +311,11 @@ void RenderingSystem::update(float dt)
 	RenderGeometryPass();	// this actually does all the passes at the moment
 }
 
+void RenderingSystem::addComponent(std::type_index t, Component * component)
+{
+	onComponentCreated(t, component);
+}
+
 void RenderingSystem::onComponentCreated(std::type_index t, Component* c)
 {
 	if (t == std::type_index(typeid(RenderComponent)))
