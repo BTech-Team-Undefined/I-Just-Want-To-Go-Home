@@ -31,6 +31,7 @@
 #include "Physics\PhysicsComponent.h"
 #include "Physics\Collider2D.h"
 #include "Physics\Point.h"
+#include "Physics\PhysicsVector.h"
 
 
 //Screen dimension constants
@@ -108,7 +109,8 @@ int main(int argc, char* args[])
 
 	// ===== CAMERA ======
 	auto eCam = new Entity();
-	eCam->position = glm::vec3(0, 0, 5);
+	eCam->position = glm::vec3(0, 10, 8); //replace the camera position back if finished.
+	eCam->rotation = glm::vec3(-0.7, 0, 0);
 	eCam->addComponent<Camera>();
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
@@ -184,7 +186,9 @@ int main(int argc, char* args[])
 	e1Collider->SetCollider(e1ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
 	e1->addComponent<PhysicsComponent>();
 	auto pc1 = e1->getComponent<PhysicsComponent>();
+	pc1->isStatic = true;
 	pc1->AddCollider(e1Collider);
+	pc1->Register(); // Temporary way of registering with the physics system
 
 	auto e2 = new Entity();
 	e2->addComponent<RenderComponent>();
@@ -192,10 +196,36 @@ int main(int argc, char* args[])
 	e2->position = glm::vec3(2, 0, -5);
 	e2->rotation = glm::vec3(0, glm::radians(45.0f), 0);
 
+	auto e2Collider = std::make_shared<Collider2D>("e1Box");
+	vector<Point> e2ColliderBox;
+	e2ColliderBox.push_back(Point(-1, -1)); // top left
+	e2ColliderBox.push_back(Point(1, -1)); // top right
+	e2ColliderBox.push_back(Point(1, 1)); // bottom right
+	e2ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e2Collider->SetCollider(e2ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
+	e2->addComponent<PhysicsComponent>();
+	auto pc2 = e2->getComponent<PhysicsComponent>();
+	pc2->isStatic = true;
+	pc2->AddCollider(e2Collider);
+	pc2->Register(); // Temporary way of registering with the physics system
+
 	auto e3 = new Entity();
 	e3->addComponent<RenderComponent>();
 	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
 	e3->position = glm::vec3(0, -2, -5);
+
+	auto e3Collider = std::make_shared<Collider2D>("e1Box");
+	vector<Point> e3ColliderBox;
+	e3ColliderBox.push_back(Point(-1, -1)); // top left
+	e3ColliderBox.push_back(Point(1, -1)); // top right
+	e3ColliderBox.push_back(Point(1, 1)); // bottom right
+	e3ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e3Collider->SetCollider(e3ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
+	e3->addComponent<PhysicsComponent>();
+	auto pc3 = e3->getComponent<PhysicsComponent>();
+	pc3->isStatic = true;
+	pc3->AddCollider(e3Collider);
+	pc3->Register(); // Temporary way of registering with the physics system
 
 	auto e4 = new Entity();
 	e4->addComponent<RenderComponent>();
@@ -212,6 +242,7 @@ int main(int argc, char* args[])
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
+	pc4->Register(); // Temporary way of registering with the physics system
 
 	// e1->addChild(e4);
 
@@ -225,6 +256,19 @@ int main(int argc, char* args[])
 	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
 	std::vector<std::shared_ptr<RenderComponent>> e6components;
 	e6->getComponents<RenderComponent>(e6components);
+
+	auto e6Collider = std::make_shared<Collider2D>("e1Box");
+	vector<Point> e6ColliderBox;
+	e6ColliderBox.push_back(Point(-1, -1)); // top left
+	e6ColliderBox.push_back(Point(1, -1)); // top right
+	e6ColliderBox.push_back(Point(1, 1)); // bottom right
+	e6ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
+	e6->addComponent<PhysicsComponent>();
+	auto pc6 = e6->getComponent<PhysicsComponent>();
+	pc6->isStatic = false;
+	pc6->AddCollider(e6Collider);
+	pc6->Register(); // Temporary way of registering with the physics system
 	
 	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
 	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
@@ -263,12 +307,14 @@ int main(int argc, char* args[])
 	}
 	*/
 
+	float thrust = 0;
 	while (1)
 	{
 		// TODO: listen for events 
 		SDL_Event e;
 		while (SDL_PollEvent(&e) != 0)
 		{
+			e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z); //moves the entity based on its velocity and acceleration
 			//User requests quit
 			if (e.type == SDL_QUIT)
 			{
@@ -278,25 +324,36 @@ int main(int argc, char* args[])
 			//User presses a key
 			else if (e.type == SDL_KEYDOWN)
 			{
+				
 				switch (e.key.keysym.sym)
 				{
-				case SDLK_w:
-					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
+				case SDLK_w: {
+					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
+					thrust = 15.0;
 					break;
-				case SDLK_s:
-					e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
+				}
+				case SDLK_s: {
+					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
+					thrust = -5.0;
 					break;
+				}
 				case SDLK_a:
-					e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
+					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
+					//e6->getComponent<PhysicsComponent>()->force.x = -10;
+					e6->getComponent<PhysicsComponent>()->angularForce = 3;
 					break;
 				case SDLK_d:
-					e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
+					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
+					//e6->getComponent<PhysicsComponent>()->force.x = 10;
+					e6->getComponent<PhysicsComponent>()->angularForce = -3;
 					break;
 				case SDLK_q:
-					e4->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 3;
 					break;
 				case SDLK_e:
-					e4->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = -3;
 					break;
 				}
 				/* TODO: Move debug handling code once input manager is implemented 
@@ -334,11 +391,55 @@ int main(int argc, char* args[])
 				}
 				*/
 			}
+			else if (e.type == SDL_KEYUP)
+			{
+
+				switch (e.key.keysym.sym)
+				{
+				case SDLK_w:
+					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
+					thrust = 0;
+					break;
+				case SDLK_s:
+					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
+					thrust = 0;
+					break;
+				case SDLK_a:
+					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
+					break;
+				case SDLK_d:
+					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
+					break;
+				case SDLK_q:
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
+					break;
+				case SDLK_e:
+					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
+					e6->getComponent<PhysicsComponent>()->angularForce = 0;
+					break;
+				}
+			}
 		}
+
+		float dir = e6->rotation.y;
+		e6->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust;
+		e6->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust;
+
+		static float camDist = 8;
+		eCam->position = glm::vec3(
+			e6->position.x + std::sin(dir + 3.141) * camDist,
+			e6->position.y + 10,
+			e6->position.z + std::cos(dir + 3.141) * camDist
+		);
+		eCam->rotation = glm::vec3(-0.7, dir + 3.141, 0);
 
 		renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 		PhysicsSystem::instance().Update();
+		
 	}
 
 	//Destroy window
@@ -346,6 +447,6 @@ int main(int argc, char* args[])
 
 	//Quit SDL subsystems
 	SDL_Quit();
-
+	
 	return 0;
 }

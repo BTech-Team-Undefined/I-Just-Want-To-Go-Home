@@ -35,34 +35,17 @@ public:
 	{
 	}
 
-	void SetEntity(Entity *entity)
-	{
-		this->_entity = entity;
-	}
+	void SetEntity(Entity *entity);
 
-	virtual void OnCollision(int colliderId, string colliderName)
-	{
-		cout << "Collision: " + this->colliderName + "(id: " + to_string(this->colliderId) + ") & " + colliderName + "(id: " + to_string(colliderId) + ")" << endl;
-	}
+	Entity* GetEntity();
 
-	void SetCollider(vector<Point> vertices, Point roughCenter, float roughRadius)
-	{
-		this->collider.clear();
-		this->collider.insert(this->collider.end(), vertices.begin(), vertices.end());
-		this->roughCenter = roughCenter;
-		this->roughRadius = roughRadius;
-	}
+	virtual void OnCollision(int colliderId, string colliderName);
 
-	Point GetOrigin()
-	{
-		glm::vec3 pos = this->_entity->position;
-		return Point(pos.x, pos.z);
-	}
+	void SetCollider(vector<Point> vertices, Point roughCenter, float roughRadius);
 
-	float GetRotationY()
-	{
-		return this->_entity->rotation.y;
-	}
+	Point GetOrigin();
+
+	float GetRotationY();
 
 private:
 	Entity * _entity;

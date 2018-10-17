@@ -18,6 +18,13 @@ int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 	return index;
 }
 
+int PhysicsSystem::RegisterEntity(Entity* entity)
+{
+	int index = entity->getID();
+	this->_entities.insert(pair<int, Entity*>(index, entity));
+	return index;
+}
+
 // should be called every update frame
 void PhysicsSystem::Update()
 {
@@ -30,15 +37,18 @@ void PhysicsSystem::Update()
 	double diffMilliseconds = (diff) / (CLOCKS_PER_SEC / 1000);
 	if (diffMilliseconds < UPDATE_THRESHOLD)
 		return;
-
 	this->CheckCollisions();
-
 	this->_lastUpdate = currentTime;
 }
 
 void PhysicsSystem::CheckCollisions()
 {
+	map<string, pair<Entity*, Entity*>> collisions = {};
 	const float NEAR_THRESHOLD = 0.02f;
+
+	for (auto i = _entities.begin(); i != _entities.end(); ++i) {
+		this->physicsUpdate(i->second);
+	}
 
 	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)
@@ -250,6 +260,18 @@ void PhysicsSystem::CheckCollisions()
 			if (collision)
 			{
 				// if not already colliding
+				int fromID = fromCollider->GetEntity()->getID();
+				int toID = toCollider->GetEntity()->getID();
+				Entity* higher = fromID > toID ? fromCollider->GetEntity() : toCollider->GetEntity();
+				Entity* lower = fromID > toID ? toCollider->GetEntity() : fromCollider->GetEntity();
+				if (collisions.count(lower->getID() + "x" + higher->getID()) == 0 && lower != higher) {
+					collisions.insert(
+						pair<string, pair<Entity*, Entity*>>(
+							lower->getID() + "x" + higher->getID(),
+							pair<Entity*, Entity*>(lower, higher)
+						)
+					);
+				}
 				if (find(fromCollider->collidingIds.begin(), fromCollider->collidingIds.end(), toCollider->colliderId) == fromCollider->collidingIds.end())
 				{
 					fromCollider->OnCollision(toCollider->colliderId, toCollider->colliderName);
@@ -267,6 +289,9 @@ void PhysicsSystem::CheckCollisions()
 				this->RemoveCollision(fromCollider, toCollider);
 			}
 		}
+	}
+	for (auto i = collisions.begin(); i != collisions.end(); i++) {
+		ResolveCollision(i->second.first, i->second.second);
 	}
 }
 
@@ -290,3 +315,74 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 		colliderB->collidingIds.erase(colliderB->collidingIds.begin() + index);
 	}
 }
+
+void PhysicsSystem::physicsUpdate(Entity* e) {
+	const float gravity = 9.8; // Acceleration from gravity; for purpose of calculating friction
+	auto pc = e->getComponent<PhysicsComponent>();
+	float im = 1 / pc->mass;
+	
+	PhysicsVector f = pc->force;
+	float af = pc->angularForce;
+	PhysicsVector v = pc->velocity;
+	float av = pc->angularVelocity;
+
+	if (v.length() > 0) {
+		float drag = -v.dot(v) * pc->mass * pc->dragCoefficient;
+		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		f += (drag + fric) * v.unit(); // fric is already negative so we don't need to worry about sign
+	}
+
+	if (av != 0) {
+		float adrag = -av * av * pc->mass * pc->dragCoefficient;
+		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		af += (adrag + fric) * (av > 0 ? 1 : -1);
+	}
+
+	PhysicsVector a = f * im;
+	float aa = af * im;
+
+	PhysicsVector pos = PhysicsVector(e->position.x, e->position.z);
+	pos += v * fixedDeltatime + 0.5 * a * fixedDeltatime * fixedDeltatime;// use the curPos variable to move the entity
+	v += a * fixedDeltatime;
+
+	float rot = e->rotation.y;
+	rot += av * fixedDeltatime + 0.5 * aa * fixedDeltatime * fixedDeltatime;
+	av += aa * fixedDeltatime;
+
+	pc->velocity.x = v.x;
+	pc->velocity.y = v.y;
+	pc->angularVelocity = av;
+
+	e->position = glm::vec3(pos.x, e->position.y, pos.y);
+	e->rotation = glm::vec3(e->rotation.x, rot, e->rotation.z);
+}
+
+void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
+	auto pc1 = e1->getComponent<PhysicsComponent>();
+	auto pc2 = e2->getComponent<PhysicsComponent>();
+	if (pc1->isStatic && pc2->isStatic) {
+		return; // Both are static; no point in calculating anything
+	}
+	float im1 = 1 / pc1->mass;
+	float im2 = 1 / pc2->mass;
+	if (pc1->isStatic) {
+		im1 = 0;
+	}
+	if (pc2->isStatic) {
+		im2 = 0;
+	}
+	PhysicsVector n = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z).unit();
+	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
+	if (vNorm > 0) {
+		return;
+	}
+
+	float e = pc1->elasticity < pc2->elasticity ? pc1->elasticity : pc2->elasticity;
+	float j = -(1 + e) * vNorm / (im1 + im2);
+	PhysicsVector impulse = j * n;
+	pc1->velocity -= impulse * im1;
+	pc2->velocity += impulse * im2;
+}
+
+
+
