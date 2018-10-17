@@ -14,6 +14,8 @@ class PhysicsComponent : public Component
 public:
 	vector<shared_ptr<Collider2D>> colliders;
 	float mass = 1.0f;
+	float elasticity = 0.2f;
+	bool isStatic = false;
 	PhysicsVector velocity;
 	PhysicsVector force;
 

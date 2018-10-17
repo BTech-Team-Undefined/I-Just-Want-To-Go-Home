@@ -37,6 +37,8 @@ public:
 
 	void SetEntity(Entity *entity);
 
+	Entity* GetEntity();
+
 	virtual void OnCollision(int colliderId, string colliderName);
 
 	void SetCollider(vector<Point> vertices, Point roughCenter, float roughRadius);

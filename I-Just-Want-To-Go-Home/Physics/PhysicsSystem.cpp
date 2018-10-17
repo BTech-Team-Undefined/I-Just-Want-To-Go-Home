@@ -20,7 +20,7 @@ int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 
 int PhysicsSystem::RegisterEntity(Entity* entity)
 {
-	int index = static_cast<int>(this->_entities.size());
+	int index = entity->getID();
 	this->_entities.insert(pair<int, Entity*>(index, entity));
 	return index;
 }
@@ -43,6 +43,7 @@ void PhysicsSystem::Update()
 
 void PhysicsSystem::CheckCollisions()
 {
+	map<string, pair<Entity*, Entity*>> collisions = {};
 	const float NEAR_THRESHOLD = 0.02f;
 
 	for (int i = 0; i < this->_entities.size(); ++i) {
@@ -259,6 +260,18 @@ void PhysicsSystem::CheckCollisions()
 			if (collision)
 			{
 				// if not already colliding
+				int fromID = fromCollider->GetEntity()->getID();
+				int toID = toCollider->GetEntity()->getID();
+				Entity* higher = fromID > toID ? fromCollider->GetEntity() : toCollider->GetEntity();
+				Entity* lower = fromID > toID ? toCollider->GetEntity() : fromCollider->GetEntity();
+				if (collisions.count(lower->getID() + "x" + higher->getID()) == 0 && lower != higher) {
+					collisions.insert(
+						pair<string, pair<Entity*, Entity*>>(
+							lower->getID() + "x" + higher->getID(),
+							pair<Entity*, Entity*>(lower, higher)
+						)
+					);
+				}
 				if (find(fromCollider->collidingIds.begin(), fromCollider->collidingIds.end(), toCollider->colliderId) == fromCollider->collidingIds.end())
 				{
 					fromCollider->OnCollision(toCollider->colliderId, toCollider->colliderName);
@@ -276,6 +289,9 @@ void PhysicsSystem::CheckCollisions()
 				this->RemoveCollision(fromCollider, toCollider);
 			}
 		}
+	}
+	for (auto i = collisions.begin(); i != collisions.end(); i++) {
+		ResolveCollision(i->second.first, i->second.second);
 	}
 }
 
@@ -314,8 +330,24 @@ void PhysicsSystem::physicsUpdate(Entity* e) {
 	pc->velocity.y = v.y;
 
 	e->position = glm::vec3(pos.x, e->position.y, pos.y);
+}
 
-	cout << "Force: " << pc->force.x << ", " << pc->force.y << ", Velocity: " << pc->velocity.x << ", " << pc->velocity.y << endl;
+void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
+	auto pc1 = e1->getComponent<PhysicsComponent>();
+	auto pc2 = e2->getComponent<PhysicsComponent>();
+	float im1 = 1 / pc1->mass;
+	float im2 = 1 / pc2->mass;
+	PhysicsVector n = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z).unit();
+	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
+	if (vNorm > 0) {
+		return;
+	}
+
+	float e = pc1->elasticity < pc2->elasticity ? pc1->elasticity : pc2->elasticity;
+	float j = -(1 + e) * vNorm / (im1 + im2);
+	PhysicsVector impulse = j * n;
+	pc1->velocity -= impulse * im1;
+	pc2->velocity += impulse * im2;
 }
 
 

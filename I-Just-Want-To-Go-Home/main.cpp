@@ -187,7 +187,6 @@ int main(int argc, char* args[])
 	e1->addComponent<PhysicsComponent>();
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	pc1->AddCollider(e1Collider);
-	pc1->force.y = 1;
 	pc1->Register(); // Temporary way of registering with the physics system
 
 	auto e2 = new Entity();

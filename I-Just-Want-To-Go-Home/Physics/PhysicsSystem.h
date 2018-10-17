@@ -36,6 +36,7 @@ private:
 	PhysicsSystem();
 
 	void CheckCollisions();
+	void ResolveCollision(Entity* e1, Entity* e2);
 	void RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr<Collider2D> colliderB);
 
 	

@@ -5,6 +5,10 @@ void Collider2D::SetEntity(Entity *entity)
 	this->_entity = entity;
 }
 
+Entity* Collider2D::GetEntity() {
+	return this->_entity;
+}
+
 void Collider2D::OnCollision(int colliderId, string colliderName)
 {
 	cout << "Collision: " + this->colliderName + "(id: " + to_string(this->colliderId) + ") & " + colliderName + "(id: " + to_string(colliderId) + ")" << endl;
