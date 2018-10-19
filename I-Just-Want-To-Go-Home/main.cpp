@@ -30,7 +30,8 @@
 #include "EntitySystems/InputComponent.h"
 #include "EntitySystems/Transform.h"
 #include "EntitySystems/DestructionComponent.h"
-
+#include "EntitySystems\Examples\ExampleSystem.h"
+#include "EntitySystems\Examples\SimpleSystem.h"
 
 #include "Core\Game.h"
 
@@ -120,6 +121,12 @@ int main(int argc, char* args[])
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	Game::instance().addSystem(std::move(rs));
+
+	auto es = std::make_unique<ExampleSystem>();
+	Game::instance().addSystem(std::move(es));
+
+	auto ss = std::make_unique<SimpleSystem>();
+	Game::instance().addSystem(std::move(ss));
 
 	// ===== CAMERA =====
 	auto eCam = new Entity();

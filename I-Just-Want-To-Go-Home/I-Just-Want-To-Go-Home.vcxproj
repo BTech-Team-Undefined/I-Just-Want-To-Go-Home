@@ -144,7 +144,9 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
+    <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
+    <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
     <ClCompile Include="Rendering\PlaneMesh.cpp" />
     <ClCompile Include="Rendering\CubeMesh.cpp" />
     <ClCompile Include="Rendering\RenderComponent.cpp" />
@@ -172,8 +174,10 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
     <ClInclude Include="EntitySystems\DestructionComponent.h" />
+    <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
+    <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />
     <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />
