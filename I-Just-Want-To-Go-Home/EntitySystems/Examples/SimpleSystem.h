@@ -37,8 +37,5 @@ public:
 			<< "\t" << std::flush;
 	}
 
-	virtual void onComponentCreated(std::type_index t, Component* c) {};
-	virtual void onComponentDestroyed(std::type_index t, Component* c) {};
-
 };
 

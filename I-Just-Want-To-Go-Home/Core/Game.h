@@ -6,7 +6,6 @@
 #include <set>
 #include <memory>
 #include <SDL2\SDL.h>
-#include <boost\signals2\signal.hpp>
 #include "../AssetLoader.h"
 #include "..\EntitySystems\System.h"
 #include "Scene.h"
@@ -32,9 +31,9 @@ public:
 	Scene* activeScene = nullptr;
 	AssetLoader loader;
 
-	// events 
-	boost::signals2::signal<void(std::type_index, Component*)> componentCreated;
-	boost::signals2::signal<void(std::type_index, Component*)> componentDestroyed;
+	//// events 
+	//boost::signals2::signal<void(std::type_index, Component*)> componentCreated;
+	//boost::signals2::signal<void(std::type_index, Component*)> componentDestroyed;
 	// DEBUG
 	SDL_Window* window = NULL;
 

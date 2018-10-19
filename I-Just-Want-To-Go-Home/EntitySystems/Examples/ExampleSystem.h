@@ -39,9 +39,6 @@ public:
 		_cameras.clear();
 	}
 
-	virtual void onComponentCreated(std::type_index t, Component* c) {};
-	virtual void onComponentDestroyed(std::type_index t, Component* c) {};
-
 private: 
 	std::vector<RenderComponent*> _renders;
 	std::vector<Camera*> _cameras;

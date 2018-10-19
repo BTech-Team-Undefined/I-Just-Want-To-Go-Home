@@ -38,10 +38,6 @@ public:
 	virtual void addComponent(std::type_index t, Component* component) override;
 	virtual void clearComponents() override;
 
-protected:
-	virtual void onComponentCreated(std::type_index t, Component* c) override;
-	virtual void onComponentDestroyed(std::type_index t, Component* c) override;
-
 private: 
 	void RenderGeometryPass();
 	void RenderEntityGeometry(Entity* e, glm::mat4 transform);

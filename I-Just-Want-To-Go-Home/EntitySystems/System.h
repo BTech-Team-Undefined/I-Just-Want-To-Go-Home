@@ -52,8 +52,8 @@ public:
 	}
 
 protected:
-	virtual void onComponentCreated(std::type_index t, Component* c) = 0;
-	virtual void onComponentDestroyed(std::type_index t, Component* c) = 0;
+	//virtual void onComponentCreated(std::type_index t, Component* c) = 0;
+	//virtual void onComponentDestroyed(std::type_index t, Component* c) = 0;
 	ComponentMap _componentMap;
 };
 

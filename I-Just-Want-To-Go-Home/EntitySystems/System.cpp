@@ -3,8 +3,8 @@
 
 System::System()
 {
-	Game::instance().componentCreated.connect(boost::bind(&System::onComponentCreated, this, _1, _2));
-	Game::instance().componentDestroyed.connect(boost::bind(&System::onComponentDestroyed, this, _1, _2));
+	//Game::instance().componentCreated.connect(boost::bind(&System::onComponentCreated, this, _1, _2));
+	//Game::instance().componentDestroyed.connect(boost::bind(&System::onComponentDestroyed, this, _1, _2));
 }
 
 System::System(std::vector<std::type_index> forComponents)
