@@ -313,7 +313,19 @@ void RenderingSystem::update(float dt)
 
 void RenderingSystem::addComponent(std::type_index t, Component * component)
 {
-	onComponentCreated(t, component);
+	if (t == std::type_index(typeid(RenderComponent)))
+		_components.push_back(static_cast<RenderComponent*>(component));
+	else if (t == std::type_index(typeid(DirectionalLight)))
+		_dlights.push_back(static_cast<DirectionalLight*>(component));
+	else if (t == std::type_index(typeid(Camera)))
+		_cameras.push_back(static_cast<Camera*>(component));
+}
+
+void RenderingSystem::clearComponents()
+{
+	_components.clear();
+	_dlights.clear();
+	_cameras.clear();
 }
 
 void RenderingSystem::onComponentCreated(std::type_index t, Component* c)

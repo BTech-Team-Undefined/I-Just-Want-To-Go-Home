@@ -88,7 +88,7 @@ void Game::updateEntity(Entity * entity, float dt)
 		// ... ensure it is enabled ...
 		if (!components[i]->getEnabled()) continue;
 		// ... update it ...
-		auto type = std::type_index(typeid(components[i]));
+		auto type = std::type_index(typeid(*components[i]));
 		components[i]->update(dt);
 		// ... and notify systems
 		for (int j = 0; j < _systems.size(); j++)

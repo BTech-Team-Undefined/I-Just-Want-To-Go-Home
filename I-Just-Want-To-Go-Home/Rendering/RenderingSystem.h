@@ -36,6 +36,7 @@ public:
 	void SetCamera(Camera* camera);
 	virtual void update(float dt) override;
 	virtual void addComponent(std::type_index t, Component* component) override;
+	virtual void clearComponents() override;
 
 protected:
 	virtual void onComponentCreated(std::type_index t, Component* c) override;
