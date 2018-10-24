@@ -10,6 +10,16 @@
 #include "..\EntitySystems\System.h"
 #include "Scene.h"
 
+struct EntityAction
+{
+	int target; 
+	Entity* entity;
+	EntityAction(int parent, Entity* e)
+	{
+		target = parent;
+		entity = e;
+	}
+};
 
 class Game
 {
@@ -39,7 +49,8 @@ public:
 
 private:
 	std::set<int> _deletionList;
-	std::unordered_map<int, Entity*> _additionList;
+	std::vector<EntityAction> _additionList;
+	std::set<int> _additionVerification;	// used to ensure an entity isn't added twice
 	std::vector<std::unique_ptr<System>> _systems;
 	bool _initialized = false;
 	bool _running = false;
@@ -84,17 +95,12 @@ public:
 	}
 
 	// Properly add an entity in the next frame. 
-	void addEntity(Entity* entity)
-	{
-		std::cout << "WARNING: Game::addEntity() hasn't been implemented yet!" << std::endl;
-		_additionList[0] = entity;	// needs refactoring
-	}
+	// Note: you can directly add an entity with activeScene->rootEntity->addChild(e*) if you know what you're doing.
+	void addEntity(Entity* entity);
 
 	// Properly add an entity to a specified parent in the next frame.
-	void addEntity(Entity* entity, int parent)
-	{
-		std::cout << "WARNING: Game::addEntity() hasn't been implemented yet!" << std::endl;
-	}
+	// Note: you can directly add an entity with entity->addChild(e*) if you know what you're doing.
+	void addEntity(Entity* entity, int parent);
 
 private: 
 
@@ -103,4 +109,7 @@ private:
 
 	// crawls thru scene and resolves entity addition and deletion before updates
 	void resolveEntities(Entity* entity);
+
+	// cleans up any remaining entities to be deleted or added
+	void resolveCleanup();
 };

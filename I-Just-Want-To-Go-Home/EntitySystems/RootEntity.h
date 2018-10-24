@@ -4,10 +4,17 @@
 
 class RootEntity : public Entity
 {
+public:
+	RootEntity() : Entity(0u)
+	{
+		setEnabled(false);
+	}
+
+	template<class T>
+	void addComponent() = delete;
+
+	void setParent(Entity* parent) = delete;
+
 	// TODO:
-	// set ID to 0 
-	// set active to false (game must manually activate scene)
-	// disallow addComponent
-	// disallow setParent 
 	// probably can't move transform (stuck at 0)
 };

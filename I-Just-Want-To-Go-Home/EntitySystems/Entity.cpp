@@ -11,6 +11,11 @@ Entity::Entity(Entity* parent) :_id(++Entity::_curID)
 	setParent(parent);
 }
 
+Entity::Entity(unsigned int id) : _id(id)
+{
+	std::cout << "Entity created with custom ID: " << _id << std::endl;
+}
+
 Entity::~Entity()
 {
 	std::cout << "Entity: " << _id << " destroyed" << std::endl;

@@ -20,10 +20,19 @@ void Game::addSystem(std::unique_ptr<System> system)
 	_systems.push_back(std::move(system));
 }
 
-void Game::addEntity(std::unique_ptr<Entity> entity)
+void Game::addEntity(Entity* entity)
 {
-	std::cerr << "WARNING: Game::addEntity hasn't been implemented properly" << std::endl;
-	activeScene->rootEntity->addChild(entity.get());
+	// verify the developer isn't doing funny business 
+	const bool is_in = _additionVerification.find(entity->getID()) != _additionVerification.end();
+	if (is_in)
+	{
+		std::cerr << "WARNING: GAME::addEntity - You tried to add an entity to the scene multiple times, please check your code" << std::endl;
+		return;
+	}
+
+	// prepare to add this entity in the next frame
+	_additionList.emplace_back(0, entity);
+	_additionVerification.insert(entity->getID());
 }
 
 void Game::loop()
@@ -43,16 +52,14 @@ void Game::loop()
 			}
 		}
 
-		// 1. additions 
-		// TODO: implement
-
-		// 2. deletions 
+		// 1. additions & deletions
 		resolveEntities(activeScene->rootEntity.get());
+		resolveCleanup();
 
-		// 3. entity update 
+		// 2. entity update 
 		updateEntity(activeScene->rootEntity.get(), 0.016f);
 
-		// 4. system update 
+		// 3. system update 
 		for (int i = 0; i < _systems.size(); i++)
 		{
 			_systems[i]->update(0.16f);
@@ -100,13 +107,30 @@ void Game::updateEntity(Entity * entity, float dt)
 
 void Game::resolveEntities(Entity * entity)
 {
+	int id = entity->getID();
+
 	// check if branch should be deleted
-	const bool is_in = _deletionList.find(entity->getID()) != _deletionList.end();
-	if (is_in)
+	auto toDelete = _deletionList.find(id);
+	if (toDelete != _deletionList.end())
 	{
 		entity->release();
+		_deletionList.erase(toDelete);
 		return;
 	}
+
+	// check if something should be added 
+	for (auto& entry : _additionList)
+	{
+		if (entry.target == id)
+		{
+			std::cout << "Adding entity " << entry.entity->getID() << " to parent entity " << id << std::endl;
+			entity->addChild(entry.entity);
+		}
+	}
+	// this is pretty efficient apparently. 
+	_additionList.erase(
+		std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
+		_additionList.end());	
 
 	// go thru remaining children 
 	auto children = entity->getChildren();
@@ -114,4 +138,24 @@ void Game::resolveEntities(Entity * entity)
 	{
 		resolveEntities(children[i]);
 	}
+}
+
+void Game::resolveCleanup()
+{
+	if (_deletionList.size() > 0)
+	{
+		std::cout << "Game::resolveCleanup() found " << _deletionList.size() << " entities not explicitly deleted. Entity may have been deleted via parent deletion or leaked" << std::endl;
+	}
+	_deletionList.clear();
+
+	if (_additionList.size() > 0)
+	{
+		for (auto& entry : _additionList)
+		{
+			std::cout << "Game::resolveCleanup() could not add entity: " << entry.entity->getID() << " as parent: " << entry.target << " was not found" << std::endl;
+			entry.entity->release();
+		}
+	}
+	_additionList.clear();
+	_additionVerification.clear();
 }
