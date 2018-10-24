@@ -1,22 +1,28 @@
 #pragma once
-#include <memory>
+
+#include <typeindex>
+#include <typeinfo>
 
 class Entity;
 
 class Component
 {
 public:
-	Component(Entity* e) :_entity(e) {};
-	virtual ~Component() {};
+	Component(std::type_index t);
+	virtual ~Component();
 	virtual Component& operator=(const Component&) = delete;  // Disallow copying
 	Component(const Component&) = delete;
-	//virtual std::shared_ptr<Component> clone() = 0;
-	virtual void Update(float dt) = 0;
-	virtual void Draw() = 0;
+	
+	virtual void update(float dt) = 0;
 	void Kill() { _isAlive = false; }
-	Entity* GetEntity() { return _entity; }
+	bool getEnabled() { return _enabled; }
+	bool setEnabled(bool enabled) { _enabled = enabled; }
+	Entity* getEntity() { return _entity; }
+	void setEntity(Entity* e) { _entity = e; }	
 
 private:
+	bool _enabled = true;
 	bool _isAlive = true;
 	Entity* _entity;
+	std::type_index _type;
 };

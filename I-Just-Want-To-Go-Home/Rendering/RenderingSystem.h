@@ -7,12 +7,11 @@
 #include "../Camera.h"
 #include "Lighting\Light.h"
 #include "Lighting\DirectionalLight.h"
+#include "../EntitySystems/System.h"
 
-class RenderingSystem
+class RenderingSystem : public System
 {
 public:
-	std::vector<std::shared_ptr<RenderComponent>> components;
-	std::vector<std::shared_ptr<Light>> lights;
 	Camera* activeCamera; 
 	Shader* geometryShader;		// default geometry shader 
 	Shader* compositionShader;	// default composition shader 
@@ -24,20 +23,20 @@ private:
 	unsigned int FBO, posTex, nrmTex, colTex, dphTex;
 	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	unsigned int screenWidth, screenHeight; 
+	
+	std::vector<RenderComponent*> _components;
+	std::vector<DirectionalLight *> _dlights;
+	std::vector<Camera*> _cameras;
+	
 
 public:
 	RenderingSystem();
 	~RenderingSystem();
 	void SetSize(unsigned int width, unsigned int height);
-	void Update();
 	void SetCamera(Camera* camera);
-	void AddLight(std::shared_ptr<Light> l)
-	{
-		lights.push_back(l);
-	}
-	// Tentative
-	void AddRenderable(std::shared_ptr<RenderComponent> rc);
-	void RemoveRenderable(std::shared_ptr<RenderComponent> rc);
+	virtual void update(float dt) override;
+	virtual void addComponent(std::type_index t, Component* component) override;
+	virtual void clearComponents() override;
 
 private: 
 	void RenderGeometryPass();

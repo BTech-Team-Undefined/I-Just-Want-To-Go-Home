@@ -4,7 +4,7 @@ class PhysicsSystem; // forward declaration to resolve circular dependency
 
 void PhysicsComponent::AddCollider(shared_ptr<Collider2D> c)
 {
-	c->SetEntity(this->GetEntity());
+	c->SetEntity(this->getEntity());
 	int id = PhysicsSystem::instance().RegisterCollider(c);
 	c->colliderId = id;
 	colliders.push_back(c);
@@ -12,5 +12,5 @@ void PhysicsComponent::AddCollider(shared_ptr<Collider2D> c)
 
 void PhysicsComponent::Register()
 {
-	PhysicsSystem::instance().RegisterEntity(this->GetEntity());
+	PhysicsSystem::instance().RegisterEntity(this->getEntity());
 }

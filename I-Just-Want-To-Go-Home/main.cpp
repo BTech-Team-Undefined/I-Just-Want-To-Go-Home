@@ -32,7 +32,13 @@
 #include "Physics\Collider2D.h"
 #include "Physics\Point.h"
 #include "Physics\PhysicsVector.h"
+#include "EntitySystems/InputComponent.h"
+#include "EntitySystems/Transform.h"
+#include "EntitySystems/DestructionComponent.h"
+#include "EntitySystems\Examples\ExampleSystem.h"
+#include "EntitySystems\Examples\SimpleSystem.h"
 
+#include "Core\Game.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1280;
@@ -108,6 +114,30 @@ int main(int argc, char* args[])
 	*/
 
 	// ===== CAMERA ======
+	//auto eCam = new Entity();
+	//eCam->position = glm::vec3(0, 0, 5);
+	//eCam->addComponent<Camera>();
+	//auto cam = eCam->getComponent<Camera>();
+	//cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+	//cam->fov = 60.0f;
+
+
+	// ===== INIT SCENE =====
+	Scene* scene = new Scene();
+	Game::instance().setActiveScene(scene);
+		
+	// ===== INIT RENDERING SYSTEM =====
+	auto rs = std::make_unique<RenderingSystem>();
+	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	Game::instance().addSystem(std::move(rs));
+
+	auto es = std::make_unique<ExampleSystem>();
+	Game::instance().addSystem(std::move(es));
+
+	auto ss = std::make_unique<SimpleSystem>();
+	Game::instance().addSystem(std::move(ss));
+
+	// ===== CAMERA =====
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 10, 8); //replace the camera position back if finished.
 	eCam->rotation = glm::vec3(-0.7, 0, 0);
@@ -115,11 +145,107 @@ int main(int argc, char* args[])
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
 	cam->fov = 60.0f;
+	Game::instance().activeScene->rootEntity->addChild(eCam);
 
-	// ===== INIT RENDERING SYSTEM =====
-	RenderingSystem renderingSystem = RenderingSystem();
-	renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
+	// ===== INIT STUFF =====
+	auto e = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
+	e->position = glm::vec3(-2.5, -2, -5);
+	e->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	Game::instance().activeScene->rootEntity->addChild(e.get());
+
+	/*
+	// ===== INIT DATA ===== 
+	auto loader = AssetLoader();
+
+	TextureInfo texture;
+	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
+	texture.uniform = "u_ColTex";
+	texture.path = "textures/brickwall.jpg";
+
+	TextureInfo texture1;
+	texture1.id = loader.TextureFromFile("brickwall_normal.jpg", "textures");
+	texture1.uniform = "u_NrmTex";
+	texture1.path = "textures/brickwall_normal.jpg";
+
+	// create mesh 
+	auto mesh1 = std::make_shared<CubeMesh>();
+	auto mesh2 = std::make_shared<PlaneMesh>();
+
+	// create materials 
+	auto material1 = std::make_shared<Material>();
+	material1->AddTexture(texture);
+
+	// create shaders
+	// (not created, use default shaders) 
+
+	// create renderables packages 
+	auto r1 = std::make_shared<Renderable>();	// cube 
+	r1->mesh = mesh1;
+	r1->material = material1;
+	auto r2 = std::make_shared<Renderable>();	// plane 
+	r2->mesh = mesh2;
+	r2->material = material1;
+
+	// create entities 
+	auto e1 = new Entity();
+	e1->addComponent<RenderComponent>();
+	auto rc1 = e1->getComponent<RenderComponent>();
+	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
+	e1->position = glm::vec3(-2, 2, -3);
+	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
+	// Game::instance().activeScene->rootEntity->addChild(e1);
+
+	auto e3 = new Entity();
+	e3->addComponent<RenderComponent>();
+	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
+	e3->position = glm::vec3(0, -2, -5);
+	e3->addComponent<DestructionComponent>();
+	e3->addChild(e1);
+	Game::instance().activeScene->rootEntity->addChild(e3);
+
+	// ===== LIGHTING ====
+	auto eLight = new Entity();
+	eLight->addComponent<DirectionalLight>();
+	eLight->position = glm::vec3(3, 3, -7);
+	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
+	Game::instance().activeScene->rootEntity->addChild(eLight);
+
+	auto eLight2 = new Entity();
+	eLight2->addComponent<DirectionalLight>();
+	eLight2->position = glm::vec3(-3, 3, -7);
+	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
+	Game::instance().activeScene->rootEntity->addChild(eLight2);
+
+
+	// ===== START GAME ======
+	Game::instance().window = window;
+	Game::instance().loop();
+
+	*/
+
+	//Component* r = new RenderComponent();
+	//auto ctype = std::type_index(typeid(Component));
+	//auto rctype = std::type_index(typeid(RenderComponent));
+
+	//if (std::type_index(typeid(*r)) == ctype)
+	//{
+	//	std::cout << "it's a ctype" << std::endl;
+	//}
+	//else if (std::type_index(typeid(*r)) == rctype)
+	//{
+	//	std::cout << "it's a RC type" << std::endl;
+	//}
+	//else
+	//{
+	//	std::cout << "it's what?" << std::endl;
+	//}
+
+	//Game::instance().componentCreated(std::type_index(typeid(*r)), r);
+
+	// RenderingSystem renderingSystem = RenderingSystem();
+	// renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	
+	// renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
 	
 	// ===== INIT DATA ===== 
 	auto loader = AssetLoader();
@@ -138,22 +264,6 @@ int main(int argc, char* args[])
 	auto mesh1 = std::make_shared<CubeMesh>();
 	auto mesh2 = std::make_shared<PlaneMesh>();
 	
-	/* Example: Custom hardcoded data 
-	std::vector<Vertex> planeVertex = {
-		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
-		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
-		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
-		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
-	};
-
-	std::vector<unsigned int> planeIndex = {
-		2, 1, 0,
-		1, 2, 3,
-	};
-
-	auto mesh3 = std::make_shared<Mesh>(planeVertex, planeIndex);
-	*/
-
 	// create materials 
 	auto material1 = std::make_shared<Material>();
 	material1->AddTexture(texture);
@@ -243,7 +353,7 @@ int main(int argc, char* args[])
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
 	pc4->Register(); // Temporary way of registering with the physics system
-
+	e4->addComponent<InputComponent>();
 	// e1->addChild(e4);
 
 	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
@@ -254,8 +364,10 @@ int main(int argc, char* args[])
 	auto e6 = loader.LoadModel("Models/tank/M11_39.obj");
 	e6->position = glm::vec3(-2.5, -2, -5);
 	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	/*
 	std::vector<std::shared_ptr<RenderComponent>> e6components;
 	e6->getComponents<RenderComponent>(e6components);
+	*/
 
 	auto e6Collider = std::make_shared<Collider2D>("e1Box");
 	vector<Point> e6ColliderBox;
@@ -269,7 +381,8 @@ int main(int argc, char* args[])
 	pc6->isStatic = false;
 	pc6->AddCollider(e6Collider);
 	pc6->Register(); // Temporary way of registering with the physics system
-	
+
+	/*
 	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
 	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
 	renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
@@ -278,20 +391,21 @@ int main(int argc, char* args[])
 	//	renderingSystem.AddRenderable(e5components[i]);
 	for (int i = 0; i < e6components.size(); i++)
 		renderingSystem.AddRenderable(e6components[i]);
+	*/
 
 	// ===== LIGHTING ====
 	auto eLight = new Entity();
 	eLight->addComponent<DirectionalLight>();
 	eLight->position = glm::vec3(3, 3, -7);
 	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
-	renderingSystem.AddLight(eLight->getComponent<DirectionalLight>());
+	//renderingSystem.AddLight(eLight->getComponent<DirectionalLight>());
 
 	auto eLight2 = new Entity();
 	eLight2->addComponent<DirectionalLight>();
 	eLight2->position = glm::vec3(-3, 3, -7);
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
-	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
-
+	//renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
+	
 	/* Debug struct - use this if not using shadow maps
 	std::vector<LightSimple> lights;
 	float ambient = 1.0f;
@@ -308,6 +422,12 @@ int main(int argc, char* args[])
 	*/
 
 	float thrust = 0;
+
+	std::shared_ptr<Entity> t1 = std::shared_ptr<Entity>(new Entity());
+	t1->addComponent<Transform>();
+	printf("%d", t1->getComponent<Transform>()->getTest());
+	t1->removeComponent<Transform>();
+
 	while (1)
 	{
 		// TODO: listen for events 
@@ -390,6 +510,7 @@ int main(int argc, char* args[])
 					break;
 				}
 				*/
+				
 			}
 			else if (e.type == SDL_KEYUP)
 			{
@@ -436,12 +557,11 @@ int main(int argc, char* args[])
 		);
 		eCam->rotation = glm::vec3(-0.7, dir + 3.141, 0);
 
-		renderingSystem.Update();
+		// renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
 		PhysicsSystem::instance().Update();
 		
 	}
-
 	//Destroy window
 	SDL_DestroyWindow( window );
 

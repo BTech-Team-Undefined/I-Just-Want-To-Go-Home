@@ -24,11 +24,11 @@ public:
 	float angularVelocity;
 
 public:
-	PhysicsComponent(Entity* e) : Component(e) {};
+	PhysicsComponent() : Component(std::type_index(typeid(PhysicsComponent))) {};
 	~PhysicsComponent() {};
 
-	virtual void Update(float dt) {};
-	virtual void Draw() {};
+	virtual void update(float dt) override {};
+	virtual void draw() {};
 
 	void AddCollider(shared_ptr<Collider2D> c);
 
