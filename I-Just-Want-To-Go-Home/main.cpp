@@ -35,89 +35,22 @@
 
 #include "Core\Game.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
 
 int main(int argc, char* args[])
 {
-	// ===== INITIAILIZE SDL & OPENGL =====
-	
-	//The window we'll be rendering to
-	SDL_Window* window = NULL;
-	//The surface contained by the window
-	SDL_Surface* screenSurface = NULL;
-	//The openGL context 
-	SDL_GLContext context = NULL;
+	// ===== INITIALIZE CORE GAME ENGINE =====
+	Game::instance().initialize();
 
-	//Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
-	{
-		std::cerr << "ERROR: SDL could not initialize. SDL_Error:  " << SDL_GetError() << std::endl;
-		return 1;
-	}
-
-	// prepare opengl version (4.5) for SDL 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	// using core as opposed to compatibility or ES 
-
-	// create window
-	window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-	if (window == NULL)
-	{
-		std::cerr << "ERROR: SDL window could not be created. SDL_Error:  " << SDL_GetError() << std::endl;
-		return 2;
-	}
-
-	// get window surface (not necessary)
-	screenSurface = SDL_GetWindowSurface(window);
-
-	// initialize sdl opengl context 
-	context = SDL_GL_CreateContext(window);
-	if (context == NULL)
-	{
-		std::cerr << "ERROR: SDL failed to create openGL context. SDL_Error: " << SDL_GetError() << std::endl;
-		return 1;
-	}
-
-	// initialize opengl 
-	if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
-	{
-		std::cerr << "ERROR: GLAD failed to initialize opengl function pointers." << std::endl;
-		return 3;
-	}
-	std::cout << "Vendor:\t" << glGetString(GL_VENDOR) << std::endl
-		<< "Renderer:\t" << glGetString(GL_RENDERER) << std::endl
-		<< "Version:\t" << glGetString(GL_VERSION) << std::endl;
-
-	// configure opengl 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	// ===== PERFORMANCE MEASUREMENTS =====
-	// This is only to measure CPU performance. For GPU use OpenGLProfiler. 
-	std::chrono::high_resolution_clock::time_point startRenderingTime;
-	std::chrono::high_resolution_clock::time_point endRenderingTime;
 
 	/* ===== RENDERING DOCUMENTATION =====
 	Check Rendering/DOCUMENTATION.txt
 	*/
 
-	// ===== CAMERA ======
-	//auto eCam = new Entity();
-	//eCam->position = glm::vec3(0, 0, 5);
-	//eCam->addComponent<Camera>();
-	//auto cam = eCam->getComponent<Camera>();
-	//cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-	//cam->fov = 60.0f;
-
-
 	// ===== INIT SCENE =====
 	Scene* scene = new Scene();
 	Game::instance().setActiveScene(scene);
 		
-	// ===== INIT RENDERING SYSTEM =====
+	// ===== INIT SYSTEMS =====
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	Game::instance().addSystem(std::move(rs));
@@ -137,22 +70,18 @@ int main(int argc, char* args[])
 	cam->fov = 60.0f;
 	Game::instance().activeScene->rootEntity->addChild(eCam);
 
-	// ===== INIT STUFF =====
+	// ===== INIT DATA ===== 
 	auto e = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
 	e->position = glm::vec3(-2.5, -2, -5);
 	e->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
-	Game::instance().activeScene->rootEntity->addChild(e.get());
-
-	// ===== INIT DATA ===== 
-	auto loader = AssetLoader();
 
 	TextureInfo texture;
-	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
+	texture.id = Game::instance().loader.TextureFromFile("brickwall.jpg", "textures");
 	texture.uniform = "u_ColTex";
 	texture.path = "textures/brickwall.jpg";
 
 	TextureInfo texture1;
-	texture1.id = loader.TextureFromFile("brickwall_normal.jpg", "textures");
+	texture1.id = Game::instance().loader.TextureFromFile("brickwall_normal.jpg", "textures");
 	texture1.uniform = "u_NrmTex";
 	texture1.path = "textures/brickwall_normal.jpg";
 
@@ -179,10 +108,10 @@ int main(int argc, char* args[])
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
+	
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 2, -3);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
-	// Game::instance().activeScene->rootEntity->addChild(e1);
 
 	auto e3 = new Entity();
 	e3->addComponent<RenderComponent>();
@@ -190,7 +119,10 @@ int main(int argc, char* args[])
 	e3->position = glm::vec3(0, -2, -5);
 	e3->addComponent<DestructionComponent>();
 	e3->addChild(e1);
-	Game::instance().activeScene->rootEntity->addChild(e3);
+
+	Game::instance().addEntity(e.get());
+	// Game::instance().addEntity(e1); // e1 is a child of e3!
+	Game::instance().addEntity(e3);
 
 	// ===== LIGHTING ====
 	auto eLight = new Entity();
@@ -205,129 +137,11 @@ int main(int argc, char* args[])
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
 	Game::instance().activeScene->rootEntity->addChild(eLight2);
 
-
 	// ===== START GAME ======
-	Game::instance().window = window;
 	Game::instance().loop();
 
-	//Component* r = new RenderComponent();
-	//auto ctype = std::type_index(typeid(Component));
-	//auto rctype = std::type_index(typeid(RenderComponent));
 
-	//if (std::type_index(typeid(*r)) == ctype)
-	//{
-	//	std::cout << "it's a ctype" << std::endl;
-	//}
-	//else if (std::type_index(typeid(*r)) == rctype)
-	//{
-	//	std::cout << "it's a RC type" << std::endl;
-	//}
-	//else
-	//{
-	//	std::cout << "it's what?" << std::endl;
-	//}
 
-	//Game::instance().componentCreated(std::type_index(typeid(*r)), r);
-
-	// RenderingSystem renderingSystem = RenderingSystem();
-	// renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	
-	// renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
-	
-	/*
-	// ===== INIT DATA ===== 
-	auto loader = AssetLoader();
-	
-	TextureInfo texture;
-	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
-	texture.uniform = "u_ColTex";
-	texture.path = "textures/brickwall.jpg";
-
-	TextureInfo texture1;
-	texture1.id = loader.TextureFromFile("brickwall_normal.jpg", "textures");
-	texture1.uniform = "u_NrmTex";
-	texture1.path = "textures/brickwall_normal.jpg";
-
-	// create mesh 
-	auto mesh1 = std::make_shared<CubeMesh>();
-	auto mesh2 = std::make_shared<PlaneMesh>();
-	
-	// create materials 
-	auto material1 = std::make_shared<Material>();
-	material1->AddTexture(texture);
-	
-	// create shaders
-	// (not created, use default shaders) 
-
-	// create renderables packages 
-	auto r1 = std::make_shared<Renderable>();	// cube 
-	r1->mesh = mesh1;
-	r1->material = material1;
-	auto r2 = std::make_shared<Renderable>();	// plane 
-	r2->mesh = mesh2;
-	r2->material = material1;
-
-	// create entities 
-	auto e1 = new Entity();
-	e1->addComponent<RenderComponent>();
-	auto rc1 = e1->getComponent<RenderComponent>();
-	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
-	e1->position = glm::vec3(-2, 2, -3);
-	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
-
-	auto e2 = new Entity();
-	e2->addComponent<RenderComponent>();
-	e2->getComponent<RenderComponent>()->renderables.push_back(r1);
-	e2->position = glm::vec3(2, 0, -5);
-	e2->rotation = glm::vec3(0, glm::radians(45.0f), 0);
-
-	auto e3 = new Entity();
-	e3->addComponent<RenderComponent>();
-	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
-	e3->position = glm::vec3(0, -2, -5);
-
-	auto e4 = new Entity();
-	e4->addComponent<RenderComponent>();
-	e4->getComponent<RenderComponent>()->renderables.push_back(r1);
-	e4->position = glm::vec3(2, 0, -2);
-	e4->addComponent<InputComponent>();
-	// e1->addChild(e4);
-
-	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	//e5->position = glm::vec3(0, -10, -20);
-	//std::vector<std::shared_ptr<RenderComponent>> e5components; 
-	//e5->getComponents<RenderComponent>(e5components);
-
-	auto e6 = loader.LoadModel("Models/tank/M11_39.obj");
-	e6->position = glm::vec3(-2.5, -2, -5);
-	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
-	std::vector<std::shared_ptr<RenderComponent>> e6components;
-	e6->getComponents<RenderComponent>(e6components);
-	
-	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
-	//for (int i = 0; i < e5components.size(); i++)
-	//	renderingSystem.AddRenderable(e5components[i]);
-	for (int i = 0; i < e6components.size(); i++)
-		renderingSystem.AddRenderable(e6components[i]);
-
-	// ===== LIGHTING ====
-	auto eLight = new Entity();
-	eLight->addComponent<DirectionalLight>();
-	eLight->position = glm::vec3(3, 3, -7);
-	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
-	renderingSystem.AddLight(eLight->getComponent<DirectionalLight>());
-
-	auto eLight2 = new Entity();
-	eLight2->addComponent<DirectionalLight>();
-	eLight2->position = glm::vec3(-3, 3, -7);
-	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
-	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
-	
-
-	*/
 	/* Debug struct - use this if not using shadow maps
 	std::vector<LightSimple> lights;
 	float ambient = 1.0f;
@@ -342,11 +156,6 @@ int main(int argc, char* args[])
 		lights.push_back(light);
 	}
 	*/
-
-	std::shared_ptr<Entity> t1 = std::shared_ptr<Entity>(new Entity());
-	t1->addComponent<Transform>();
-	printf("%d", t1->getComponent<Transform>()->getTest());
-	t1->removeComponent<Transform>();
 
 	/*
 	while (1)
@@ -406,11 +215,7 @@ int main(int argc, char* args[])
 	}
 	*/
 
-	//Destroy window
-	SDL_DestroyWindow( window );
 
-	//Quit SDL subsystems
-	SDL_Quit();
 
 	return 0;
 }

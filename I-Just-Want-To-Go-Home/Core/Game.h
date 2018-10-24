@@ -10,6 +10,10 @@
 #include "..\EntitySystems\System.h"
 #include "Scene.h"
 
+//Screen dimension constants
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
+
 struct EntityAction
 {
 	int target; 
@@ -35,6 +39,7 @@ public:
 	void operator=(Game const&) = delete;
 private:
 	Game() { };
+	~Game();
 
 // variables 
 public:
@@ -44,10 +49,13 @@ public:
 	//// events 
 	//boost::signals2::signal<void(std::type_index, Component*)> componentCreated;
 	//boost::signals2::signal<void(std::type_index, Component*)> componentDestroyed;
-	// DEBUG
-	SDL_Window* window = NULL;
 
 private:
+	// sdl 
+	SDL_Window* _window = NULL;
+	SDL_Surface* _screenSurface = NULL;
+	SDL_GLContext _context = NULL;
+	// engine 
 	std::set<int> _deletionList;
 	std::vector<EntityAction> _additionList;
 	std::set<int> _additionVerification;	// used to ensure an entity isn't added twice
@@ -58,11 +66,7 @@ private:
 // functions 
 public:
 	// Initializes the core engine.
-	void initialize()
-	{
-		std::cout << "WARNING: Game::initialize() hasn't been implemented yet!" << std::endl;
-		// TODO: initialize SDL & OpenGL
-	}
+	void initialize();
 
 	// Changes the active scene. Does not dispose of the previous scene, but does disable it.
 	void setActiveScene(Scene* scene);
@@ -113,3 +117,13 @@ private:
 	// cleans up any remaining entities to be deleted or added
 	void resolveCleanup();
 };
+
+
+/*
+	// ===== PERFORMANCE MEASUREMENTS =====
+	// This is only to measure CPU performance. For GPU use OpenGLProfiler.
+	std::chrono::high_resolution_clock::time_point startRenderingTime;
+	std::chrono::high_resolution_clock::time_point endRenderingTime;
+
+
+*/
