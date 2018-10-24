@@ -18,7 +18,7 @@ public:
 public:
 	RenderComponent();
 
-	void update(float dt) {};
+	void update(float dt) override {};
 
 	void addRenderable(std::shared_ptr<Renderable> r)
 	{

@@ -35,10 +35,8 @@ public:
 	void SetSize(unsigned int width, unsigned int height);
 	void SetCamera(Camera* camera);
 	virtual void update(float dt) override;
-
-protected:
-	virtual void onComponentCreated(std::type_index t, Component* c) override;
-	virtual void onComponentDestroyed(std::type_index t, Component* c) override;
+	virtual void addComponent(std::type_index t, Component* component) override;
+	virtual void clearComponents() override;
 
 private: 
 	void RenderGeometryPass();

@@ -29,6 +29,9 @@
 #include "AssetLoader.h"
 #include "EntitySystems/InputComponent.h"
 #include "EntitySystems/Transform.h"
+#include "EntitySystems/DestructionComponent.h"
+#include "EntitySystems\Examples\ExampleSystem.h"
+#include "EntitySystems\Examples\SimpleSystem.h"
 
 #include "Core\Game.h"
 
@@ -119,6 +122,12 @@ int main(int argc, char* args[])
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	Game::instance().addSystem(std::move(rs));
 
+	auto es = std::make_unique<ExampleSystem>();
+	Game::instance().addSystem(std::move(es));
+
+	auto ss = std::make_unique<SimpleSystem>();
+	Game::instance().addSystem(std::move(ss));
+
 	// ===== CAMERA =====
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 0, 5);
@@ -173,12 +182,14 @@ int main(int argc, char* args[])
 	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 2, -3);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
-	Game::instance().activeScene->rootEntity->addChild(e1);
+	// Game::instance().activeScene->rootEntity->addChild(e1);
 
 	auto e3 = new Entity();
 	e3->addComponent<RenderComponent>();
 	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
 	e3->position = glm::vec3(0, -2, -5);
+	e3->addComponent<DestructionComponent>();
+	e3->addChild(e1);
 	Game::instance().activeScene->rootEntity->addChild(e3);
 
 	// ===== LIGHTING ====
