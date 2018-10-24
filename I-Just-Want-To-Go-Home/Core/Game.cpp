@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <SDL2\SDL.h>
+#include <chrono>
 
 Game::~Game()
 {
@@ -94,6 +95,13 @@ void Game::loop()
 
 	while (_running)
 	{
+		// ===== PERFORMANCE MEASUREMENTS =====
+		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
+		std::chrono::high_resolution_clock::time_point startTime;
+		std::chrono::high_resolution_clock::time_point endTime;
+
+		startTime = std::chrono::high_resolution_clock::now();
+
 		SDL_Event e;
 		while (SDL_PollEvent(&e) != 0)
 		{
@@ -119,6 +127,10 @@ void Game::loop()
 			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
 
+		endTime = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+		// TODO: do stuff with execution duration (like adjust which system gets updates).
+		
 		SDL_GL_SwapWindow(_window);
 	}
 }

@@ -118,12 +118,3 @@ private:
 	void resolveCleanup();
 };
 
-
-/*
-	// ===== PERFORMANCE MEASUREMENTS =====
-	// This is only to measure CPU performance. For GPU use OpenGLProfiler.
-	std::chrono::high_resolution_clock::time_point startRenderingTime;
-	std::chrono::high_resolution_clock::time_point endRenderingTime;
-
-
-*/
