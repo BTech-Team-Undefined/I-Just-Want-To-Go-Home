@@ -32,7 +32,7 @@
 #include "Physics\Collider2D.h"
 #include "Physics\Point.h"
 #include "Physics\PhysicsVector.h"
-#include "EntitySystems/InputComponent.h"
+#include "DebugInputComponent.h"
 #include "EntitySystems/Transform.h"
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
@@ -353,7 +353,6 @@ int main(int argc, char* args[])
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
 	pc4->Register(); // Temporary way of registering with the physics system
-	e4->addComponent<InputComponent>();
 	// e1->addChild(e4);
 
 	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
@@ -381,6 +380,7 @@ int main(int argc, char* args[])
 	pc6->isStatic = false;
 	pc6->AddCollider(e6Collider);
 	pc6->Register(); // Temporary way of registering with the physics system
+	e6->addComponent<DebugInputComponent>();
 
 	/*
 	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
@@ -428,6 +428,17 @@ int main(int argc, char* args[])
 	printf("%d", t1->getComponent<Transform>()->getTest());
 	t1->removeComponent<Transform>();
 
+	Game::instance().activeScene->rootEntity->addChild(eLight);
+	Game::instance().activeScene->rootEntity->addChild(eLight2);
+	Game::instance().activeScene->rootEntity->addChild(e1);
+	Game::instance().activeScene->rootEntity->addChild(e2);
+	Game::instance().activeScene->rootEntity->addChild(e3);
+	Game::instance().activeScene->rootEntity->addChild(e4);
+	Game::instance().activeScene->rootEntity->addChild(e6.get());
+	Game::instance().window = window;
+	Game::instance().loop();
+
+	/*
 	while (1)
 	{
 		// TODO: listen for events 
@@ -476,7 +487,7 @@ int main(int argc, char* args[])
 					e6->getComponent<PhysicsComponent>()->angularForce = -3;
 					break;
 				}
-				/* TODO: Move debug handling code once input manager is implemented 
+				TODO: Move debug handling code once input manager is implemented 
 				compositionShader->use();
 				compositionShader->setBool("u_DisplayPos", false);
 				compositionShader->setBool("u_DisplayNrm", false);
@@ -509,7 +520,7 @@ int main(int argc, char* args[])
 				default:
 					break;
 				}
-				*/
+				
 				
 			}
 			else if (e.type == SDL_KEYUP)
@@ -559,9 +570,9 @@ int main(int argc, char* args[])
 
 		// renderingSystem.Update();
 		SDL_GL_SwapWindow(window);
-		PhysicsSystem::instance().Update();
 		
 	}
+	*/
 	//Destroy window
 	SDL_DestroyWindow( window );
 

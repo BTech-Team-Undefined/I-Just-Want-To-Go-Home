@@ -68,6 +68,7 @@
     <ClInclude Include="Physics\PhysicsSystem.h" />
     <ClInclude Include="Physics\PhysicsVector.h" />
     <ClInclude Include="Physics\Point.h" />
+    <ClInclude Include="DebugInputComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

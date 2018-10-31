@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "../Physics/PhysicsSystem.h"
 #include <SDL2\SDL.h>
 
 void Game::setActiveScene(Scene* scene)
@@ -32,17 +33,6 @@ void Game::loop()
 
 	while (_running)
 	{
-		SDL_Event e;
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return;
-			}
-		}
-
 		// 1. additions 
 		// TODO: implement
 
@@ -59,6 +49,7 @@ void Game::loop()
 			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
 
+		PhysicsSystem::instance().Update();
 		SDL_GL_SwapWindow(window);
 	}
 }
