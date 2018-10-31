@@ -137,6 +137,9 @@ int main(int argc, char* args[])
 	auto ss = std::make_unique<SimpleSystem>();
 	Game::instance().addSystem(std::move(ss));
 
+	auto ps = std::make_unique<PhysicsSystem>();
+	Game::instance().addSystem(std::move(ps));
+
 	// ===== CAMERA =====
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 10, 8); //replace the camera position back if finished.
@@ -298,7 +301,6 @@ int main(int argc, char* args[])
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	pc1->isStatic = true;
 	pc1->AddCollider(e1Collider);
-	pc1->Register(); // Temporary way of registering with the physics system
 
 	auto e2 = new Entity();
 	e2->addComponent<RenderComponent>();
@@ -317,7 +319,6 @@ int main(int argc, char* args[])
 	auto pc2 = e2->getComponent<PhysicsComponent>();
 	pc2->isStatic = true;
 	pc2->AddCollider(e2Collider);
-	pc2->Register(); // Temporary way of registering with the physics system
 
 	auto e3 = new Entity();
 	e3->addComponent<RenderComponent>();
@@ -335,7 +336,6 @@ int main(int argc, char* args[])
 	auto pc3 = e3->getComponent<PhysicsComponent>();
 	pc3->isStatic = true;
 	pc3->AddCollider(e3Collider);
-	pc3->Register(); // Temporary way of registering with the physics system
 
 	auto e4 = new Entity();
 	e4->addComponent<RenderComponent>();
@@ -352,7 +352,6 @@ int main(int argc, char* args[])
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
-	pc4->Register(); // Temporary way of registering with the physics system
 	// e1->addChild(e4);
 
 	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
@@ -379,7 +378,6 @@ int main(int argc, char* args[])
 	auto pc6 = e6->getComponent<PhysicsComponent>();
 	pc6->isStatic = false;
 	pc6->AddCollider(e6Collider);
-	pc6->Register(); // Temporary way of registering with the physics system
 	e6->addComponent<DebugInputComponent>();
 
 	/*

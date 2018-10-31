@@ -31,6 +31,4 @@ public:
 	virtual void draw() {};
 
 	void AddCollider(shared_ptr<Collider2D> c);
-
-	void Register();
 };

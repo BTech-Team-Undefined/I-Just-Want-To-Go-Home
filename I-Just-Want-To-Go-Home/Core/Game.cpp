@@ -45,11 +45,9 @@ void Game::loop()
 		// 4. system update 
 		for (int i = 0; i < _systems.size(); i++)
 		{
-			_systems[i]->update(0.16f);
+			_systems[i]->update(0.016f);
 			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
-
-		PhysicsSystem::instance().Update();
 		SDL_GL_SwapWindow(window);
 	}
 }
