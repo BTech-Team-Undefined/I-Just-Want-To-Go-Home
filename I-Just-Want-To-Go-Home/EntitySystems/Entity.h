@@ -50,6 +50,7 @@ private:
 public: 
 	Entity();
 	Entity(Entity* parent);	
+	Entity(unsigned int id);	// don't call this unless you know what you're doing.
 	~Entity();
 
 	// Returns entity's ID. This cannot change. 
