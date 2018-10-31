@@ -15,36 +15,105 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include "Component.h"
 
+// TODO: Make everything unique_ptr - Entities own children and own components. 
 class Entity
 {
+// Type definitions 
+	typedef std::unordered_map <std::type_index, std::unique_ptr<Component>> ComponentMap;
+
+// Variables 
 public:
 	glm::vec3 position;
 	glm::vec3 rotation;
 	glm::vec3 scale = glm::vec3(1.0f);
 
-	unsigned int getID() const { return _id; }
+private:
+	static unsigned int _curID;
+	unsigned int _id = 0;
+	bool _enabled = true;
 
-	//Adds a component 
-	template<class T>
-	void addComponent() { _components[typeid(T)] = std::shared_ptr<T>(new T(this)); }
+	ComponentMap _components;
+	std::vector<Entity*> _children;
+	Entity* _parent;
 
-	//todo make components in isolation set Entity later in add.
-	template<class T>
-	std::shared_ptr<T> getComponent() { return std::static_pointer_cast<T>(_components[typeid(T)]); }
+	glm::vec3 _position;
+	glm::vec3 _rotation;
+	glm::vec3 _scale;
 
+	glm::vec3 _worldPosition;
+	glm::vec3 _worldRotation;
+	glm::vec3 _worldScale;
+
+	// may want to store world position,scale,rotation for optimization
+
+// Functions 
+public: 
+	Entity();
+	Entity(Entity* parent);	
+	~Entity();
+
+	// Returns entity's ID. This cannot change. 
+	unsigned int getID() const;
+
+	// Returns entity's enabled status. Does not check if parent is enabled.
+	bool getEnabled() const;
+
+	// Set entity's enabled status. Does not change children's status. 
+	bool setEnabled(bool enabled);
+	
+	// DEPRECATED. Updates entity's components and children. Does not registers components to systems.
+	void update(float dt);
+
+	// Set the parent for this entity. Will properly bind entities together. 
+	void setParent(Entity* parent);
+
+	// Returns the parent entity. Can be null.
+	Entity* getParent() const;
+	
+	// Adds entity as a child. Will properly bind entities together.
+	void addChild(Entity* child);
+
+	// Returns child entity with ID. 
+	// Note: Will crash if not found.
+	// TODO: Return nullptr if not found.
+	Entity* getChild(unsigned int id);
+
+	// Returns a reference to the list of child entities. 
+	std::vector<Entity*> const& getChildren() const;
+
+	// template definitions "must" be in header
+	// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+
+	// Creates and adds a component to this entity. Component will be bound to this entity. 
 	template<class T>
-	void getComponents(std::vector<std::shared_ptr<T>>& results)
-	{
-		// add component on this entity 
-		auto comp = getComponent<T>();
-		if (comp) results.push_back(comp);
-		// add components on children 
-		for (int i = 0; i < getChildren().size(); i++)
-		{
-			getChildren()[i]->getComponents<T>(results);
-		}
+	void addComponent() {
+		_components[typeid(T)] = std::make_unique<T>();
+		_components[typeid(T)]->setEntity(this);
 	}
 
+	// Returns a pointer to specified component. 
+	template<class T>
+	T* getComponent()
+	{
+		return static_cast<T*>(_components[typeid(T)].get());
+	}
+
+	// Returns a copy of all components attached to this entity. 
+	std::vector<Component*> getComponents()
+	{
+		std::vector<Component*> components;
+
+		for (ComponentMap::iterator it = _components.begin(); it != _components.end(); ++it)
+		{
+			components.push_back(it->second.get());
+		}
+
+		return components;
+	}
+
+	// Remove and destroy a component attached to this entity. 
+	// WARNING: Removing a component on this entity during component update is undefined behaviour.
+	// TOOD: Implement safe deletion of components. 
 	template<class T>
 	void removeComponent()
 	{
@@ -55,75 +124,45 @@ public:
 		}
 	}
 
-	void setParent(Entity* parent)
-	{
-		_parent = parent;
-		_parent->_children.push_back(this);
-		// _parent->addChild(this);
-	}
+	// Returns the local transformation matrix.
+	glm::mat4 getLocalTransformation();
 
-	Entity* getParent() { return _parent; }
-	void addChild(Entity* child)
-	{
-		child->_parent = this;
-		// child->setParent(this);
-		_children.push_back(child);
-	}
+	// Returns the world transformation matrix (model matrix).
+	glm::mat4 getWorldTransformation();
+	
+	// Sets local transformation properties via a model matrix. 
+	// Note: This uses experimental GLM functions and has edge cases. 
+	void setLocalTransform(glm::mat4 matrix);
 
-	//returns child with id
-	Entity* getChild(unsigned int id) { return *std::find_if(_children.begin(), _children.end(), [id](Entity* e) { return e->getID() == id; }); }
+	// Sets local transformation properties via a world model matrix. 
+	// Note: This uses experimental GLM functions and has edge cases. 
+	// TODO: implement
+	void setWorldTransform(glm::mat4 matrix);
 
-	//removes child with id
-	void removeChild(unsigned int id)
-	{
-		auto t = std::find_if(_children.begin(), _children.end(), [id](Entity* e) { return e->getID() == id; });
-		(*t)->setParent(nullptr);
-		_children.erase(t);
-	}
+	// Sets local position via a world position.
+	// TODO: implement
+	void setWorldPosition(glm::vec3 pos);
 
-	glm::mat4 getLocalTransformation()
-	{
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
-		model = glm::rotate(model, rotation.y, glm::vec3(0, 1, 0));
-		model = glm::rotate(model, rotation.x, glm::vec3(1, 0, 0));
-		model = glm::rotate(model, rotation.z, glm::vec3(0, 0, 1));
-		model = glm::scale(model, scale);
-		return model;
-	}
+	// Sets local rotation via a world euler rotation.
+	// TODO: implement
+	void setWorldRotation(glm::vec3 rot);
 
-	glm::mat4 getWorldTransformation()
-	{
-		glm::mat4 transform = getLocalTransformation();
-		if (getParent() == nullptr)
-			return transform;
-		else
-			return transform * getParent()->getWorldTransformation();
-	}
+	// Sets local scale via a world scale.
+	// TODO: implement
+	void setWorldScale(glm::vec3 scale);
 
-	void setLocalTransform(glm::mat4 matrix)
-	{
-		// warning: assuming matrix bottom-right value is 1. If not divide everything in matrix by that value. 
-		glm::quat rot; 
-		glm::vec3 skew;
-		glm::vec4 perspective; 
-		glm::decompose(matrix, scale, rot, position, skew, perspective);
-		rotation = glm::eulerAngles(rot);
-	}
+	// Inform this entity to destroy itself. 
+	void destroy();
 
-	std::vector<Entity*> const& getChildren() const { return _children; }
+	// Release resources. Only call it if you REALLY know what you're doing.
+	// Call destroy() otherwise.
+	void release();
 
 private:
-	unsigned int _id = 0;
-	std::unordered_map <std::type_index, std::shared_ptr<Component>> _components;
-	std::vector<Entity*> _children;
-	Entity* _parent;
-	// may want to store world position,scale,rotation for optimization
+	// Helper method to remove child with ID. This should only be called internally, as bindings will not be correct.
+	void removeChild(unsigned int id);
+
+	// Helper method to properly bind a parent and child entity together. 
+	static void bindEntities(Entity* parent, Entity* child);
+
 };
-
-
-
-#pragma once
-
-
-

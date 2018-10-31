@@ -1,148 +1,79 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="AssetLoader.cpp" />
+    <ClCompile Include="Core\Game.cpp" />
+    <ClCompile Include="Rendering\PlaneMesh.cpp" />
+    <ClCompile Include="Rendering\CubeMesh.cpp" />
+    <ClCompile Include="Rendering\RenderComponent.cpp" />
+    <ClCompile Include="Rendering\Lighting\DirectionalLight.cpp" />
+    <ClCompile Include="Rendering\Lighting\Light.cpp" />
+    <ClCompile Include="Rendering\OpenGLProfiler.cpp" />
+    <ClCompile Include="Rendering\Constants.cpp" />
+    <ClCompile Include="Rendering\GeometryMaterial.cpp" />
+    <ClCompile Include="includes\gl\glad.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Rendering\Renderable.cpp" />
+    <ClCompile Include="Rendering\Mesh.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
+    <ClCompile Include="Rendering\RenderingSystem.cpp" />
+    <ClCompile Include="Rendering\Shader.cpp" />
+    <ClCompile Include="Core\Scene.cpp" />
+    <ClCompile Include="stb_image_config.cpp" />
+    <ClCompile Include="EntitySystems\System.cpp" />
+    <ClCompile Include="EntitySystems\Component.cpp" />
+    <ClCompile Include="EntitySystems\Entity.cpp" />
+    <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
+    <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
+    <ClCompile Include="Physics\Collider2D.cpp" />
+    <ClCompile Include="Physics\PhysicsComponent.cpp" />
+    <ClCompile Include="Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Physics\PhysicsVector.cpp" />
+    <ClCompile Include="Physics\Point.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="stb_image_config.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Renderable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="includes\gl\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\GeometryMaterial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\RenderingSystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Constants.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\OpenGLProfiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\RenderComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Lighting\Light.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Lighting\DirectionalLight.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\CubeMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\PlaneMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="AssetLoader.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Rendering\PlaneMesh.h" />
+    <ClInclude Include="Rendering\CubeMesh.h" />
+    <ClInclude Include="Rendering\RenderComponent.h" />
+    <ClInclude Include="Rendering\Lighting\DirectionalLight.h" />
+    <ClInclude Include="Rendering\Lighting\Light.h" />
+    <ClInclude Include="Rendering\OpenGLProfiler.h" />
+    <ClInclude Include="Rendering\Constants.h" />
+    <ClInclude Include="Rendering\GeometryMaterial.h" />
+    <ClInclude Include="includes\gl\glad.h" />
+    <ClInclude Include="includes\gl\khrplatform.h" />
+    <ClInclude Include="Rendering\RenderingSystem.h" />
+    <ClInclude Include="Rendering\Renderable.h" />
+    <ClInclude Include="Rendering\Mesh.h" />
+    <ClInclude Include="Rendering\Material.h" />
+    <ClInclude Include="Rendering\Shader.h" />
+    <ClInclude Include="EntitySystems\Component.h" />
+    <ClInclude Include="EntitySystems\Entity.h" />
+    <ClInclude Include="EntitySystems\System.h" />
+    <ClInclude Include="EntitySystems\Transform.h" />
+    <ClInclude Include="Core\Scene.h" />
+    <ClInclude Include="TestableClass.h" />
+    <ClInclude Include="EntitySystems\RootEntity.h" />
+    <ClInclude Include="EntitySystems\InputComponent.h" />
+    <ClInclude Include="EntitySystems\DestructionComponent.h" />
+    <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />
+    <ClInclude Include="Physics\Collider2D.h" />
+    <ClInclude Include="Physics\PhysicsComponent.h" />
+    <ClInclude Include="Physics\PhysicsSystem.h" />
+    <ClInclude Include="Physics\PhysicsVector.h" />
+    <ClInclude Include="Physics\Point.h" />
+    <ClInclude Include="DebugInputComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EntitySystems\Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EntitySystems\Component.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EntitySystems\Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\RenderComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\CubeMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\PlaneMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Renderable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="includes\gl\glad.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="includes\gl\khrplatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\RenderingSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\GeometryMaterial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Constants.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\OpenGLProfiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Lighting\Light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Lighting\DirectionalLight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="Rendering\DOCUMENTATION.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="TestableClass.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
