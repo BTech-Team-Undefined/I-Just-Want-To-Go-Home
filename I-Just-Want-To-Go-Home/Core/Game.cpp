@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "../Physics/PhysicsSystem.h"
 #include <SDL2\SDL.h>
 #include <chrono>
 
@@ -102,18 +103,7 @@ void Game::loop()
 
 		startTime = std::chrono::high_resolution_clock::now();
 
-		SDL_Event e;
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return;
-			}
-		}
-
-		// 1. additions & deletions
+		// 1. entity addition & deletion 
 		resolveEntities(activeScene->rootEntity.get());
 		resolveCleanup();
 
@@ -123,7 +113,7 @@ void Game::loop()
 		// 3. system update 
 		for (int i = 0; i < _systems.size(); i++)
 		{
-			_systems[i]->update(0.16f);
+			_systems[i]->update(0.016f);
 			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
 

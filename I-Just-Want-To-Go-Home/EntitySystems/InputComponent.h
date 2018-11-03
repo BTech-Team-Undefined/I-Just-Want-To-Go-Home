@@ -12,7 +12,6 @@ public:
 
 	InputComponent() : Component(std::type_index(typeid(InputComponent)))
 	{
-		test = getEntity();
 		_actions[SDL_EventType::SDL_KEYDOWN] = [this](SDL_Event e)
 		{
 			switch (e.key.keysym.sym)
@@ -76,13 +75,12 @@ public:
 				return;
 			}
 		}
-		test->position.x += xvel * dt * 2.0f;
-		test->position.y += yvel * dt * 2.0f;
+		getEntity()->position.x += xvel * dt * 2.0f;
+		getEntity()->position.y += yvel * dt * 2.0f;
 	}
 
 private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
-	Entity* test;
 	float xvel;
 	float yvel;
 
