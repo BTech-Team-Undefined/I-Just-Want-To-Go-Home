@@ -152,7 +152,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\I-Just-Want-To-Go-Home\TestableClass.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -164,6 +163,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="unittest1.cpp" />
+    <ClCompile Include="VectorTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\I-Just-Want-To-Go-Home\I-Just-Want-To-Go-Home.vcxproj">

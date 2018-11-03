@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include "../EntitySystems/Entity.h"
@@ -15,11 +16,9 @@ public:
 
 // functions 
 public:
-	RenderComponent(Entity* e) : Component(e) {};
-	~RenderComponent() {};
+	RenderComponent();
 
-	virtual void Update(float dt) {};
-	virtual void Draw() {};
+	void update(float dt) override {};
 
 	void addRenderable(std::shared_ptr<Renderable> r)
 	{
