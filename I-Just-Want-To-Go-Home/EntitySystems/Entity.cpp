@@ -95,7 +95,7 @@ glm::mat4 Entity::getWorldTransformation()
 	if (getParent() == nullptr)
 		return transform;
 	else
-		return transform * getParent()->getWorldTransformation();
+		return getParent()->getWorldTransformation() * transform;
 }
 
 void Entity::setLocalTransform(glm::mat4 matrix)

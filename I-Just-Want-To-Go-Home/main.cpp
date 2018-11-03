@@ -131,11 +131,11 @@ int main(int argc, char* args[])
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	Game::instance().addSystem(std::move(rs));
 
-	auto es = std::make_unique<ExampleSystem>();
-	Game::instance().addSystem(std::move(es));
+	//auto es = std::make_unique<ExampleSystem>();
+	//Game::instance().addSystem(std::move(es));
 
-	auto ss = std::make_unique<SimpleSystem>();
-	Game::instance().addSystem(std::move(ss));
+	//auto ss = std::make_unique<SimpleSystem>();
+	//Game::instance().addSystem(std::move(ss));
 
 	auto ps = std::make_unique<PhysicsSystem>();
 	Game::instance().addSystem(std::move(ps));
@@ -148,13 +148,13 @@ int main(int argc, char* args[])
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
 	cam->fov = 60.0f;
-	Game::instance().activeScene->rootEntity->addChild(eCam);
+	// Game::instance().activeScene->rootEntity->addChild(eCam);
 
 	// ===== INIT STUFF =====
-	auto e = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
-	e->position = glm::vec3(-2.5, -2, -5);
-	e->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
-	Game::instance().activeScene->rootEntity->addChild(e.get());
+	//auto e = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
+	//e->position = glm::vec3(-2.5, -2, -5);
+	//e->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	//Game::instance().activeScene->rootEntity->addChild(e.get());
 
 	/*
 	// ===== INIT DATA ===== 
@@ -305,7 +305,7 @@ int main(int argc, char* args[])
 	auto e2 = new Entity();
 	e2->addComponent<RenderComponent>();
 	e2->getComponent<RenderComponent>()->renderables.push_back(r1);
-	e2->position = glm::vec3(2, 0, -5);
+	e2->position = glm::vec3(0, 2, 0);
 	e2->rotation = glm::vec3(0, glm::radians(45.0f), 0);
 
 	auto e2Collider = std::make_shared<Collider2D>("e1Box");
@@ -359,9 +359,8 @@ int main(int argc, char* args[])
 	//std::vector<std::shared_ptr<RenderComponent>> e5components; 
 	//e5->getComponents<RenderComponent>(e5components);
 
-	auto e6 = loader.LoadModel("Models/tank/M11_39.obj");
+	auto e6 = new Entity(); 
 	e6->position = glm::vec3(-2.5, -2, -5);
-	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
 	/*
 	std::vector<std::shared_ptr<RenderComponent>> e6components;
 	e6->getComponents<RenderComponent>(e6components);
@@ -379,6 +378,9 @@ int main(int argc, char* args[])
 	pc6->isStatic = false;
 	pc6->AddCollider(e6Collider);
 	e6->addComponent<DebugInputComponent>();
+
+	auto tankEntity = loader.LoadModel("Models/tank/M11_39.obj");
+	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
 
 	/*
 	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
@@ -426,13 +428,17 @@ int main(int argc, char* args[])
 	printf("%d", t1->getComponent<Transform>()->getTest());
 	t1->removeComponent<Transform>();
 
+	// Game::instance().activeScene->rootEntity->addChild(eCam);
 	Game::instance().activeScene->rootEntity->addChild(eLight);
 	Game::instance().activeScene->rootEntity->addChild(eLight2);
-	Game::instance().activeScene->rootEntity->addChild(e1);
 	Game::instance().activeScene->rootEntity->addChild(e2);
+	e6->addChild(tankEntity.get());
+	e6->addChild(eCam);
+	Game::instance().activeScene->rootEntity->addChild(e1);
+	// Game::instance().activeScene->rootEntity->addChild(e2);
 	Game::instance().activeScene->rootEntity->addChild(e3);
 	Game::instance().activeScene->rootEntity->addChild(e4);
-	Game::instance().activeScene->rootEntity->addChild(e6.get());
+	Game::instance().activeScene->rootEntity->addChild(e6);
 	Game::instance().window = window;
 	Game::instance().loop();
 
