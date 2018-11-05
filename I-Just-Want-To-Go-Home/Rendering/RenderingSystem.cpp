@@ -5,6 +5,8 @@
 #include <iostream>
 #include <iomanip>
 #include "Shader.h"
+#include <ft2build.h>
+#include <freetype\freetype.h>
 
 RenderingSystem::RenderingSystem() : System()
 {
@@ -12,6 +14,7 @@ RenderingSystem::RenderingSystem() : System()
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
 	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
 	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
+	textShader = new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
 
 	// initialize frame buffers for geometry rendering pass 
 	// InitializeFrameBuffers(); waiting for screen size
@@ -19,8 +22,13 @@ RenderingSystem::RenderingSystem() : System()
 	// create a quad that covers the screen for the composition pass 
 	InitializeScreenQuad();
 
+	// init text rendering 
+	InitializeTextEngine();
+	LoadFont("fonts/futur.ttf");
+	LoadFont("fonts/Cool.ttf");
+
 	// create profiler 
-	profiler.InitializeTimers(3);	// 1 for each pass so far 
+	profiler.InitializeTimers(4);	// 1 for each pass so far 
 }
 
 RenderingSystem::~RenderingSystem()
@@ -39,6 +47,7 @@ void RenderingSystem::SetSize(unsigned int width, unsigned int height)
 	screenWidth = width;
 	screenHeight = height;
 	InitializeFrameBuffers();
+	textProjection = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
 }
 
 // todo: refactor with current system
@@ -169,12 +178,23 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(2);
 
+	// 4th pass - UI text 
+	profiler.StartTimer(3);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	RenderText(*textShader, "Hello World!", 100.0f, 100.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), "fonts/futur.ttf");
+	glDisable(GL_BLEND);
+
+	profiler.StopTimer(3);
+
 	profiler.FrameFinish();
-	
+
 	std::cout << std::setprecision(2) 
-		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\t" 
+		<< "\rGeometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\t" 
 		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\t"
-		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\r" << std::flush;
+		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\t" 
+		<< "Text Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\t" << std::flush;
 }
 
 void RenderingSystem::DrawComponent(RenderComponent* component)
@@ -184,12 +204,65 @@ void RenderingSystem::DrawComponent(RenderComponent* component)
 	for (int i = 0; i < component->renderables.size(); i++)
 	{
 		auto r = component->renderables[i];
-		
 	}
 }
 
 void RenderingSystem::RenderCompositionPass()
 {
+}
+
+// https://learnopengl.com/In-Practice/Text-Rendering
+void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, std::string font)
+{
+	auto it = _fonts.find(font);
+	if (it == _fonts.end())
+	{
+		std::cerr << "ERROR: Failed to draw text. Font not loaded: " << font << std::endl;
+		return;
+	}
+	auto characters = _fonts[font];
+
+	// Activate corresponding render state	
+	s.use();
+	s.setVec3("u_TextColor", color);
+	s.setMat4("u_Projection", textProjection);
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(textVAO);
+
+	// Iterate through all characters
+	std::string::const_iterator c;
+	for (c = text.begin(); c != text.end(); c++)
+	{
+		Character ch = characters[*c];
+
+		GLfloat xpos = x + ch.Bearing.x * scale;
+		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+		GLfloat w = ch.Size.x * scale;
+		GLfloat h = ch.Size.y * scale;
+		
+		// Update VBO for each character
+		GLfloat vertices[6][4] = {
+			{ xpos,     ypos + h,   0.0, 0.0 },
+			{ xpos,     ypos,       0.0, 1.0 },
+			{ xpos + w, ypos,       1.0, 1.0 },
+
+			{ xpos,     ypos + h,   0.0, 0.0 },
+			{ xpos + w, ypos,       1.0, 1.0 },
+			{ xpos + w, ypos + h,   1.0, 0.0 }
+		};
+		// Render glyph texture over quad
+		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+		// Update content of VBO memory
+		glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// Render quad
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
+	}
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 // initializes a framebuffer object for deferred rendering
@@ -272,6 +345,27 @@ void RenderingSystem::InitializeScreenQuad()
 	glBindVertexArray(0);
 }
 
+void RenderingSystem::InitializeTextEngine()
+{
+	// initialize FreeType (for loading font files) 
+	if (FT_Init_FreeType(&_ft))
+		std::cerr << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+
+	// create default font 
+	LoadFont(RENDERING_SYSTEM_DEFAULT_FONT);
+
+	// create opengl buffers
+	glGenVertexArrays(1, &textVAO);
+	glGenBuffers(1, &textVBO);
+	glBindVertexArray(textVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
 
 void RenderingSystem::update(float dt)
 {
@@ -326,6 +420,68 @@ void RenderingSystem::clearComponents()
 	_components.clear();
 	_dlights.clear();
 	_cameras.clear();
+}
+
+void RenderingSystem::LoadFont(std::string path)
+{
+	auto it = _fonts.find(path);
+	if (it != _fonts.end())
+	{
+		// element found;
+		std::cout << "INFO::FREETYPE: Font is already loaded - " << path << std::endl;
+		return;
+	}
+
+	FT_Face face;
+	if (FT_New_Face(_ft, path.c_str(), 0, &face))
+	{
+		std::cerr << "ERROR::FREETYPE: Failed to load font " << path << std::endl;
+		return;
+	}
+
+	FT_Set_Pixel_Sizes(face, FREETYPE_DYNAMIC_WIDTH, 48);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
+
+	for (GLubyte c = 0; c < 128; c++)
+	{
+		// Load character glyph 
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+		{
+			std::cout << "ERROR::FREETYTPE: Failed to load Glyph for " << (char)c << std::endl;
+			continue;
+		}
+		// Generate texture
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			face->glyph->bitmap.buffer
+		);
+		// Set texture options
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// Now store character for later use
+		Character character = {
+			texture,
+			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+			face->glyph->advance.x
+		};
+		_fonts[path].insert(std::pair<GLchar, Character>(c, character));
+	}
+
+	FT_Done_Face(face);
 }
 
 //void RenderingSystem::onComponentCreated(std::type_index t, Component* c)
