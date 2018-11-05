@@ -10,6 +10,7 @@
 #include "Lighting\Light.h"
 #include "Lighting\DirectionalLight.h"
 #include "../EntitySystems/System.h"
+#include "../TextComponent.h"
 
 
 #define RENDERING_SYSTEM_DEFAULT_FONT "fonts/arial.ttf"
@@ -24,6 +25,13 @@ struct Character {
 	GLuint     Advance;    // Offset to advance to next glyph
 };
 
+// Font information used to render 
+struct FontInfo
+{
+	std::string Path;
+	GLuint LineHeight;
+	std::map<GLchar, Character> Characters;
+};
 
 class RenderingSystem : public System
 {
@@ -41,16 +49,16 @@ private:
 	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	unsigned int screenWidth, screenHeight; 
 
-	//std::map<GLchar, Character> Characters;
 	FT_Library ft;
-	glm::mat4 textProjection;
 	unsigned int textVAO;	// quad to draw a single letter 
 	unsigned int textVBO;	// quad buffer to draw a single letter
-	std::map <std::string, std::map<GLchar, Character>> _fonts;
-	
+	glm::mat4 textProjection;
+
+	std::map<std::string, FontInfo> fonts;
 	std::vector<RenderComponent*> _components;
 	std::vector<DirectionalLight *> _dlights;
 	std::vector<Camera*> _cameras;
+	std::vector<TextComponent*> _texts;
 
 public:
 	RenderingSystem();

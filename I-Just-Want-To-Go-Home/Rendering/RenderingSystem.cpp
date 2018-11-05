@@ -4,6 +4,7 @@
 #include <typeindex>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include "Shader.h"
 #include <ft2build.h>
 #include <freetype\freetype.h>
@@ -26,6 +27,7 @@ RenderingSystem::RenderingSystem() : System()
 	InitializeTextEngine();
 	LoadFont("fonts/futur.ttf");
 	LoadFont("fonts/Cool.ttf");
+	LoadFont("fonts/Inconsolata-Regular.ttf");
 
 	// create profiler 
 	profiler.InitializeTimers(4);	// 1 for each pass so far 
@@ -182,19 +184,37 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StartTimer(3);
 
 	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	RenderText(*textShader, "Hello World!", 100.0f, 100.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), "fonts/futur.ttf");
-	glDisable(GL_BLEND);
+
+	// render text components 
+	for (int i = 0; i < _texts.size(); i++)
+	{
+		auto pos = _texts[i]->getPosition();
+		RenderText(*textShader, 
+			_texts[i]->getText(), 
+			pos.x, pos.y, 
+			_texts[i]->scale, 
+			_texts[i]->color, 
+			_texts[i]->font);
+	}	
+	// glDisable(GL_BLEND);
 
 	profiler.StopTimer(3);
 
 	profiler.FrameFinish();
 
-	std::cout << std::setprecision(2) 
-		<< "\rGeometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\t" 
-		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\t"
-		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\t" 
-		<< "Text Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\t" << std::flush;
+	// render debug info 
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2)
+		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
+		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
+		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
+		<< "Text Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n";
+	RenderText(*textShader, ss.str(), 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 }
 
 void RenderingSystem::DrawComponent(RenderComponent* component)
@@ -214,13 +234,23 @@ void RenderingSystem::RenderCompositionPass()
 // https://learnopengl.com/In-Practice/Text-Rendering
 void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, std::string font)
 {
-	auto it = _fonts.find(font);
-	if (it == _fonts.end())
+	// Retrieve font information 
+	if (font.empty())
 	{
-		std::cerr << "ERROR: Failed to draw text. Font not loaded: " << font << std::endl;
-		return;
+		// use default font 
+		font = RENDERING_SYSTEM_DEFAULT_FONT;
 	}
-	auto characters = _fonts[font];
+	else
+	{
+		// check if font exist
+		auto it = fonts.find(font);
+		if (it == fonts.end())
+		{
+			std::cerr << "ERROR: Failed to draw text. Font not loaded: " << font << std::endl;
+			return;
+		}
+	}
+	auto fontInfo = fonts[font];
 
 	// Activate corresponding render state	
 	s.use();
@@ -230,10 +260,19 @@ void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat
 	glBindVertexArray(textVAO);
 
 	// Iterate through all characters
+	GLfloat initialX = x;
 	std::string::const_iterator c;
 	for (c = text.begin(); c != text.end(); c++)
 	{
-		Character ch = characters[*c];
+		// newline 
+		if (*c == '\n')
+		{
+			x = initialX;
+			y -= (fontInfo.LineHeight >> 6) * scale;
+			continue;
+		}
+
+		Character ch = fontInfo.Characters[*c];
 
 		GLfloat xpos = x + ch.Bearing.x * scale;
 		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
@@ -348,7 +387,7 @@ void RenderingSystem::InitializeScreenQuad()
 void RenderingSystem::InitializeTextEngine()
 {
 	// initialize FreeType (for loading font files) 
-	if (FT_Init_FreeType(&_ft))
+	if (FT_Init_FreeType(&ft))
 		std::cerr << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
 
 	// create default font 
@@ -413,6 +452,8 @@ void RenderingSystem::addComponent(std::type_index t, Component * component)
 		_dlights.push_back(static_cast<DirectionalLight*>(component));
 	else if (t == std::type_index(typeid(Camera)))
 		_cameras.push_back(static_cast<Camera*>(component));
+	else if (t == std::type_index(typeid(TextComponent)))
+		_texts.push_back(static_cast<TextComponent*>(component));
 }
 
 void RenderingSystem::clearComponents()
@@ -420,12 +461,14 @@ void RenderingSystem::clearComponents()
 	_components.clear();
 	_dlights.clear();
 	_cameras.clear();
+	_texts.clear();
 }
 
 void RenderingSystem::LoadFont(std::string path)
 {
-	auto it = _fonts.find(path);
-	if (it != _fonts.end())
+	// don't reload a font face
+	auto it = fonts.find(path);
+	if (it != fonts.end())
 	{
 		// element found;
 		std::cout << "INFO::FREETYPE: Font is already loaded - " << path << std::endl;
@@ -433,14 +476,15 @@ void RenderingSystem::LoadFont(std::string path)
 	}
 
 	FT_Face face;
-	if (FT_New_Face(_ft, path.c_str(), 0, &face))
+	if (FT_New_Face(ft, path.c_str(), 0, &face))
 	{
 		std::cerr << "ERROR::FREETYPE: Failed to load font " << path << std::endl;
 		return;
 	}
-
 	FT_Set_Pixel_Sizes(face, FREETYPE_DYNAMIC_WIDTH, 48);
 
+	fonts[path].LineHeight = face->size->metrics.height;	// scaled height
+	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
 
 	for (GLubyte c = 0; c < 128; c++)
@@ -478,7 +522,8 @@ void RenderingSystem::LoadFont(std::string path)
 			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
 			face->glyph->advance.x
 		};
-		_fonts[path].insert(std::pair<GLchar, Character>(c, character));
+		
+		fonts[path].Characters.insert(std::pair<GLchar, Character>(c, character));
 	}
 
 	FT_Done_Face(face);
