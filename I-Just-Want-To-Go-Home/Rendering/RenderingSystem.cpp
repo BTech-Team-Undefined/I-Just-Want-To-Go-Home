@@ -16,7 +16,7 @@ RenderingSystem::RenderingSystem() : System()
 	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
 	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 	textShader = new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
-
+	imageShader = new Shader("shaders/image_vertex.glsl", "shaders/image_fragment.glsl");
 	// initialize frame buffers for geometry rendering pass 
 	// InitializeFrameBuffers(); waiting for screen size
 	
@@ -30,7 +30,7 @@ RenderingSystem::RenderingSystem() : System()
 	LoadFont("fonts/Inconsolata-Regular.ttf");
 
 	// create profiler 
-	profiler.InitializeTimers(4);	// 1 for each pass so far 
+	profiler.InitializeTimers(5);	// 1 for each pass so far 
 }
 
 RenderingSystem::~RenderingSystem()
@@ -49,7 +49,7 @@ void RenderingSystem::SetSize(unsigned int width, unsigned int height)
 	screenWidth = width;
 	screenHeight = height;
 	InitializeFrameBuffers();
-	textProjection = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
+	uiProjection = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
 }
 
 // todo: refactor with current system
@@ -60,7 +60,6 @@ void RenderingSystem::SetCamera(Camera * camera)
 
 void RenderingSystem::RenderGeometryPass()
 {
-
 	// 1. First pass - Geometry into gbuffers 
 	profiler.StartTimer(0);
 
@@ -180,8 +179,23 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(2);
 
-	// 4th pass - UI text 
+	// 3rd pass - UI images 
 	profiler.StartTimer(3);
+
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// render text components 
+	for (int i = 0; i < _images.size(); i++)
+	{
+		RenderImage(*imageShader, _images[i]);
+	}
+
+	profiler.StopTimer(3);
+
+	// 4th pass - UI text 
+	profiler.StartTimer(4);
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
@@ -200,7 +214,7 @@ void RenderingSystem::RenderGeometryPass()
 	}	
 	// glDisable(GL_BLEND);
 
-	profiler.StopTimer(3);
+	profiler.StopTimer(4);
 
 	profiler.FrameFinish();
 
@@ -210,7 +224,8 @@ void RenderingSystem::RenderGeometryPass()
 		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
 		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
 		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
-		<< "Text Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n";
+		<< "Image Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
+		<< "Text Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n";
 	RenderText(*textShader, ss.str(), 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
 
 	glEnable(GL_DEPTH_TEST);
@@ -255,7 +270,7 @@ void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat
 	// Activate corresponding render state	
 	s.use();
 	s.setVec3("u_TextColor", color);
-	s.setMat4("u_Projection", textProjection);
+	s.setMat4("u_Projection", uiProjection);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
 
@@ -302,6 +317,27 @@ void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void RenderingSystem::RenderImage(Shader & s, ImageComponent * image)
+{
+	s.use();
+
+	auto size = glm::vec2(image->width, image->height);				// size of box 
+	auto transform = image->getEntity()->getWorldTransformation();	// transform
+
+	imageShader->setVec2("u_Size", size);
+	imageShader->setMat4("u_Model", transform);
+	imageShader->setMat4("u_Projection", transform);
+	// imageShader->setMat4("tint ", transform);
+	// imageShader->setMat4("opacity", transform);
+
+	glBindVertexArray(quadVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, image->imageId);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 }
 
 // initializes a framebuffer object for deferred rendering
@@ -454,6 +490,8 @@ void RenderingSystem::addComponent(std::type_index t, Component * component)
 		_cameras.push_back(static_cast<Camera*>(component));
 	else if (t == std::type_index(typeid(TextComponent)))
 		_texts.push_back(static_cast<TextComponent*>(component));
+	else if (t == std::type_index(typeid(ImageComponent)))
+		_images.push_back(static_cast<ImageComponent*>(component));
 }
 
 void RenderingSystem::clearComponents()
@@ -462,6 +500,7 @@ void RenderingSystem::clearComponents()
 	_dlights.clear();
 	_cameras.clear();
 	_texts.clear();
+	_images.clear();
 }
 
 void RenderingSystem::LoadFont(std::string path)

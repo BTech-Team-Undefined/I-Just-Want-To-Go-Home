@@ -33,6 +33,7 @@
     <ClCompile Include="Physics\PhysicsVector.cpp" />
     <ClCompile Include="Physics\Point.cpp" />
     <ClCompile Include="TextComponent.cpp" />
+    <ClCompile Include="ImageComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -71,6 +72,7 @@
     <ClInclude Include="Physics\Point.h" />
     <ClInclude Include="DebugInputComponent.h" />
     <ClInclude Include="TextComponent.h" />
+    <ClInclude Include="ImageComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

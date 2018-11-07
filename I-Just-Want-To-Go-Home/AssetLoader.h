@@ -216,11 +216,32 @@ private:
 
 	
 public:
-	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false)
+	// load a texture.
+	unsigned int LoadTexture(const std::string& path, int* width, int* height)
+	{
+		// check for a preloaded texture 
+		for (unsigned int j = 0; j < textures_loaded.size(); j++)
+		{
+			if (std::strcmp(textures_loaded[j].path.data(), path.c_str()) == 0)
+			{
+				auto& t = textures_loaded[j];
+				*width = t.width;
+				*height = t.height;
+				return t.id;
+			}
+		}
+
+		// else load 
+		return TextureFromFile(path.c_str(), "", false, width, height);
+	}
+
+	// load a texture into opengl, regardless if it's been loaded already. 
+	unsigned int TextureFromFile(const char* path, const std::string& directory, 
+		bool gamma = false, int* wOut = nullptr, int* hOut = nullptr)
 	{
 		std::cout << "Loading texture name: " << path << std::endl;
 
-		std::string filename = directory + '/' + std::string(path);
+		std::string filename = (directory.empty()) ? std::string(path) : directory + '/' + std::string(path);
 
 		// read image file 
 		int width, height, nrComponents;
@@ -259,7 +280,9 @@ public:
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		stbi_image_free(data);
-		
+
+		if (wOut != nullptr) *wOut = width;
+		if (hOut != nullptr) *hOut = height;
 		return textureID;
 	}
 

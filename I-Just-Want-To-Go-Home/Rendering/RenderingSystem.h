@@ -11,6 +11,7 @@
 #include "Lighting\DirectionalLight.h"
 #include "../EntitySystems/System.h"
 #include "../TextComponent.h"
+#include "../ImageComponent.h"
 
 
 #define RENDERING_SYSTEM_DEFAULT_FONT "fonts/arial.ttf"
@@ -41,6 +42,7 @@ public:
 	Shader* compositionShader;	// default composition shader 
 	Shader* shadowmapShader;	// default shadowmap shader 
 	Shader* textShader;			// default text shader 
+	Shader* imageShader;		// default UI shader 
 
 private:
 	OpenGLProfiler profiler;
@@ -52,13 +54,14 @@ private:
 	FT_Library ft;
 	unsigned int textVAO;	// quad to draw a single letter 
 	unsigned int textVBO;	// quad buffer to draw a single letter
-	glm::mat4 textProjection;
+	glm::mat4 uiProjection;
 
 	std::map<std::string, FontInfo> fonts;
 	std::vector<RenderComponent*> _components;
 	std::vector<DirectionalLight *> _dlights;
 	std::vector<Camera*> _cameras;
 	std::vector<TextComponent*> _texts;
+	std::vector<ImageComponent*> _images; 
 
 public:
 	RenderingSystem();
@@ -75,6 +78,7 @@ private:
 	void RenderEntityGeometry(Entity* e, glm::mat4 transform);
 	void RenderCompositionPass();
 	void RenderText(Shader &s, std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, std::string font = RENDERING_SYSTEM_DEFAULT_FONT);
+	void RenderImage(Shader &s, ImageComponent* image);
 	void InitializeFrameBuffers();
 	void InitializeScreenQuad();
 	void InitializeTextEngine();

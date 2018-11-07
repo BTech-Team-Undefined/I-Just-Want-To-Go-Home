@@ -17,6 +17,8 @@ struct TextureInfo
 {
 	std::string uniform;
 	unsigned int id; 
+	int width;
+	int height;
 	std::string path;	// prevent double loading of textures 
 };
 
