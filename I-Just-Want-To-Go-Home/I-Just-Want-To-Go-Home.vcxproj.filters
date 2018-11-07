@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
@@ -24,6 +24,14 @@
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
+    <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
+    <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
+    <ClCompile Include="Physics\Collider2D.cpp" />
+    <ClCompile Include="Physics\PhysicsComponent.cpp" />
+    <ClCompile Include="Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Physics\PhysicsVector.cpp" />
+    <ClCompile Include="Physics\Point.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -52,6 +60,15 @@
     <ClInclude Include="TestableClass.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
+    <ClInclude Include="EntitySystems\DestructionComponent.h" />
+    <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />
+    <ClInclude Include="Physics\Collider2D.h" />
+    <ClInclude Include="Physics\PhysicsComponent.h" />
+    <ClInclude Include="Physics\PhysicsSystem.h" />
+    <ClInclude Include="Physics\PhysicsVector.h" />
+    <ClInclude Include="Physics\Point.h" />
+    <ClInclude Include="DebugInputComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

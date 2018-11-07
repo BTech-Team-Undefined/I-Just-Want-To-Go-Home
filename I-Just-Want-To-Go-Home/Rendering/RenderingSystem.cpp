@@ -311,53 +311,70 @@ void RenderingSystem::update(float dt)
 	RenderGeometryPass();	// this actually does all the passes at the moment
 }
 
-void RenderingSystem::onComponentCreated(std::type_index t, Component* c)
+void RenderingSystem::addComponent(std::type_index t, Component * component)
 {
 	if (t == std::type_index(typeid(RenderComponent)))
-	{
-		std::cout << "RenderingSystem adding render component" << std::endl;
-		_components.push_back(static_cast<RenderComponent*>(c));
-	}
+		_components.push_back(static_cast<RenderComponent*>(component));
 	else if (t == std::type_index(typeid(DirectionalLight)))
-	{
-		std::cout << "RenderingSystem adding light" << std::endl;
-		_dlights.push_back(static_cast<DirectionalLight*>(c));
-	}
+		_dlights.push_back(static_cast<DirectionalLight*>(component));
 	else if (t == std::type_index(typeid(Camera)))
-	{
-		std::cout << "RenderingSystem adding camera" << std::endl;
-		_cameras.push_back(static_cast<Camera*>(c));
-	}
+		_cameras.push_back(static_cast<Camera*>(component));
 }
 
-void RenderingSystem::onComponentDestroyed(std::type_index t, Component* c)
+void RenderingSystem::clearComponents()
 {
-	if (t == std::type_index(typeid(RenderComponent)))
-	{
-		auto target = std::find(_components.begin(), _components.end(), c);
-		if (target != _components.end())
-			_components.erase(target);
-		else
-			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
-	}
-	else if (t == std::type_index(typeid(DirectionalLight)))
-	{
-		auto target = std::find(_dlights.begin(), _dlights.end(), c);
-		if (target != _dlights.end())
-			_dlights.erase(target);
-		else
-			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
-	}
-	else if (t == std::type_index(typeid(Camera)))
-	{
-		std::cout << "Camera destroyed" << std::endl;
-		auto target = std::find(_cameras.begin(), _cameras.end(), c);
-		if (target != _cameras.end())
-			_cameras.erase(target);
-		else
-			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
-	}
+	_components.clear();
+	_dlights.clear();
+	_cameras.clear();
 }
+
+//void RenderingSystem::onComponentCreated(std::type_index t, Component* c)
+//{
+//	if (t == std::type_index(typeid(RenderComponent)))
+//	{
+//		std::cout << "RenderingSystem adding render component" << std::endl;
+//		_components.push_back(static_cast<RenderComponent*>(c));
+//	}
+//	else if (t == std::type_index(typeid(DirectionalLight)))
+//	{
+//		std::cout << "RenderingSystem adding light" << std::endl;
+//		_dlights.push_back(static_cast<DirectionalLight*>(c));
+//	}
+//	else if (t == std::type_index(typeid(Camera)))
+//	{
+//		std::cout << "RenderingSystem adding camera" << std::endl;
+//		_cameras.push_back(static_cast<Camera*>(c));
+//	}
+//}
+//
+//void RenderingSystem::onComponentDestroyed(std::type_index t, Component* c)
+//{
+//	if (t == std::type_index(typeid(RenderComponent)))
+//	{
+//		auto target = std::find(_components.begin(), _components.end(), c);
+//		if (target != _components.end())
+//			_components.erase(target);
+//		else
+//			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
+//	}
+//	else if (t == std::type_index(typeid(DirectionalLight)))
+//	{
+//		auto target = std::find(_dlights.begin(), _dlights.end(), c);
+//		if (target != _dlights.end())
+//			_dlights.erase(target);
+//		else
+//			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
+//	}
+//	else if (t == std::type_index(typeid(Camera)))
+//	{
+//		std::cout << "Camera destroyed" << std::endl;
+//		auto target = std::find(_cameras.begin(), _cameras.end(), c);
+//		if (target != _cameras.end())
+//			_cameras.erase(target);
+//		else
+//			std::cerr << "ERROR: RenderingSystem removing component but couldn't find it!" << std::endl;
+//	}
+//}
 
 /* Notes:
 

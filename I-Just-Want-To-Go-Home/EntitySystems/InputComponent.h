@@ -75,14 +75,12 @@ public:
 				return;
 			}
 		}
-		getEntity()->position.x += xvel * dt * 20.0f;
-		getEntity()->position.y += yvel * dt * 20.0f;
-		getEntity()->rotation.y = rot * dt * 20.0f;
+		getEntity()->position.x += xvel * dt * 2.0f;
+		getEntity()->position.y += yvel * dt * 2.0f;
 	}
 
 private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
-	Entity* test;
 	float xvel;
 	float yvel;
 	float rot;
