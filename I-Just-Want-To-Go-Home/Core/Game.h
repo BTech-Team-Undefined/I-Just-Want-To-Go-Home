@@ -10,6 +10,20 @@
 #include "..\EntitySystems\System.h"
 #include "Scene.h"
 
+//Screen dimension constants
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
+
+struct EntityAction
+{
+	int target; 
+	Entity* entity;
+	EntityAction(int parent, Entity* e)
+	{
+		target = parent;
+		entity = e;
+	}
+};
 
 class Game
 {
@@ -25,6 +39,7 @@ public:
 	void operator=(Game const&) = delete;
 private:
 	Game() { };
+	~Game();
 
 // variables 
 public:
@@ -34,12 +49,16 @@ public:
 	//// events 
 	//boost::signals2::signal<void(std::type_index, Component*)> componentCreated;
 	//boost::signals2::signal<void(std::type_index, Component*)> componentDestroyed;
-	// DEBUG
-	SDL_Window* window = NULL;
 
 private:
+	// sdl 
+	SDL_Window* _window = NULL;
+	SDL_Surface* _screenSurface = NULL;
+	SDL_GLContext _context = NULL;
+	// engine 
 	std::set<int> _deletionList;
-	std::unordered_map<int, Entity*> _additionList;
+	std::vector<EntityAction> _additionList;
+	std::set<int> _additionVerification;	// used to ensure an entity isn't added twice
 	std::vector<std::unique_ptr<System>> _systems;
 	bool _initialized = false;
 	bool _running = false;
@@ -47,11 +66,7 @@ private:
 // functions 
 public:
 	// Initializes the core engine.
-	void initialize()
-	{
-		std::cout << "WARNING: Game::initialize() hasn't been implemented yet!" << std::endl;
-		// TODO: initialize SDL & OpenGL
-	}
+	void initialize();
 
 	// Changes the active scene. Does not dispose of the previous scene, but does disable it.
 	void setActiveScene(Scene* scene);
@@ -84,17 +99,12 @@ public:
 	}
 
 	// Properly add an entity in the next frame. 
-	void addEntity(Entity* entity)
-	{
-		std::cout << "WARNING: Game::addEntity() hasn't been implemented yet!" << std::endl;
-		_additionList[0] = entity;	// needs refactoring
-	}
+	// Note: you can directly add an entity with activeScene->rootEntity->addChild(e*) if you know what you're doing.
+	void addEntity(Entity* entity);
 
 	// Properly add an entity to a specified parent in the next frame.
-	void addEntity(Entity* entity, int parent)
-	{
-		std::cout << "WARNING: Game::addEntity() hasn't been implemented yet!" << std::endl;
-	}
+	// Note: you can directly add an entity with entity->addChild(e*) if you know what you're doing.
+	void addEntity(Entity* entity, int parent);
 
 private: 
 
@@ -103,4 +113,8 @@ private:
 
 	// crawls thru scene and resolves entity addition and deletion before updates
 	void resolveEntities(Entity* entity);
+
+	// cleans up any remaining entities to be deleted or added
+	void resolveCleanup();
 };
+

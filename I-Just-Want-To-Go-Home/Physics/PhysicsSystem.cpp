@@ -316,14 +316,14 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	float av = pc->angularVelocity;
 
 	if (v.length() > 0) {
-		float drag = -v.dot(v) * pc->mass * pc->dragCoefficient;
-		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		float drag = -v.dot(v) * pc->mass * pc->getDrag();
+		float fric = -pc->mass * gravity * pc->getFriction();
 		f += (drag + fric) * v.unit(); // fric is already negative so we don't need to worry about sign
 	}
 
 	if (av != 0) {
-		float adrag = -av * av * pc->mass * pc->dragCoefficient;
-		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		float adrag = -av * av * pc->mass * pc->getRotationDrag();
+		float fric = -pc->mass * gravity * pc->getRotationFriction();
 		af += (adrag + fric) * (av > 0 ? 1 : -1);
 	}
 
@@ -337,6 +337,18 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	float rot = e->rotation.y;
 	rot += av * delta + 0.5 * aa * delta * delta;
 	av += aa * delta;
+
+	if (av < 0.05 && av > -0.05) {
+		av = 0.0f;
+	}
+
+	if (pc->velocity.x < 0.05 && pc->velocity.x > -0.05) {
+		pc->velocity.x = 0.0f;
+	}
+
+	if (pc->velocity.y < 0.05 && pc->velocity.y > -0.05) {
+		pc->velocity.y = 0.0f;
+	}
 
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;

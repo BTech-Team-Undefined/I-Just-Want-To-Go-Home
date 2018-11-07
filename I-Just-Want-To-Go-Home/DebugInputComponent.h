@@ -19,31 +19,31 @@ public:
 			{
 			case SDLK_w: {
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-				thrust = 15.0;
+				thrust = 50.0;
 				break;
 			}
 			case SDLK_s: {
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
-				thrust = -5.0;
+				thrust = -7.0;
 				break;
 			}
 			case SDLK_a:
 				//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 				//e6->getComponent<PhysicsComponent>()->force.x = -10;
-				getEntity()->getComponent<PhysicsComponent>()->angularForce = 3;
+				getEntity()->getComponent<PhysicsComponent>()->angularForce = 10;
 				break;
 			case SDLK_d:
 				//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
 				//e6->getComponent<PhysicsComponent>()->force.x = 10;
-				getEntity()->getComponent<PhysicsComponent>()->angularForce = -3;
+				getEntity()->getComponent<PhysicsComponent>()->angularForce = -10;
 				break;
 			case SDLK_q:
 				//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
-				getEntity()->getComponent<PhysicsComponent>()->angularForce = 3;
+				sideThrust = -30.0;
 				break;
 			case SDLK_e:
 				//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
-				getEntity()->getComponent<PhysicsComponent>()->angularForce = -3;
+			sideThrust = 30.0;
 				break;
 			}
 		};
@@ -70,11 +70,11 @@ public:
 				break;
 			case SDLK_q:
 				//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
-				getEntity()->getComponent<PhysicsComponent>()->angularForce = 0;
+				sideThrust = 0;
 				break;
 			case SDLK_e:
 				//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
-				getEntity()->getComponent<PhysicsComponent>()->angularForce = 0;
+				sideThrust = 0;
 				break;
 			}
 		};
@@ -107,11 +107,12 @@ public:
 		}
 		Entity* ent = getEntity();
 		float dir = ent->rotation.y;
-		ent->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust;
-		ent->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust;
+		ent->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust + std::sin(dir - 1.57) * sideThrust;
+		ent->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust + std::cos(dir - 1.57) * sideThrust;
 	}
 
 private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
 	float thrust;
+	float sideThrust;
 };
