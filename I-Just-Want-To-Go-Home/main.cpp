@@ -243,14 +243,15 @@ int main(int argc, char* args[])
 
 	// ===== UI ===== 
 	auto eImage1 = new Entity();
-	// eImage1->position = glm::vec3(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 0);
+	eImage1->scale = glm::vec3(0.1f, 0.1f, 0.1f);
+	eImage1->position = glm::vec3(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 0);
 	eImage1->addComponent<ImageComponent>();
 	auto image1 = eImage1->getComponent<ImageComponent>();
 	image1->loadImage("textures/racecar.png");
 	
 	auto eImage2 = new Entity();
-	eImage2->scale = glm::vec3(0.2f, 0.2f, 0.2f);
-	// eImage2->position = glm::vec3(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 5, 0);
+	eImage2->scale = glm::vec3(2.0f, 2.0f, 2.0f);	// or set the image width / height
+	eImage2->position = glm::vec3(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 5, 0);
 	eImage2->addComponent<ImageComponent>();
 	auto image2 = eImage2->getComponent<ImageComponent>();
 	image2->loadImage("textures/pinacle.png");
@@ -265,8 +266,8 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(playerEntity);
 	Game::instance().addEntity(eText1);
 	Game::instance().addEntity(eText3);
-	Game::instance().addEntity(eImage1);
 	Game::instance().addEntity(eImage2);
+	Game::instance().addEntity(eImage1);
 
 	Game::instance().loop();
 

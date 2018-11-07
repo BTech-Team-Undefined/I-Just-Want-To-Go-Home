@@ -12,5 +12,6 @@ uniform vec2 u_Size;
 void main()
 {
 	f_Uv = i_Uv;
-	gl_Position = u_Projection * u_Model * vec4(u_Size, 1.0, 1.0) * vec4(i_Pos, 1.0);
+	// gl_Position = u_Projection * vec4(i_Pos, 1.0) * vec4(u_Size, 1.0, 1.0); // not working? 
+	gl_Position = u_Projection * u_Model * vec4(i_Pos.x * u_Size.x, i_Pos.y * u_Size.y, i_Pos.z, 1.0);	// flip 
 }

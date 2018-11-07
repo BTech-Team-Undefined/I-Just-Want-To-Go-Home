@@ -246,7 +246,7 @@ public:
 		// read image file 
 		int width, height, nrComponents;
 		unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-		// stbi_set_flip_vertically_on_load(true);
+		stbi_set_flip_vertically_on_load(true);
 		
 		if (data == NULL)
 		{

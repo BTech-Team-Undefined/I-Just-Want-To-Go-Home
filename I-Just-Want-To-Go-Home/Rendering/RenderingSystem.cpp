@@ -197,9 +197,6 @@ void RenderingSystem::RenderGeometryPass()
 	// 4th pass - UI text 
 	profiler.StartTimer(4);
 
-	glEnable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// render text components 
 	for (int i = 0; i < _texts.size(); i++)
@@ -323,12 +320,12 @@ void RenderingSystem::RenderImage(Shader & s, ImageComponent * image)
 {
 	s.use();
 
-	auto size = glm::vec2(image->width, image->height);				// size of box 
+	auto size = glm::vec2(image->width / 2, image->height / 2);		// size of box 
 	auto transform = image->getEntity()->getWorldTransformation();	// transform
 
 	imageShader->setVec2("u_Size", size);
 	imageShader->setMat4("u_Model", transform);
-	imageShader->setMat4("u_Projection", transform);
+	imageShader->setMat4("u_Projection", uiProjection);
 	// imageShader->setMat4("tint ", transform);
 	// imageShader->setMat4("opacity", transform);
 
