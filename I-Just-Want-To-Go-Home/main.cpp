@@ -82,6 +82,7 @@ int main(int argc, char* args[])
 	playerEntity->addComponent<PhysicsComponent>();
 	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
 	pc6->isStatic = false;
+	pc6->directionalDrag = true;
 	pc6->AddCollider(e6Collider);
 	// input 
 	playerEntity->addComponent<DebugInputComponent>();
