@@ -149,7 +149,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
-    <ClCompile Include="ImageComponent.cpp" />
+    <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Physics\Collider2D.cpp" />
     <ClCompile Include="Physics\PhysicsComponent.cpp" />
     <ClCompile Include="Physics\PhysicsSystem.cpp" />
@@ -173,7 +173,8 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
-    <ClCompile Include="TextComponent.cpp" />
+    <ClCompile Include="Rendering\UI\TextComponent.cpp" />
+    <ClCompile Include="Rendering\UI\View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -188,7 +189,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
-    <ClInclude Include="ImageComponent.h" />
+    <ClInclude Include="Rendering\UI\ImageComponent.h" />
     <ClInclude Include="Physics\Collider2D.h" />
     <ClInclude Include="Physics\PhysicsComponent.h" />
     <ClInclude Include="Physics\PhysicsSystem.h" />
@@ -209,7 +210,8 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="Rendering\Mesh.h" />
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Shader.h" />
-    <ClInclude Include="TextComponent.h" />
+    <ClInclude Include="Rendering\UI\TextComponent.h" />
+    <ClInclude Include="Rendering\UI\View.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EntitySystems\Component.h" />

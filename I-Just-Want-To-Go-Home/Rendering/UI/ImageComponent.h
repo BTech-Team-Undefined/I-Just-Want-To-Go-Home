@@ -2,10 +2,11 @@
 
 #include <string>
 #include <glm\glm.hpp>
-#include "EntitySystems\Entity.h"
-#include "EntitySystems\Component.h"
+#include "..\..\EntitySystems\Entity.h"
+#include "..\..\EntitySystems\Component.h"
+#include "View.h"
 
-class ImageComponent : public Component
+class ImageComponent : public Component, public View
 {
 public:
 	ImageComponent();

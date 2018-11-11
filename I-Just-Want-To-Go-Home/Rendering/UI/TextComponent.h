@@ -4,13 +4,14 @@
 #include <glm\glm.hpp>
 #include <ft2build.h>
 #include <freetype\freetype.h>
-#include "EntitySystems\Component.h"
+#include "../../EntitySystems/Component.h"
+#include "View.h"
 // shader
 
 // Display a text message. Always renders on top. 
 // Adjust entity's position to move component. rotation and scale do nothing.
 // No sorting functionality. 
-class TextComponent : public Component
+class TextComponent : public Component, public View
 {
 public:
 	TextComponent();

@@ -37,9 +37,8 @@
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
-#include "TextComponent.h"
-#include "ImageComponent.h"
-
+#include "Rendering\UI\ImageComponent.h"
+#include "Rendering\UI\TextComponent.h"
 #include "Core\Game.h"
 
 
@@ -248,6 +247,7 @@ int main(int argc, char* args[])
 	eImage1->addComponent<ImageComponent>();
 	auto image1 = eImage1->getComponent<ImageComponent>();
 	image1->loadImage("textures/racecar.png");
+	image1->layer = 1;
 	
 	auto eImage2 = new Entity();
 	eImage2->scale = glm::vec3(2.0f, 2.0f, 2.0f);	// or set the image width / height
@@ -255,6 +255,7 @@ int main(int argc, char* args[])
 	eImage2->addComponent<ImageComponent>();
 	auto image2 = eImage2->getComponent<ImageComponent>();
 	image2->loadImage("textures/pinacle.png");
+	image2->layer = 0;
 
 	// ===== START GAME ======
 	Game::instance().addEntity(eLight);

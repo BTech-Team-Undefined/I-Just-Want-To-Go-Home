@@ -1,6 +1,6 @@
 #include "TextComponent.h"
 
-#include "EntitySystems\Entity.h"
+#include "..\..\EntitySystems\Entity.h"
 
 TextComponent::TextComponent() : Component(std::type_index(typeid(TextComponent)))
 {

@@ -1,6 +1,6 @@
 #include "ImageComponent.h"
 
-#include "Core\Game.h"
+#include "..\..\Core\Game.h"
 
 ImageComponent::ImageComponent() : Component(std::type_index(typeid(ImageComponent)))
 {

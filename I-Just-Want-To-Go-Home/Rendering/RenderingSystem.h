@@ -10,8 +10,9 @@
 #include "Lighting\Light.h"
 #include "Lighting\DirectionalLight.h"
 #include "../EntitySystems/System.h"
-#include "../TextComponent.h"
-#include "../ImageComponent.h"
+#include "UI\View.h"
+#include "UI\ImageComponent.h"
+#include "UI\TextComponent.h"
 
 
 #define RENDERING_SYSTEM_DEFAULT_FONT "fonts/arial.ttf"

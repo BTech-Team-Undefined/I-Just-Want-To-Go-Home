@@ -187,6 +187,7 @@ void RenderingSystem::RenderGeometryPass()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// render text components 
+	std::sort(_images.begin(), _images.end(), View::comparePointers);	// sort for rendering order
 	for (int i = 0; i < _images.size(); i++)
 	{
 		RenderImage(*imageShader, _images[i]);
@@ -197,8 +198,8 @@ void RenderingSystem::RenderGeometryPass()
 	// 4th pass - UI text 
 	profiler.StartTimer(4);
 
-
 	// render text components 
+	std::sort(_texts.begin(), _texts.end(), View::comparePointers);		// sort for rendering order
 	for (int i = 0; i < _texts.size(); i++)
 	{
 		auto pos = _texts[i]->getPosition();
