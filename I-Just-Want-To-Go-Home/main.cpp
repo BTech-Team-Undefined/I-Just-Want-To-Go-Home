@@ -247,7 +247,7 @@ int main(int argc, char* args[])
 	eImage1->addComponent<ImageComponent>();
 	auto image1 = eImage1->getComponent<ImageComponent>();
 	image1->loadImage("textures/racecar.png");
-	image1->layer = 1;
+	image1->layer = 0;
 	
 	auto eImage2 = new Entity();
 	eImage2->scale = glm::vec3(2.0f, 2.0f, 2.0f);	// or set the image width / height
@@ -255,7 +255,7 @@ int main(int argc, char* args[])
 	eImage2->addComponent<ImageComponent>();
 	auto image2 = eImage2->getComponent<ImageComponent>();
 	image2->loadImage("textures/pinacle.png");
-	image2->layer = 0;
+	image2->layer = 1;
 
 	// ===== START GAME ======
 	Game::instance().addEntity(eLight);
@@ -267,8 +267,8 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(playerEntity);
 	Game::instance().addEntity(eText1);
 	Game::instance().addEntity(eText3);
-	Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eImage1);
+	Game::instance().addEntity(eImage2);
 
 	Game::instance().loop();
 
