@@ -91,8 +91,8 @@ int main(int argc, char* args[])
 	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
 	// camera 
 	auto eCam = new Entity();
-	eCam->position = glm::vec3(0, 10, 8); //replace the camera position back if finished.
-	eCam->rotation = glm::vec3(-0.7, 0, 0);
+	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
+	eCam->rotation = glm::vec3(-0.7, 3.141, 0);
 	eCam->addComponent<Camera>();
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
