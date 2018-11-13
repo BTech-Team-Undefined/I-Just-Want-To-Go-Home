@@ -155,6 +155,29 @@ private:
 		// specular: texture_specularN
 		// normal: texture_normalN
 
+		// create a renderable & material to house data in
+		std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
+		renderable->mesh = std::make_shared<Mesh>(vertices, indices);
+		renderable->material = std::make_shared<Material>();
+
+		aiColor4D aiColor;
+		// diffuse color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &aiColor))
+			renderable->material->SetVec3(SHADER_DIFFUSE.c_str(), aiColor4DToVec3(aiColor));
+		// specular color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &aiColor))
+			renderable->material->SetVec3(SHADER_SPECULAR.c_str(), aiColor4DToVec3(aiColor));
+		// ambient color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &aiColor))
+			renderable->material->SetVec3(SHADER_AMBIENT.c_str(), aiColor4DToVec3(aiColor));
+		// emissive color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &aiColor))
+			renderable->material->SetVec3(SHADER_EMISSIVE.c_str(), aiColor4DToVec3(aiColor));
+		// shininess strength 
+		float shininess;
+		if (AI_SUCCESS == aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess))
+			renderable->material->SetFloat(SHADER_SHININESS.c_str(), shininess);
+
 		// 1. diffuse maps
 		std::vector<TextureInfo> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, SHADER_TEX_DIFFUSE);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
@@ -167,12 +190,10 @@ private:
 		// 4. height maps
 		std::vector<TextureInfo> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, SHADER_TEX_HEIGHT);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-		// return a mesh object created from the extracted mesh data
-		std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
-		renderable->mesh = std::make_shared<Mesh>(vertices, indices);
-		renderable->material = std::make_shared<Material>();
+		// add texture to material 
 		renderable->material->AddTextures(textures);
+		
+		// return a mesh object created from the extracted mesh data
 		return renderable;
 	}
 
@@ -295,6 +316,16 @@ public:
 		to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
 		to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
 		return to;
+	}
+
+	glm::vec3 aiColor4DToVec3(const aiColor4D &from)
+	{
+		return glm::vec3(from.r, from.g, from.b);
+	}
+	
+	glm::vec3 aiVec3ToVec3(const aiVector3D &from)
+	{
+		return glm::vec3(from.x, from.y, from.x);
 	}
 };
 
