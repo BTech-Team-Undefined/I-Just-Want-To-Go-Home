@@ -103,6 +103,42 @@ glm::mat4 Entity::getWorldTransformation()
 		return getParent()->getWorldTransformation() * transform;
 }
 
+glm::vec3 Entity::getWorldPosition()
+{
+	auto ret = position;
+	auto e = getParent();
+	while (e != nullptr)
+	{
+		ret += e->position;
+		e = e->getParent();
+	}
+	return ret;
+}
+
+glm::vec3 Entity::getWorldRotation()
+{
+	auto ret = rotation;
+	auto e = getParent();
+	while (e != nullptr)
+	{
+		ret += e->rotation;
+		e = getParent();
+	}
+	return ret;
+}
+
+glm::vec3 Entity::getWorldScale()
+{
+	auto ret = scale;
+	auto e = getParent();
+	while (e != nullptr)
+	{
+		ret += e->scale;
+		e = getParent();
+	}
+	return ret;
+}
+
 void Entity::setLocalTransform(glm::mat4 matrix)
 {
 	// warning: assuming matrix bottom-right value is 1. If not divide everything in matrix by that value. 
