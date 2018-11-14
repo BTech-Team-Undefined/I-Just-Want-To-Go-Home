@@ -10,7 +10,7 @@ uniform vec4 u_Tint;
 uniform vec3 u_ViewPosition;
 
 float near = 0.1;
-float far = 25.0;
+float far = 50.0;
 
 float fog_start = 0.4;
 

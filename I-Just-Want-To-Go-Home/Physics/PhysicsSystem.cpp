@@ -372,7 +372,14 @@ void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	if (pc2->isStatic) {
 		im2 = 0;
 	}
-	PhysicsVector n = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z).unit();
+	PhysicsVector dist = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z);
+	PhysicsVector n = dist.unit();
+	// Bad positional correction
+	const float ratio = 0.035;
+	PhysicsVector corr1 = -n * ratio * im1;
+	PhysicsVector corr2 = n * ratio * im2;
+	e1->position = glm::vec3(e1->position.x + corr1.x, e1->position.y, e1->position.z + corr1.y);
+	e2->position = glm::vec3(e2->position.x + corr2.x, e2->position.y, e2->position.z + corr2.y);
 	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
 	if (vNorm > 0) {
 		return;
