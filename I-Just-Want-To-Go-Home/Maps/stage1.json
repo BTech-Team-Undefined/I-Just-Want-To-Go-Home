@@ -1,0 +1,39 @@
+{
+    "player":
+    {
+        "position": [-2.5, -2, -5]
+    },
+    "tracks":
+    [
+        {
+            "model": "roadStart",
+            "position": [0.125, 0, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [0, 0, 2]
+        },
+        {
+            "model": "roadStraight",
+            "position": [0, 0, 3]
+        },
+        {
+            "model": "roadStraight",
+            "position": [0, 0, 4]
+        },
+        {
+            "model": "roadStraight",
+            "position": [0, 0, 5]
+        },
+        {
+            "model": "roadStraight",
+            "position": [0, 0, 6]
+        },
+        {
+            "model": "roadCornerLarge",
+            "position": [1, 0, 9],
+            "rotation": [0, -90, 0]
+        }
+    ],
+    "obstacles": []
+}

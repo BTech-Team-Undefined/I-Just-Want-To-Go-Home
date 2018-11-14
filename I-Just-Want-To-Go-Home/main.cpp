@@ -5,6 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
@@ -14,6 +15,9 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
+// jsoncpp
+#include "libs/json/json.h"
+#include "libs/json/value.h"
 // Engine objects 
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
@@ -91,8 +95,8 @@ int main(int argc, char* args[])
 	// input 
 	playerEntity->addComponent<DebugInputComponent>();
 	// visuals 
-	auto tankEntity = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
-	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	auto tankEntity = Game::instance().loader.LoadModel("Models/racingkit2/raceCarRed.obj");
+	tankEntity->rotation = glm::vec3(0, glm::radians(180.0f), 0);
 	// camera 
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
@@ -136,6 +140,11 @@ int main(int argc, char* args[])
 	planeRenderable->material = material1;
 
 	// ===== LEVEL ENTITIES =====
+
+	const float ENTITY_SCALE = 3;
+
+	const string MDL_ROAD_START = "Models/racingkit2/roadStart.obj";	const string MDL_ROAD_STRAIGHT = "Models/racingkit2/roadStraight.obj";	const string MDL_ROAD_STRAIGHT_LONG = "Models/racingkit2/roadStraightLong.obj";	const string MDL_ROAD_CORNER_SMALL = "Models/racingkit2/roadCornerSmall.obj";	const string MDL_ROAD_CORNER_SMALL_WALL = "Models/racingkit2/roadCornerSmallWall.obj";	const string MDL_ROAD_CORNER_LARGE = "Models/racingkit2/roadCornerLarge.obj";	const string MDL_ROAD_CORNER_LARGE_WALL = "Models/racingkit2/roadCornerLargeWall.obj";	const string MDL_ROAD_CORNER_LARGE_WALL_INNER = "Models/racingkit2/roadCornerLargeWallInner.obj";	Json::Value stageData;	std::ifstream stage_file("Maps/stage1.json", std::ifstream::binary);
+	stage_file >> stageData;	vector<unique_ptr<Entity>> trackEntities;	Json::Value tracks = stageData["tracks"];	for (int i = 0; i < tracks.size(); ++i)	{		string modelName = tracks[i]["model"].asString();		trackEntities.push_back(Game::instance().loader.LoadModel("Models/racingkit2/" + modelName + ".obj"));		int currentIndex = trackEntities.size() - 1;		Json::Value position = tracks[i]["position"];		double posX = position[0].asDouble();		double posY = position[1].asDouble();		double posZ = position[2].asDouble();		trackEntities[currentIndex]->position = glm::vec3(posX * ENTITY_SCALE, -2 + posY * ENTITY_SCALE, posZ * ENTITY_SCALE);		Json::Value rotation = tracks[i]["rotation"];		if (rotation != NULL)		{			double rotX = rotation[0].asDouble();			double rotY = rotation[1].asDouble();			double rotZ = rotation[2].asDouble();			trackEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));		}				trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);		Game::instance().addEntity(trackEntities[currentIndex].get());	}
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
@@ -310,10 +319,10 @@ int main(int argc, char* args[])
 	// ===== START GAME ======
 	Game::instance().addEntity(eLight);
 	Game::instance().addEntity(eLight2);
-	Game::instance().addEntity(e1);
-	Game::instance().addEntity(e2);
-	Game::instance().addEntity(e3);
-	Game::instance().addEntity(e4);
+	// Game::instance().addEntity(e1);
+	// Game::instance().addEntity(e2);
+	// Game::instance().addEntity(e3);
+	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);
