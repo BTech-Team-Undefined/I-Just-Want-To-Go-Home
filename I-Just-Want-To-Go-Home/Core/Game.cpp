@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "../Physics/PhysicsSystem.h"
 #include <SDL2\SDL.h>
+#include <SDL2\SDL_mixer.h>
+#include <chrono>
 
 Game::~Game()
 {
@@ -10,7 +12,7 @@ Game::~Game()
 
 void Game::initialize()
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
 	{
 		std::cerr << "ERROR: SDL could not initialize. SDL_Error:  " << SDL_GetError() << std::endl;
 		return;
@@ -49,10 +51,17 @@ void Game::initialize()
 	std::cout << "Vendor:\t" << glGetString(GL_VENDOR) << std::endl
 		<< "Renderer:\t" << glGetString(GL_RENDERER) << std::endl
 		<< "Version:\t" << glGetString(GL_VERSION) << std::endl;
+	//cout << "SOUND:"<<SDL_GetCurrentAudioDriver()<<endl;
 
 	// configure opengl 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	 //initialize SDL sound mixer context
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+		printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+		return;
+	}
 }
 
 void Game::setActiveScene(Scene* scene)
