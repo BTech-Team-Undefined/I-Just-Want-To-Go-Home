@@ -199,6 +199,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="Physics\PhysicsSystem.h" />
     <ClInclude Include="Physics\PhysicsVector.h" />
     <ClInclude Include="Physics\Point.h" />
+    <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />
     <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />
