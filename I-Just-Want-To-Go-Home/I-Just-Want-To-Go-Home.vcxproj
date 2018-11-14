@@ -172,9 +172,11 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="Rendering\RenderingSystem.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
+    <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
     <ClCompile Include="Rendering\UI\TextComponent.cpp" />
     <ClCompile Include="Rendering\UI\View.cpp" />
+    <ClCompile Include="Game\TimeDisplayComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -212,6 +214,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\UI\TextComponent.h" />
     <ClInclude Include="Rendering\UI\View.h" />
+    <ClInclude Include="Game\TimeDisplayComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EntitySystems\Component.h" />
@@ -224,6 +227,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Scene.h" />
+    <ClInclude Include="Game\SpeedDisplayComponent.h" />
     <ClInclude Include="TestableClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

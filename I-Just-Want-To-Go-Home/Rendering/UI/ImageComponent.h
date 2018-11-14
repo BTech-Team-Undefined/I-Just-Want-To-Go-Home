@@ -26,5 +26,6 @@ public:
 	int width;	// not used 
 	int height;	// not used 
 	float opacity = 1.0f; 
+	glm::vec3 tint = glm::vec3(1,1,1);
 };
 
