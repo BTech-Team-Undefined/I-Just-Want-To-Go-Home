@@ -2,6 +2,7 @@
 #include <gl\glad.h>
 #include <stb\stb_image.h>
 #include <iostream>
+#include "Constants.h"
 
 Material::Material()
 {
@@ -40,15 +41,23 @@ int Material::LoadMaterial(const Shader* shader, unsigned int pos)
 	// load uniform data
 	LoadMaterial(shader);
 	// load texture data 
-	for (int i = 0; i < textures.size(); i++)
+	if (textures.size() == 0)
 	{
-		// Set the uniform to point to texture 
-		shader->setInt(textures[i].uniform, pos + i);
-		// Activate the uniform variable 
-		glActiveTexture(GL_TEXTURE0 + pos + i);
-		// Bind the texture 
-		glBindTexture(GL_TEXTURE_2D, textures[i].id);
-		// std::cout << "Binding uniform to location: " << pos + i << " with name " << textures[i].uniform << std::endl;
+		shader->setBool(SHADER_TEX_NONE, true);
+	}
+	else
+	{
+		shader->setBool(SHADER_TEX_NONE, false);
+		for (int i = 0; i < textures.size(); i++)
+		{
+			// Set the uniform to point to texture 
+			shader->setInt(textures[i].uniform, pos + i);
+			// Activate the uniform variable 
+			glActiveTexture(GL_TEXTURE0 + pos + i);
+			// Bind the texture 
+			glBindTexture(GL_TEXTURE_2D, textures[i].id);
+			// std::cout << "Binding uniform to location: " << pos + i << " with name " << textures[i].uniform << std::endl;
+		}
 	}
 	return textures.size();
 }

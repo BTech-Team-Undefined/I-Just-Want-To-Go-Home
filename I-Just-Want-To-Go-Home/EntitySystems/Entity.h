@@ -131,6 +131,15 @@ public:
 	// Returns the world transformation matrix (model matrix).
 	glm::mat4 getWorldTransformation();
 	
+	// Returns the world position of the entity.
+	glm::vec3 getWorldPosition();
+
+	// Returns the world rotation of the entity.
+	glm::vec3 getWorldRotation();
+
+	// Returns the world scale of the entity;
+	glm::vec3 getWorldScale();
+
 	// Sets local transformation properties via a model matrix. 
 	// Note: This uses experimental GLM functions and has edge cases. 
 	void setLocalTransform(glm::mat4 matrix);

@@ -7,10 +7,14 @@ extern const std::string SHADER_MODEL;
 extern const std::string SHADER_VIEW;
 extern const std::string SHADER_PROJECTION;
 extern const std::string SHADER_MODELVIEW;
+// Colors
 extern const std::string SHADER_DIFFUSE;
 extern const std::string SHADER_SPECULAR;
 extern const std::string SHADER_AMBIENT;
+extern const std::string SHADER_EMISSIVE;
+extern const std::string SHADER_SHININESS;
 // Textures 
+extern const std::string SHADER_TEX_NONE;
 extern const std::string SHADER_TEX_DIFFUSE;
 extern const std::string SHADER_TEX_SPECULAR;
 extern const std::string SHADER_TEX_NORMAL;

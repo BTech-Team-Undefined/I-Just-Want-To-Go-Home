@@ -135,7 +135,7 @@ void Game::loop()
 		// 3. frame system update 
 		for (int i = 0; i < _frameSystems.size(); i++)
 		{
-			_frameSystems[i]->update(0.016);
+			_frameSystems[i]->update(frameDelta.count() / 1000000);
 			_frameSystems[i]->clearComponents();	// cleanup for next iteration
 		}
 
