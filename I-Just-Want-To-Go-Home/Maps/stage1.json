@@ -33,6 +33,72 @@
             "model": "roadCornerLarge",
             "position": [1, 0, 9],
             "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [2, 0, 9],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadCornerLarge",
+            "position": [4, 0, 7]
+        },
+        {
+            "model": "roadStraight",
+            "position": [4, 0, 6]
+        },
+        {
+            "model": "roadStraight",
+            "position": [4, 0, 5]
+        },
+        {
+            "model": "roadCornerLarge",
+            "position": [3, 0, 5],
+            "rotation": [0, 180, 0]
+        },
+        {
+            "model": "roadCornerLarge",
+            "position": [5, 0, 3],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [7, 0, 5]
+        },
+        {
+            "model": "roadStraight",
+            "position": [7, 0, 6]
+        },
+        {
+            "model": "roadCornerSmall",
+            "position": [7, 0, 8],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadCornerSmall",
+            "position": [7, 0, 7],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [8, 0, 8]
+        },
+        {
+            "model": "roadStraight",
+            "position": [8, 0, 9]
+        },
+        {
+            "model": "roadStraight",
+            "position": [8, 0, 10]
+        },
+        {
+            "model": "roadCornerSmall",
+            "position": [8, 0, 11]
+        },
+        {
+            "model": "roadStraight",
+            "position": [7, 0, 12],
+            "rotation": [0, -90, 0]
         }
     ],
     "obstacles": []
