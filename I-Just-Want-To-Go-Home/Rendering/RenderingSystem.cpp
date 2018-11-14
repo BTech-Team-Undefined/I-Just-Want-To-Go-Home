@@ -8,6 +8,8 @@
 
 RenderingSystem::RenderingSystem() : System()
 {
+	onlyReceiveFrameUpdates = true;
+
 	// debug? initialize the composition shader 
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
 	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
