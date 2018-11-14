@@ -14,7 +14,7 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
-// Custom objects 
+// Engine objects 
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
 #include "EntitySystems\Component.h"
@@ -40,6 +40,9 @@
 #include "Rendering\UI\ImageComponent.h"
 #include "Rendering\UI\TextComponent.h"
 #include "Core\Game.h"
+// Gameplay specific (engine agnostic)
+#include "Game\SpeedDisplayComponent.h"
+#include "Game\TimeDisplayComponent.h"
 
 
 extern "C" {
@@ -258,6 +261,52 @@ int main(int argc, char* args[])
 	image2->loadImage("textures/pinacle.png");
 	image2->layer = 1;
 
+	// speedometer img 
+	auto eSpeedometerNeedle = new Entity();
+	eSpeedometerNeedle->addComponent<ImageComponent>();
+	eSpeedometerNeedle->getComponent<ImageComponent>()->loadImage("textures/needle.png");
+	eSpeedometerNeedle->getComponent<ImageComponent>()->tint = glm::vec3(1, 0, 0);
+	auto eSpeedometerBg = new Entity();
+	eSpeedometerBg->addChild(eSpeedometerNeedle);
+	eSpeedometerBg->scale = glm::vec3(0.25f, 0.25f, 0.25f);
+	eSpeedometerBg->addComponent<ImageComponent>();
+	eSpeedometerBg->getComponent<ImageComponent>()->loadImage("textures/speedometer.png");
+	// speedometer text 
+	auto eSpeedText = new Entity();
+	eSpeedText->position = glm::vec3(0, -10, 0);
+	eSpeedText->addComponent<TextComponent>();
+	auto speedTextComponent = eSpeedText->getComponent<TextComponent>();
+	speedTextComponent->color = glm::vec3(1, 1, 1);
+	speedTextComponent->font = "fonts/futur.ttf";
+	speedTextComponent->scale = 0.5;
+	speedTextComponent->alignment = TextAlignment::Center;
+	auto eSpeedBg = new Entity();
+	eSpeedBg->scale = glm::vec3(0.8, 0.8, 1.0);
+	eSpeedBg->position = glm::vec3(0, -40, 0);
+	eSpeedBg->addChild(eSpeedText);
+	eSpeedBg->addComponent<ImageComponent>();
+	auto speedBgImg = eSpeedBg->getComponent<ImageComponent>();
+	speedBgImg->loadImage("textures/UI/grey_button01.png");
+	speedBgImg->tint = glm::vec3(0.1, 0.1, 0.1);
+	speedBgImg->opacity = 0.7f;
+	// speedometer parent entity 
+	auto eSpeed = new Entity();
+	eSpeed->position = glm::vec3(125, 100, 0);
+	eSpeed->addChild(eSpeedometerBg);
+	eSpeed->addChild(eSpeedBg);
+	eSpeed->addComponent<SpeedDisplayComponent>();
+	auto speedComponent = eSpeed->getComponent<SpeedDisplayComponent>();
+	speedComponent->initialize(pc6, speedTextComponent, eSpeedometerNeedle);
+
+	auto eTime = new Entity();
+	eTime->addComponent<TextComponent>();
+	eTime->addComponent<TimeDisplayComponent>();
+	eTime->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100, 0);
+	auto timeTextComponent = eTime->getComponent<TextComponent>();
+	timeTextComponent->color = glm::vec3(1, 1, 1);
+	timeTextComponent->font = "fonts/futur.ttf";
+	timeTextComponent->alignment = TextAlignment::Center;
+
 	// ===== START GAME ======
 	Game::instance().addEntity(eLight);
 	Game::instance().addEntity(eLight2);
@@ -266,10 +315,12 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(e3);
 	Game::instance().addEntity(e4);
 	Game::instance().addEntity(playerEntity);
-	Game::instance().addEntity(eText1);
-	Game::instance().addEntity(eText3);
-	Game::instance().addEntity(eImage1);
-	Game::instance().addEntity(eImage2);
+	// Game::instance().addEntity(eText1);
+	// Game::instance().addEntity(eText3);
+	// Game::instance().addEntity(eImage1);
+	// Game::instance().addEntity(eImage2);
+	Game::instance().addEntity(eSpeed);
+	Game::instance().addEntity(eTime);
 
 	Game::instance().loop();
 

@@ -35,6 +35,8 @@
     <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Rendering\UI\TextComponent.cpp" />
     <ClCompile Include="Rendering\UI\View.cpp" />
+    <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
+    <ClCompile Include="Game\TimeDisplayComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -75,6 +77,8 @@
     <ClInclude Include="Rendering\UI\ImageComponent.h" />
     <ClInclude Include="Rendering\UI\TextComponent.h" />
     <ClInclude Include="Rendering\UI\View.h" />
+    <ClInclude Include="Game\SpeedDisplayComponent.h" />
+    <ClInclude Include="Game\TimeDisplayComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
