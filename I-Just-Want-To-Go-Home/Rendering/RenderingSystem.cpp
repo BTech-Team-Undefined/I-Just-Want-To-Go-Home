@@ -147,6 +147,7 @@ void RenderingSystem::RenderGeometryPass()
 	compositionShader->setInt("u_ColTex", 2);
 	compositionShader->setInt("u_DphTex", 3);
 	compositionShader->setInt("u_ShadowMap", 4);
+	compositionShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
 
 	// enable the sampler2D shader variables 
 	glActiveTexture(GL_TEXTURE0);
@@ -203,8 +204,9 @@ void RenderingSystem::RenderGeometryPass()
 	for (int i = 0; i < _texts.size(); i++)
 	{
 		auto pos = _texts[i]->getPosition();
-		RenderText(*textShader, 
-			_texts[i]->getText(), 
+		RenderText(*textShader,
+			_texts[i]->getText(),
+			_texts[i]->alignment,
 			pos.x, pos.y, 
 			_texts[i]->scale, 
 			_texts[i]->color, 
@@ -224,7 +226,7 @@ void RenderingSystem::RenderGeometryPass()
 		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
 		<< "Image Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
 		<< "Text Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n";
-	RenderText(*textShader, ss.str(), 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
+	RenderText(*textShader, ss.str(), TextAlignment::Left, 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
@@ -244,9 +246,17 @@ void RenderingSystem::RenderCompositionPass()
 {
 }
 
-// https://learnopengl.com/In-Practice/Text-Rendering
-void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, std::string font)
+// adapted from https://learnopengl.com/In-Practice/Text-Rendering
+void RenderingSystem::RenderText(Shader& s, 
+	std::string text, 
+	TextAlignment alignment,
+	GLfloat x, GLfloat y, 
+	GLfloat scale, 
+	glm::vec3 color, 
+	std::string font)
 {
+	if (text.empty()) return;
+	
 	// Retrieve font information 
 	if (font.empty())
 	{
@@ -272,47 +282,69 @@ void RenderingSystem::RenderText(Shader& s, std::string text, GLfloat x, GLfloat
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
 
-	// Iterate through all characters
+	// Split text into lines 
+	std::stringstream ss(text);
+	std::string line;
 	GLfloat initialX = x;
-	std::string::const_iterator c;
-	for (c = text.begin(); c != text.end(); c++)
+	GLfloat horSize = 0;
+	while (std::getline(ss, line, '\n'))
 	{
-		// newline 
-		if (*c == '\n')
+		// iterate thru all characters to determine horizontal size
+		std::string::const_iterator c;
+		for (c = line.begin(); c != line.end(); c++)
 		{
-			x = initialX;
-			y -= (fontInfo.LineHeight >> 6) * scale;
-			continue;
+			Character ch = fontInfo.Characters[*c];
+			// Bitshift by 6 to get value in pixels (2^6 = 64)
+			horSize += (ch.Advance >> 6) * scale; 
+		}
+		
+		// determine start position
+		if (alignment == TextAlignment::Left)
+			x = x;	// mmmm great code.
+		else if (alignment == TextAlignment::Center)
+			x = x - (horSize / 2);
+		else if (alignment == TextAlignment::Right)
+			x = x - horSize;
+
+		// Iterate through all characters
+		for (c = line.begin(); c != line.end(); c++)
+		{
+			Character ch = fontInfo.Characters[*c];
+
+			GLfloat xpos = x + ch.Bearing.x * scale;
+			GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+			GLfloat w = ch.Size.x * scale;
+			GLfloat h = ch.Size.y * scale;
+
+			// Update VBO for each character
+			GLfloat vertices[6][4] = {
+				{ xpos,     ypos + h,   0.0, 0.0 },
+				{ xpos,     ypos,       0.0, 1.0 },
+				{ xpos + w, ypos,       1.0, 1.0 },
+
+				{ xpos,     ypos + h,   0.0, 0.0 },
+				{ xpos + w, ypos,       1.0, 1.0 },
+				{ xpos + w, ypos + h,   1.0, 0.0 }
+			};
+			// Render glyph texture over quad
+			glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+			// Update content of VBO memory
+			glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			// Render quad
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+			x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
 		}
 
-		Character ch = fontInfo.Characters[*c];
-
-		GLfloat xpos = x + ch.Bearing.x * scale;
-		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-		GLfloat w = ch.Size.x * scale;
-		GLfloat h = ch.Size.y * scale;
-		
-		// Update VBO for each character
-		GLfloat vertices[6][4] = {
-			{ xpos,     ypos + h,   0.0, 0.0 },
-			{ xpos,     ypos,       0.0, 1.0 },
-			{ xpos + w, ypos,       1.0, 1.0 },
-
-			{ xpos,     ypos + h,   0.0, 0.0 },
-			{ xpos + w, ypos,       1.0, 1.0 },
-			{ xpos + w, ypos + h,   1.0, 0.0 }
-		};
-		// Render glyph texture over quad
-		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-		// Update content of VBO memory
-		glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		// Render quad
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
+		// shift drawing position down for next line
+		y -= (fontInfo.LineHeight >> 6) * scale;
+		// and reset x position 
+		x = initialX;
+		horSize = 0;
 	}
+
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -327,8 +359,8 @@ void RenderingSystem::RenderImage(Shader & s, ImageComponent * image)
 	imageShader->setVec2("u_Size", size);
 	imageShader->setMat4("u_Model", transform);
 	imageShader->setMat4("u_Projection", uiProjection);
-	// imageShader->setMat4("tint ", transform);
-	// imageShader->setMat4("opacity", transform);
+	imageShader->setVec3("u_Tint", image->tint);
+	imageShader->setFloat("u_Opacity", image->opacity);
 
 	glBindVertexArray(quadVAO);
 	glActiveTexture(GL_TEXTURE0);
