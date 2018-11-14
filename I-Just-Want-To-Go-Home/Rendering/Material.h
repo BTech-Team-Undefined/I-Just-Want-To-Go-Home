@@ -56,7 +56,8 @@ public:
 	~Material();
 
 	/// <summary>
-	/// Loads material settings into opengl shader program
+	/// Loads material settings into opengl shader program.
+	/// Highly recommended to call LoadMaterial(shader,textureLoc) even if you have no texture.
 	/// </summary>
 	virtual void LoadMaterial(const Shader* shader);
 

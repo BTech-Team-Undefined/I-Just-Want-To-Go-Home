@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include <ft2build.h>
 #include <freetype\freetype.h>
+#include "Constants.h"
 
 RenderingSystem::RenderingSystem() : System()
 {
@@ -82,6 +83,10 @@ void RenderingSystem::RenderGeometryPass()
 		auto rc = _components[i];
 		auto model = rc->getEntity()->getWorldTransformation();		// this can be optimized 
 		geometryShader->setMat4("u_Model", model);
+		// ensure default values incase material does not have it
+		geometryShader->setVec3(SHADER_DIFFUSE.c_str(), glm::vec3(1,1,1));
+		geometryShader->setVec3(SHADER_SPECULAR.c_str(), glm::vec3(1,1,1));
+		geometryShader->setVec3(SHADER_AMBIENT.c_str(), glm::vec3(1,1,1));
 
 		// go thru each renderable package 
 		for (int i = 0; i < rc->renderables.size(); i++)
