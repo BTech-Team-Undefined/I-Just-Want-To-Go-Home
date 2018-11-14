@@ -113,12 +113,13 @@ void Game::loop()
 		{
 			timeSinceLastUpdate -= _frameTime;
 			// 2. entity update 
-			updateEntity(activeScene->rootEntity.get(), _frameTime.count());
+			std::chrono::duration<double> dt = (_frameTime);
+			updateEntity(activeScene->rootEntity.get(), dt.count());
 
 			// 3. system update 
 			for (int i = 0; i < _systems.size(); i++)
 			{
-				_systems[i]->update(_frameTime.count());
+				_systems[i]->update(dt.count());
 				_systems[i]->clearComponents();	// cleanup for next iteration
 			}
 		}
