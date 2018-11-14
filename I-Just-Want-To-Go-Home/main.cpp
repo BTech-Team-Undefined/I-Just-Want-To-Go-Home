@@ -43,6 +43,7 @@
 // Gameplay specific (engine agnostic)
 #include "Game\SpeedDisplayComponent.h"
 #include "Game\TimeDisplayComponent.h"
+#include "Game\StickyTransformComponent.h"
 
 
 extern "C" {
@@ -217,6 +218,13 @@ int main(int argc, char* args[])
 	eLight2->addComponent<DirectionalLight>();
 	eLight2->position = glm::vec3(-3, 10, -7);
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
+	
+	// keep lights centered on player (so there's always a shadow)
+	auto eLightHolder = new Entity();
+	eLightHolder->addComponent<StickyTransformComponent>();
+	eLightHolder->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
+	eLightHolder->addChild(eLight);
+	eLightHolder->addChild(eLight2);
 
 	// ===== TEXT =====
 	auto eText1 = new Entity();
@@ -308,9 +316,16 @@ int main(int argc, char* args[])
 	timeTextComponent->font = "fonts/futur.ttf";
 	timeTextComponent->alignment = TextAlignment::Center;
 
+	auto eTest = new Entity();
+	eTest->addComponent<RenderComponent>();
+	eTest->getComponent<RenderComponent>()->renderables.push_back(cubeRenderable);
+	eTest->addComponent<StickyTransformComponent>();
+	eTest->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
+
 	// ===== START GAME ======
-	Game::instance().addEntity(eLight);
-	Game::instance().addEntity(eLight2);
+	//Game::instance().addEntity(eLight);
+	//Game::instance().addEntity(eLight2);
+	Game::instance().addEntity(eLightHolder);
 	Game::instance().addEntity(e1);
 	Game::instance().addEntity(e2);
 	Game::instance().addEntity(e3);
@@ -322,6 +337,7 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
+	Game::instance().addEntity(eTest);
 
 	Game::instance().loop();
 

@@ -37,6 +37,7 @@
     <ClCompile Include="Rendering\UI\View.cpp" />
     <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
     <ClCompile Include="Game\TimeDisplayComponent.cpp" />
+    <ClCompile Include="Game\StickyTransformComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -79,6 +80,7 @@
     <ClInclude Include="Rendering\UI\View.h" />
     <ClInclude Include="Game\SpeedDisplayComponent.h" />
     <ClInclude Include="Game\TimeDisplayComponent.h" />
+    <ClInclude Include="Game\StickyTransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

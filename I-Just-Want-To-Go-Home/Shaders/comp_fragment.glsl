@@ -36,7 +36,7 @@ uniform vec3 u_LightPos;
 
 float near = 0.1;
 float far  = 50.0; 
-
+float shadowFadeThreshold = 0.90;
 
 float ShadowCalculation(vec4 lightSpaceFrag)
 {
@@ -56,9 +56,18 @@ float ShadowCalculation(vec4 lightSpaceFrag)
     // handle steep angles 
     // float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
 
-    if (projCoords.z > 1.0)
-        shadow = 0.0;   // out of frustrum far plane
+	// soften shadows if near shadow map limit
+	vec3 dist = abs(projCoords - vec3(0.5));
+	float fade = max(max(dist.x, dist.y), dist.z) * 2.0;	// times 2 to bring range from 0-0.5 to 0-1.0
+	if (fade > shadowFadeThreshold)
+	{
+		float percent = (fade - shadowFadeThreshold) / (1.0 - shadowFadeThreshold);
+		shadow *= (1.0 - percent);
+	}
 
+	if (projCoords.z > 1.0)
+		shadow = 0.0;   // out of frustrum far plane
+		
     return shadow;
 }
 

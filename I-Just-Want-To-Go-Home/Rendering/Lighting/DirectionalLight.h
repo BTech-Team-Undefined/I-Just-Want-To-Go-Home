@@ -71,10 +71,10 @@ public:
 
 	glm::mat4 getLightSpaceMatrix() override
 	{
-		glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.0f);
+		glm::mat4 projection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 40.0f);
 		//glm::mat4 view = glm::lookAt(GetEntity()->position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		glm::mat4 view = getEntity()->getWorldTransformation();
-		return projection * view;
+		return projection * glm::inverse(view);
 	}
 };
 
