@@ -44,6 +44,7 @@ public:
 	Shader* shadowmapShader;	// default shadowmap shader 
 	Shader* textShader;			// default text shader 
 	Shader* imageShader;		// default UI shader 
+	Shader* postShader;			// default postprocessing shader 
 
 private:
 	OpenGLProfiler profiler;
