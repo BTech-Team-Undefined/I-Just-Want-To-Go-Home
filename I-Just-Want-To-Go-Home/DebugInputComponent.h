@@ -15,6 +15,8 @@ public:
 	{
 		_actions[SDL_EventType::SDL_KEYDOWN] = [this](SDL_Event e)
 		{
+
+			//forard thrust
 			switch (e.key.keysym.sym) {
 			case SDLK_w: 
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
@@ -26,21 +28,35 @@ public:
 				break;
 			}
 
-			if(thrust != 0){
+			//moving left or right; only when moving forward
+			if (thrust != 0) {
 				switch (e.key.keysym.sym) {
-					case SDLK_a:
+				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = -10;
 					getEntity()->getComponent<PhysicsComponent>()->angularForce = 10;
+					
 					break;
 				case SDLK_d:
 					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = 10;
 					getEntity()->getComponent<PhysicsComponent>()->angularForce = -10;
 					break;
+				}
 			}
-
+			//drifting
+			if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
+				if (e.key.keysym.sym == SDLK_LSHIFT) {
+					if (getEntity()->getComponent<PhysicsComponent>()->angularForce > 0) { //going left
+						getEntity()->getComponent<PhysicsComponent>()->angularForce = 15;
+					}
+					else { //going right
+						getEntity()->getComponent<PhysicsComponent>()->angularForce = -15;
+					}
+					
+				}
 			}
+			
 		};
 
 		_actions[SDL_EventType::SDL_KEYUP] = [this](SDL_Event e)
@@ -56,12 +72,12 @@ public:
 				break;
 			}
 
-			if (thrust == 0) {
-				switch (e.key.keysym.sym) {
+			switch (e.key.keysym.sym) {
 				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = -10;
 					getEntity()->getComponent<PhysicsComponent>()->angularForce = 0;
+					
 					break;
 				case SDLK_d:
 					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
@@ -70,6 +86,10 @@ public:
 					break;
 				}
 
+			
+
+			if (e.key.keysym.sym == SDLK_LSHIFT) { // when drifting is done to get boost
+				thrust *= 2;
 			}
 		};
 
