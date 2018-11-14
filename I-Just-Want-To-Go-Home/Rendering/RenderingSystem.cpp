@@ -17,6 +17,7 @@ RenderingSystem::RenderingSystem() : System()
 	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 	textShader = new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
 	imageShader = new Shader("shaders/image_vertex.glsl", "shaders/image_fragment.glsl");
+	postShader = new Shader("shaders/post_vertex.glsl", "shaders/post_fragment.glsl");
 	// initialize frame buffers for geometry rendering pass 
 	// InitializeFrameBuffers(); waiting for screen size
 	
@@ -30,7 +31,7 @@ RenderingSystem::RenderingSystem() : System()
 	LoadFont("fonts/Inconsolata-Regular.ttf");
 
 	// create profiler 
-	profiler.InitializeTimers(5);	// 1 for each pass so far 
+	profiler.InitializeTimers(6);	// 1 for each pass so far 
 }
 
 RenderingSystem::~RenderingSystem()
@@ -147,6 +148,7 @@ void RenderingSystem::RenderGeometryPass()
 	compositionShader->setInt("u_ColTex", 2);
 	compositionShader->setInt("u_DphTex", 3);
 	compositionShader->setInt("u_ShadowMap", 4);
+	compositionShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
 
 	// enable the sampler2D shader variables 
 	glActiveTexture(GL_TEXTURE0);
@@ -174,13 +176,36 @@ void RenderingSystem::RenderGeometryPass()
 		glBindVertexArray(0);
 	}
 
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	profiler.StopTimer(2);
 
-	// 3rd pass - UI images 
+	// 4th pass - Postprocessing
 	profiler.StartTimer(3);
+
+	postShader->use();
+
+	glBindVertexArray(quadVAO);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, posTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, dphTex);
+
+	postShader->setInt("u_Pos", 0);	// set order 
+	postShader->setInt("u_Depth", 1);
+	postShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
+
+	profiler.StopTimer(3);
+
+	// 5th pass - UI images 
+	profiler.StartTimer(4);
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
@@ -193,10 +218,10 @@ void RenderingSystem::RenderGeometryPass()
 		RenderImage(*imageShader, _images[i]);
 	}
 
-	profiler.StopTimer(3);
+	profiler.StopTimer(4);
 
-	// 4th pass - UI text 
-	profiler.StartTimer(4);
+	// 6th pass - UI text 
+	profiler.StartTimer(5);
 
 	// render text components 
 	std::sort(_texts.begin(), _texts.end(), View::comparePointers);		// sort for rendering order
@@ -212,7 +237,7 @@ void RenderingSystem::RenderGeometryPass()
 	}	
 	// glDisable(GL_BLEND);
 
-	profiler.StopTimer(4);
+	profiler.StopTimer(5);
 
 	profiler.FrameFinish();
 
@@ -222,8 +247,9 @@ void RenderingSystem::RenderGeometryPass()
 		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
 		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
 		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
-		<< "Image Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
-		<< "Text Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n";
+		<< "Postprocessing Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
+		<< "Image Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n"
+		<< "Text Pass: " << profiler.GetDuration(5) / 1000000.0 << "ms\n";
 	RenderText(*textShader, ss.str(), 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
 
 	glEnable(GL_DEPTH_TEST);
