@@ -35,7 +35,7 @@ uniform mat4 u_LightSpaceMatrix;    // todo: I need to do the shadow mapping cal
 uniform vec3 u_LightPos;
 
 float near = 0.1;
-float far  = 25.0; 
+float far  = 50.0; 
 
 
 float ShadowCalculation(vec4 lightSpaceFrag)
