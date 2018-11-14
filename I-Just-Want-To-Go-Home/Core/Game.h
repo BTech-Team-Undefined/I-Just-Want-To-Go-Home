@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <set>
 #include <memory>
+#include <chrono>
 #include <SDL2\SDL.h>
 #include "../AssetLoader.h"
 #include "..\EntitySystems\System.h"
@@ -59,7 +60,9 @@ private:
 	std::set<int> _deletionList;
 	std::vector<EntityAction> _additionList;
 	std::set<int> _additionVerification;	// used to ensure an entity isn't added twice
-	std::vector<std::unique_ptr<System>> _systems;
+	std::vector<std::unique_ptr<System>> _systems;		// systems that are only updated once per frame
+	std::vector<std::unique_ptr<System>> _frameSystems;	// systems that can be updated multiple times per frame (fixed update).
+	const std::chrono::nanoseconds _frameTime = std::chrono::milliseconds( (long)(16.6666666666666666666) );
 	bool _initialized = false;
 	bool _running = false;
 
@@ -112,7 +115,7 @@ private:
 	void updateEntity(Entity* entity, float dt);
 
 	// crawls thru scene and resolves entity addition and deletion before updates
-	void resolveEntities(Entity* entity);
+	void resolveEntities(Entity* entity, bool collectComponents);
 
 	// cleans up any remaining entities to be deleted or added
 	void resolveCleanup();
