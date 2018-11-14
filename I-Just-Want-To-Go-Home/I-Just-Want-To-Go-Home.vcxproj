@@ -149,6 +149,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="Game\StickyTransformComponent.cpp" />
     <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Physics\Collider2D.cpp" />
     <ClCompile Include="Physics\PhysicsComponent.cpp" />
@@ -191,6 +192,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Game\StickyTransformComponent.h" />
     <ClInclude Include="Rendering\UI\ImageComponent.h" />
     <ClInclude Include="Physics\Collider2D.h" />
     <ClInclude Include="Physics\PhysicsComponent.h" />
