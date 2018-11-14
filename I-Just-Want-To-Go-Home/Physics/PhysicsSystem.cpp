@@ -4,9 +4,8 @@
 
 using namespace std;
 
-PhysicsSystem::PhysicsSystem()
+PhysicsSystem::PhysicsSystem() : System()
 {
-	this->_lastUpdate = clock();
 }
 
 // registers the collider to physics system
@@ -15,6 +14,7 @@ int PhysicsSystem::RegisterCollider(shared_ptr<Collider2D> collider)
 {
 	int index = static_cast<int>(this->_colliders.size());
 	this->_colliders.insert(pair<int, shared_ptr<Collider2D>>(index, collider));
+	collider->colliderId = index;
 	return index;
 }
 
@@ -26,29 +26,18 @@ int PhysicsSystem::RegisterEntity(Entity* entity)
 }
 
 // should be called every update frame
-void PhysicsSystem::Update()
+void PhysicsSystem::update(float dt)
 {
-	// update once every 20ms (50 times in 1 second)
-	// same as unity's default setting for FixedUpdate
-	const double UPDATE_THRESHOLD = 20;
-
-	clock_t currentTime = clock();
-	double diff = currentTime - this->_lastUpdate;
-	double diffMilliseconds = (diff) / (CLOCKS_PER_SEC / 1000);
-	if (diffMilliseconds < UPDATE_THRESHOLD)
-		return;
+	for (auto i = _entities.begin(); i != _entities.end(); ++i) {
+		this->physicsUpdate(i->second, dt);
+	}
 	this->CheckCollisions();
-	this->_lastUpdate = currentTime;
 }
 
 void PhysicsSystem::CheckCollisions()
 {
 	map<string, pair<Entity*, Entity*>> collisions = {};
 	const float NEAR_THRESHOLD = 0.02f;
-
-	for (auto i = _entities.begin(); i != _entities.end(); ++i) {
-		this->physicsUpdate(i->second);
-	}
 
 	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)
@@ -316,7 +305,7 @@ void PhysicsSystem::RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr
 	}
 }
 
-void PhysicsSystem::physicsUpdate(Entity* e) {
+void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	const float gravity = 9.8; // Acceleration from gravity; for purpose of calculating friction
 	auto pc = e->getComponent<PhysicsComponent>();
 	float im = 1 / pc->mass;
@@ -327,14 +316,14 @@ void PhysicsSystem::physicsUpdate(Entity* e) {
 	float av = pc->angularVelocity;
 
 	if (v.length() > 0) {
-		float drag = -v.dot(v) * pc->mass * pc->dragCoefficient;
-		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		float drag = -v.dot(v) * pc->mass * pc->getDrag();
+		float fric = -pc->mass * gravity * pc->getFriction();
 		f += (drag + fric) * v.unit(); // fric is already negative so we don't need to worry about sign
 	}
 
 	if (av != 0) {
-		float adrag = -av * av * pc->mass * pc->dragCoefficient;
-		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		float adrag = -av * av * pc->mass * pc->getRotationDrag();
+		float fric = -pc->mass * gravity * pc->getRotationFriction();
 		af += (adrag + fric) * (av > 0 ? 1 : -1);
 	}
 
@@ -342,12 +331,24 @@ void PhysicsSystem::physicsUpdate(Entity* e) {
 	float aa = af * im;
 
 	PhysicsVector pos = PhysicsVector(e->position.x, e->position.z);
-	pos += v * fixedDeltatime + 0.5 * a * fixedDeltatime * fixedDeltatime;// use the curPos variable to move the entity
-	v += a * fixedDeltatime;
+	pos += v * delta + 0.5 * a * delta * delta;// use the curPos variable to move the entity
+	v += a * delta;
 
 	float rot = e->rotation.y;
-	rot += av * fixedDeltatime + 0.5 * aa * fixedDeltatime * fixedDeltatime;
-	av += aa * fixedDeltatime;
+	rot += av * delta + 0.5 * aa * delta * delta;
+	av += aa * delta;
+
+	if (av < 0.05 && av > -0.05) {
+		av = 0.0f;
+	}
+
+	if (pc->velocity.x < 0.05 && pc->velocity.x > -0.05) {
+		pc->velocity.x = 0.0f;
+	}
+
+	if (pc->velocity.y < 0.05 && pc->velocity.y > -0.05) {
+		pc->velocity.y = 0.0f;
+	}
 
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;
@@ -371,7 +372,14 @@ void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	if (pc2->isStatic) {
 		im2 = 0;
 	}
-	PhysicsVector n = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z).unit();
+	PhysicsVector dist = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z);
+	PhysicsVector n = dist.unit();
+	// Bad positional correction
+	const float ratio = 0.035;
+	PhysicsVector corr1 = -n * ratio * im1;
+	PhysicsVector corr2 = n * ratio * im2;
+	e1->position = glm::vec3(e1->position.x + corr1.x, e1->position.y, e1->position.z + corr1.y);
+	e2->position = glm::vec3(e2->position.x + corr2.x, e2->position.y, e2->position.z + corr2.y);
 	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
 	if (vNorm > 0) {
 		return;
@@ -384,5 +392,17 @@ void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	pc2->velocity += impulse * im2;
 }
 
+void PhysicsSystem::addComponent(std::type_index t, Component* component) {
+	if (t == std::type_index(typeid(PhysicsComponent))) {
+		PhysicsComponent* pc = static_cast<PhysicsComponent*>(component);
+		RegisterEntity(pc->getEntity());
+		for (auto c : pc->colliders) {
+			RegisterCollider(c);
+		}
+	}
+}
 
-
+void PhysicsSystem::clearComponents() {
+	_colliders.clear();
+	_entities.clear();
+}

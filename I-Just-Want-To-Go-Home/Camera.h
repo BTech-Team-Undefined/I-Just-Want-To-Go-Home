@@ -12,12 +12,12 @@ public:
 	float aspect    = 1.0f;	 // aspect ratio (width/height)
 	float fov       = 60.0f; // field of view (degrees) or units vertically visible (ortho)
 	bool  isOrtho   = false; // orthographic enabled
+	bool  isMain		= true;	 // if this camera should be used for rendering
 
 public:
-	Camera(Entity* e) : Component(e) {};
+	Camera() : Component(std::type_index(typeid(Camera))) {};
 	~Camera() {};
-	virtual void Update(float dt) override {};
-	virtual void Draw() override {};
+	virtual void update(float dt) override {};
 	glm::mat4 GetProjectionMatrix(); 
 	glm::mat4 GetViewMatrix(); 
 };

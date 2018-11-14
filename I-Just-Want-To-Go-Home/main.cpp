@@ -14,7 +14,7 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
-// Custom objects 
+// Engine objects 
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
 #include "EntitySystems\Component.h"
@@ -32,11 +32,18 @@
 #include "Physics\Collider2D.h"
 #include "Physics\Point.h"
 #include "Physics\PhysicsVector.h"
+#include "DebugInputComponent.h"
+#include "EntitySystems/Transform.h"
+#include "EntitySystems/DestructionComponent.h"
+#include "EntitySystems\Examples\ExampleSystem.h"
+#include "EntitySystems\Examples\SimpleSystem.h"
+#include "Rendering\UI\ImageComponent.h"
+#include "Rendering\UI\TextComponent.h"
+#include "Core\Game.h"
+// Gameplay specific (engine agnostic)
+#include "Game\SpeedDisplayComponent.h"
+#include "Game\TimeDisplayComponent.h"
 
-
-//Screen dimension constants
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
 
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -44,136 +51,95 @@ extern "C" {
 
 int main(int argc, char* args[])
 {
-	// ===== INITIAILIZE SDL & OPENGL =====
-	
-	//The window we'll be rendering to
-	SDL_Window* window = NULL;
-	//The surface contained by the window
-	SDL_Surface* screenSurface = NULL;
-	//The openGL context 
-	SDL_GLContext context = NULL;
+	// ===== INITIALIZE CORE GAME ENGINE =====
+	Game::instance().initialize();
 
-	//Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
-	{
-		std::cerr << "ERROR: SDL could not initialize. SDL_Error:  " << SDL_GetError() << std::endl;
-		return 1;
-	}
+	// ===== INIT SYSTEMS =====
+	auto rs = std::make_unique<RenderingSystem>();
+	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	Game::instance().addSystem(std::move(rs));
 
-	// prepare opengl version (4.5) for SDL 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	// using core as opposed to compatibility or ES 
+	//auto es = std::make_unique<ExampleSystem>();
+	//Game::instance().addSystem(std::move(es));
 
-	// create window
-	window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-	if (window == NULL)
-	{
-		std::cerr << "ERROR: SDL window could not be created. SDL_Error:  " << SDL_GetError() << std::endl;
-		return 2;
-	}
+	//auto ss = std::make_unique<SimpleSystem>();
+	//Game::instance().addSystem(std::move(ss));
 
-	// get window surface (not necessary)
-	screenSurface = SDL_GetWindowSurface(window);
+	auto ps = std::make_unique<PhysicsSystem>();
+	Game::instance().addSystem(std::move(ps));
 
-	// initialize sdl opengl context 
-	context = SDL_GL_CreateContext(window);
-	if (context == NULL)
-	{
-		std::cerr << "ERROR: SDL failed to create openGL context. SDL_Error: " << SDL_GetError() << std::endl;
-		return 1;
-	}
+	// ===== INIT SCENE =====
+	Scene* scene = new Scene();
+	Game::instance().setActiveScene(scene);
 
-	// initialize opengl 
-	if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
-	{
-		std::cerr << "ERROR: GLAD failed to initialize opengl function pointers." << std::endl;
-		return 3;
-	}
-	std::cout << "Vendor:\t" << glGetString(GL_VENDOR) << std::endl
-		<< "Renderer:\t" << glGetString(GL_RENDERER) << std::endl
-		<< "Version:\t" << glGetString(GL_VERSION) << std::endl;
-
-	// configure opengl 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	// ===== PERFORMANCE MEASUREMENTS =====
-	// This is only to measure CPU performance. For GPU use OpenGLProfiler. 
-	std::chrono::high_resolution_clock::time_point startRenderingTime;
-	std::chrono::high_resolution_clock::time_point endRenderingTime;
-
-	/* ===== RENDERING DOCUMENTATION =====
-	Check Rendering/DOCUMENTATION.txt
-	*/
-
-	// ===== CAMERA ======
+	// ===== PLAYER ENTITY ===== 
+	auto playerEntity = new Entity();
+	playerEntity->position = glm::vec3(-2.5, -2, -5);
+	// physics 
+	auto e6Collider = std::make_shared<Collider2D>("e1Box");
+	vector<Point> e6ColliderBox;
+	e6ColliderBox.push_back(Point(-1, -1)); // top left
+	e6ColliderBox.push_back(Point(1, -1)); // top right
+	e6ColliderBox.push_back(Point(1, 1)); // bottom right
+	e6ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
+	playerEntity->addComponent<PhysicsComponent>();
+	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
+	pc6->isStatic = false;
+	pc6->directionalDrag = true;
+	pc6->AddCollider(e6Collider);
+	// input 
+	playerEntity->addComponent<DebugInputComponent>();
+	// visuals 
+	auto tankEntity = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
+	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	// camera 
 	auto eCam = new Entity();
-	eCam->position = glm::vec3(0, 10, 8); //replace the camera position back if finished.
-	eCam->rotation = glm::vec3(-0.7, 0, 0);
+	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
+	eCam->rotation = glm::vec3(-0.7, 3.141, 0);
 	eCam->addComponent<Camera>();
 	auto cam = eCam->getComponent<Camera>();
 	cam->aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
 	cam->fov = 60.0f;
+	// compose player 
+	playerEntity->addChild(eCam);
+	playerEntity->addChild(tankEntity.get());
 
-	// ===== INIT RENDERING SYSTEM =====
-	RenderingSystem renderingSystem = RenderingSystem();
-	renderingSystem.SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	renderingSystem.SetCamera(&*cam);	// todo: gross - use smart pointers
-	
-	// ===== INIT DATA ===== 
-	auto loader = AssetLoader();
-	
+	// ===== INIT DATA (FOR ENTITIES) ===== 
 	TextureInfo texture;
-	texture.id = loader.TextureFromFile("brickwall.jpg", "textures");
+	texture.id = Game::instance().loader.TextureFromFile("brickwall.jpg", "textures");
 	texture.uniform = "u_ColTex";
 	texture.path = "textures/brickwall.jpg";
 
 	TextureInfo texture1;
-	texture1.id = loader.TextureFromFile("brickwall_normal.jpg", "textures");
+	texture1.id = Game::instance().loader.TextureFromFile("brickwall_normal.jpg", "textures");
 	texture1.uniform = "u_NrmTex";
 	texture1.path = "textures/brickwall_normal.jpg";
 
 	// create mesh 
-	auto mesh1 = std::make_shared<CubeMesh>();
-	auto mesh2 = std::make_shared<PlaneMesh>();
-	
-	/* Example: Custom hardcoded data 
-	std::vector<Vertex> planeVertex = {
-		Vertex(-10, 0,  10, 0, 1,  0, 1, 0), // 0
-		Vertex(-10, 0, -10, 0, 0,  0, 1, 0), // 1
-		Vertex( 10, 0,  10, 1, 1,  0, 1, 0), // 2
-		Vertex( 10, 0, -10, 1, 0,  0, 1, 0), // 3
-	};
-
-	std::vector<unsigned int> planeIndex = {
-		2, 1, 0,
-		1, 2, 3,
-	};
-
-	auto mesh3 = std::make_shared<Mesh>(planeVertex, planeIndex);
-	*/
+	auto cubeMesh = std::make_shared<CubeMesh>();
+	auto planeMesh = std::make_shared<PlaneMesh>();
 
 	// create materials 
 	auto material1 = std::make_shared<Material>();
 	material1->AddTexture(texture);
-	
+
 	// create shaders
 	// (not created, use default shaders) 
 
 	// create renderables packages 
-	auto r1 = std::make_shared<Renderable>();	// cube 
-	r1->mesh = mesh1;
-	r1->material = material1;
-	auto r2 = std::make_shared<Renderable>();	// plane 
-	r2->mesh = mesh2;
-	r2->material = material1;
+	auto cubeRenderable = std::make_shared<Renderable>();	// cube 
+	cubeRenderable->mesh = cubeMesh;
+	cubeRenderable->material = material1;
+	auto planeRenderable = std::make_shared<Renderable>();	// plane 
+	planeRenderable->mesh = planeMesh;
+	planeRenderable->material = material1;
 
-	// create entities 
+	// ===== LEVEL ENTITIES =====
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
-	rc1->renderables.push_back(r1);	// use std::move(r1) if you don't want to reference it here 
+	rc1->renderables.push_back(cubeRenderable);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 0, -2);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
@@ -188,11 +154,10 @@ int main(int argc, char* args[])
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	pc1->isStatic = true;
 	pc1->AddCollider(e1Collider);
-	pc1->Register(); // Temporary way of registering with the physics system
 
 	auto e2 = new Entity();
 	e2->addComponent<RenderComponent>();
-	e2->getComponent<RenderComponent>()->renderables.push_back(r1);
+	e2->getComponent<RenderComponent>()->renderables.push_back(cubeRenderable);
 	e2->position = glm::vec3(2, 0, -5);
 	e2->rotation = glm::vec3(0, glm::radians(45.0f), 0);
 
@@ -207,11 +172,10 @@ int main(int argc, char* args[])
 	auto pc2 = e2->getComponent<PhysicsComponent>();
 	pc2->isStatic = true;
 	pc2->AddCollider(e2Collider);
-	pc2->Register(); // Temporary way of registering with the physics system
 
 	auto e3 = new Entity();
 	e3->addComponent<RenderComponent>();
-	e3->getComponent<RenderComponent>()->renderables.push_back(r2);
+	e3->getComponent<RenderComponent>()->renderables.push_back(planeRenderable);
 	e3->position = glm::vec3(0, -2, -5);
 
 	auto e3Collider = std::make_shared<Collider2D>("e1Box");
@@ -225,11 +189,10 @@ int main(int argc, char* args[])
 	auto pc3 = e3->getComponent<PhysicsComponent>();
 	pc3->isStatic = true;
 	pc3->AddCollider(e3Collider);
-	pc3->Register(); // Temporary way of registering with the physics system
 
 	auto e4 = new Entity();
 	e4->addComponent<RenderComponent>();
-	e4->getComponent<RenderComponent>()->renderables.push_back(r1);
+	e4->getComponent<RenderComponent>()->renderables.push_back(cubeRenderable);
 	e4->position = glm::vec3(2, 0, -2);
 
 	auto e4Collider = std::make_shared<Collider2D>("e4Box");
@@ -242,211 +205,124 @@ int main(int argc, char* args[])
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
-	pc4->Register(); // Temporary way of registering with the physics system
 
-	// e1->addChild(e4);
-
-	//auto e5 = loader.LoadModel("Models/nanosuit/nanosuit.obj");
-	//e5->position = glm::vec3(0, -10, -20);
-	//std::vector<std::shared_ptr<RenderComponent>> e5components; 
-	//e5->getComponents<RenderComponent>(e5components);
-
-	auto e6 = loader.LoadModel("Models/tank/M11_39.obj");
-	e6->position = glm::vec3(-2.5, -2, -5);
-	e6->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
-	std::vector<std::shared_ptr<RenderComponent>> e6components;
-	e6->getComponents<RenderComponent>(e6components);
-
-	auto e6Collider = std::make_shared<Collider2D>("e1Box");
-	vector<Point> e6ColliderBox;
-	e6ColliderBox.push_back(Point(-1, -1)); // top left
-	e6ColliderBox.push_back(Point(1, -1)); // top right
-	e6ColliderBox.push_back(Point(1, 1)); // bottom right
-	e6ColliderBox.push_back(Point(-1, 1)); // bottom left
-	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
-	e6->addComponent<PhysicsComponent>();
-	auto pc6 = e6->getComponent<PhysicsComponent>();
-	pc6->isStatic = false;
-	pc6->AddCollider(e6Collider);
-	pc6->Register(); // Temporary way of registering with the physics system
-	
-	renderingSystem.AddRenderable(e1->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e2->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e3->getComponent<RenderComponent>());
-	renderingSystem.AddRenderable(e4->getComponent<RenderComponent>());
-	//for (int i = 0; i < e5components.size(); i++)
-	//	renderingSystem.AddRenderable(e5components[i]);
-	for (int i = 0; i < e6components.size(); i++)
-		renderingSystem.AddRenderable(e6components[i]);
-
-	// ===== LIGHTING ====
+	// ===== LIGHT ENTITIES ====
 	auto eLight = new Entity();
 	eLight->addComponent<DirectionalLight>();
 	eLight->position = glm::vec3(3, 3, -7);
 	eLight->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(200.0f), 0);
-	renderingSystem.AddLight(eLight->getComponent<DirectionalLight>());
 
 	auto eLight2 = new Entity();
 	eLight2->addComponent<DirectionalLight>();
 	eLight2->position = glm::vec3(-3, 3, -7);
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
-	renderingSystem.AddLight(eLight2->getComponent<DirectionalLight>());
 
-	/* Debug struct - use this if not using shadow maps
-	std::vector<LightSimple> lights;
-	float ambient = 1.0f;
-	for (int i = 0; i < MAX_LIGHTS; i++)
-	{
-		float x = (float)std::rand() / (float)RAND_MAX;
-		float y = (float)std::rand() / (float)RAND_MAX;
-		float z = (float)std::rand() / (float)RAND_MAX;
-		LightS light;
-		light.Position = glm::vec3(x * 8 - 4, y * 4 - 2, z * 10);
-		light.Color = glm::vec3(x, y, z);
-		lights.push_back(light);
-	}
-	*/
-
-	float thrust = 0;
-	while (1)
-	{
-		// TODO: listen for events 
-		SDL_Event e;
-		while (SDL_PollEvent(&e) != 0)
-		{
-			e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z); //moves the entity based on its velocity and acceleration
-			//User requests quit
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return 0;
-			}
-			//User presses a key
-			else if (e.type == SDL_KEYDOWN)
-			{
-				
-				switch (e.key.keysym.sym)
-				{
-				case SDLK_w: {
-					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-					thrust = 15.0;
-					break;
-				}
-				case SDLK_s: {
-					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
-					thrust = -5.0;
-					break;
-				}
-				case SDLK_a:
-					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
-					//e6->getComponent<PhysicsComponent>()->force.x = -10;
-					e6->getComponent<PhysicsComponent>()->angularForce = 3;
-					break;
-				case SDLK_d:
-					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
-					//e6->getComponent<PhysicsComponent>()->force.x = 10;
-					e6->getComponent<PhysicsComponent>()->angularForce = -3;
-					break;
-				case SDLK_q:
-					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
-					e6->getComponent<PhysicsComponent>()->angularForce = 3;
-					break;
-				case SDLK_e:
-					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
-					e6->getComponent<PhysicsComponent>()->angularForce = -3;
-					break;
-				}
-				/* TODO: Move debug handling code once input manager is implemented 
-				compositionShader->use();
-				compositionShader->setBool("u_DisplayPos", false);
-				compositionShader->setBool("u_DisplayNrm", false);
-				compositionShader->setBool("u_DisplayCol", false);
-				compositionShader->setBool("u_DisplayDph", false);
-
-				//Select surfaces based on key press
-				switch (e.key.keysym.sym)
-				{
-				case SDLK_UP:
-					ambient = glm::clamp(ambient + 0.2f, 0.0f, 2.0f);
-					compositionShader->setFloat("u_AmbientIntensity", ambient);
-					break;
-				case SDLK_DOWN:
-					ambient = glm::clamp(ambient - 0.2f, 0.0f, 2.0f);
-					compositionShader->setFloat("u_AmbientIntensity", ambient);
-					break;
-				case SDLK_q:
-					compositionShader->setBool("u_DisplayPos", true);
-					break;
-				case SDLK_w:
-					compositionShader->setBool("u_DisplayNrm", true);
-					break;
-				case SDLK_e:
-					compositionShader->setBool("u_DisplayCol", true);
-					break;
-				case SDLK_r:
-					compositionShader->setBool("u_DisplayDph", true);
-					break;
-				default:
-					break;
-				}
-				*/
-			}
-			else if (e.type == SDL_KEYUP)
-			{
-
-				switch (e.key.keysym.sym)
-				{
-				case SDLK_w:
-					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-					thrust = 0;
-					break;
-				case SDLK_s:
-					//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
-					thrust = 0;
-					break;
-				case SDLK_a:
-					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
-					e6->getComponent<PhysicsComponent>()->angularForce = 0;
-					break;
-				case SDLK_d:
-					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
-					e6->getComponent<PhysicsComponent>()->angularForce = 0;
-					break;
-				case SDLK_q:
-					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
-					e6->getComponent<PhysicsComponent>()->angularForce = 0;
-					break;
-				case SDLK_e:
-					//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y + glm::radians(1.0f), e4->rotation.z);
-					e6->getComponent<PhysicsComponent>()->angularForce = 0;
-					break;
-				}
-			}
-		}
-
-		float dir = e6->rotation.y;
-		e6->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust;
-		e6->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust;
-
-		static float camDist = 8;
-		eCam->position = glm::vec3(
-			e6->position.x + std::sin(dir + 3.141) * camDist,
-			e6->position.y + 10,
-			e6->position.z + std::cos(dir + 3.141) * camDist
-		);
-		eCam->rotation = glm::vec3(-0.7, dir + 3.141, 0);
-
-		renderingSystem.Update();
-		SDL_GL_SwapWindow(window);
-		PhysicsSystem::instance().Update();
-		
-	}
-
-	//Destroy window
-	SDL_DestroyWindow( window );
-
-	//Quit SDL subsystems
-	SDL_Quit();
+	// ===== TEXT =====
+	auto eText1 = new Entity();
+	eText1->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT -50.0f, 0);
+	eText1->addComponent<TextComponent>();
+	auto text1 = eText1->getComponent<TextComponent>();
+	text1->setText("I JUST WANT TO GO HOME");
+	text1->color = glm::vec3(1.0f, 0.0f, 0.0f);
+	text1->font = "fonts/futur.ttf";
 	
+	auto eText2 = new Entity();
+	eText2->position = glm::vec3(0, -50.0f, 0);
+	eText2->addComponent<TextComponent>();
+	auto text2 = eText2->getComponent<TextComponent>();
+	text2->setText("By Team Undefined");
+	text2->color = glm::vec3(0.0f, 1.0f, 0.0f);
+	text2->scale = 0.5f;
+	text2->font = "fonts/Cool.ttf";
+	eText1->addChild(eText2);
+
+	auto eText3 = new Entity();
+	eText3->position = glm::vec3(0, 0, 0);
+	eText3->addComponent<TextComponent>();
+	auto text3 = eText3->getComponent<TextComponent>();
+	text3->setText("GAS, GAS, GAS! I'M GONNA STEP ON THE GAS, TONIGHT I'LL FLY! AND BE YOUR LOVER, YEAH YEAH YEAH! I'LL BE SO QUICK AS A FLASH, AND I'LL BE YOUR HERO! ");
+	text3->color = glm::vec3(0.0f, 0.0f, 1.0f);
+	text3->scale = 0.2f;
+
+	// ===== UI ===== 
+	auto eImage1 = new Entity();
+	eImage1->scale = glm::vec3(0.1f, 0.1f, 0.1f);
+	eImage1->position = glm::vec3(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 0);
+	eImage1->addComponent<ImageComponent>();
+	auto image1 = eImage1->getComponent<ImageComponent>();
+	image1->loadImage("textures/racecar.png");
+	image1->layer = 0;
+	
+	auto eImage2 = new Entity();
+	eImage2->scale = glm::vec3(2.0f, 2.0f, 2.0f);	// or set the image width / height
+	eImage2->position = glm::vec3(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 5, 0);
+	eImage2->addComponent<ImageComponent>();
+	auto image2 = eImage2->getComponent<ImageComponent>();
+	image2->loadImage("textures/pinacle.png");
+	image2->layer = 1;
+
+	// speedometer img 
+	auto eSpeedometerNeedle = new Entity();
+	eSpeedometerNeedle->addComponent<ImageComponent>();
+	eSpeedometerNeedle->getComponent<ImageComponent>()->loadImage("textures/needle.png");
+	eSpeedometerNeedle->getComponent<ImageComponent>()->tint = glm::vec3(1, 0, 0);
+	auto eSpeedometerBg = new Entity();
+	eSpeedometerBg->addChild(eSpeedometerNeedle);
+	eSpeedometerBg->scale = glm::vec3(0.25f, 0.25f, 0.25f);
+	eSpeedometerBg->addComponent<ImageComponent>();
+	eSpeedometerBg->getComponent<ImageComponent>()->loadImage("textures/speedometer.png");
+	// speedometer text 
+	auto eSpeedText = new Entity();
+	eSpeedText->position = glm::vec3(0, -10, 0);
+	eSpeedText->addComponent<TextComponent>();
+	auto speedTextComponent = eSpeedText->getComponent<TextComponent>();
+	speedTextComponent->color = glm::vec3(1, 1, 1);
+	speedTextComponent->font = "fonts/futur.ttf";
+	speedTextComponent->scale = 0.5;
+	speedTextComponent->alignment = TextAlignment::Center;
+	auto eSpeedBg = new Entity();
+	eSpeedBg->scale = glm::vec3(0.8, 0.8, 1.0);
+	eSpeedBg->position = glm::vec3(0, -40, 0);
+	eSpeedBg->addChild(eSpeedText);
+	eSpeedBg->addComponent<ImageComponent>();
+	auto speedBgImg = eSpeedBg->getComponent<ImageComponent>();
+	speedBgImg->loadImage("textures/UI/grey_button01.png");
+	speedBgImg->tint = glm::vec3(0.1, 0.1, 0.1);
+	speedBgImg->opacity = 0.7f;
+	// speedometer parent entity 
+	auto eSpeed = new Entity();
+	eSpeed->position = glm::vec3(125, 100, 0);
+	eSpeed->addChild(eSpeedometerBg);
+	eSpeed->addChild(eSpeedBg);
+	eSpeed->addComponent<SpeedDisplayComponent>();
+	auto speedComponent = eSpeed->getComponent<SpeedDisplayComponent>();
+	speedComponent->initialize(pc6, speedTextComponent, eSpeedometerNeedle);
+
+	auto eTime = new Entity();
+	eTime->addComponent<TextComponent>();
+	eTime->addComponent<TimeDisplayComponent>();
+	eTime->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100, 0);
+	auto timeTextComponent = eTime->getComponent<TextComponent>();
+	timeTextComponent->color = glm::vec3(1, 1, 1);
+	timeTextComponent->font = "fonts/futur.ttf";
+	timeTextComponent->alignment = TextAlignment::Center;
+
+	// ===== START GAME ======
+	Game::instance().addEntity(eLight);
+	Game::instance().addEntity(eLight2);
+	Game::instance().addEntity(e1);
+	Game::instance().addEntity(e2);
+	Game::instance().addEntity(e3);
+	Game::instance().addEntity(e4);
+	Game::instance().addEntity(playerEntity);
+	// Game::instance().addEntity(eText1);
+	// Game::instance().addEntity(eText3);
+	// Game::instance().addEntity(eImage1);
+	// Game::instance().addEntity(eImage2);
+	Game::instance().addEntity(eSpeed);
+	Game::instance().addEntity(eTime);
+
+	Game::instance().loop();
+
 	return 0;
 }

@@ -77,7 +77,8 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragPath)
 	if (!success)
 	{
 		glGetShaderInfoLog(programId, 512, NULL, infoLog);
-		std::cout << "ERROR: Shader program failed to link.\n" << infoLog << std::endl;
+		printf(infoLog);
+		std::cout << "ERROR: Shader program failed to link for " << fragPath << " & " << vertexPath << ".\n" << infoLog << std::endl;
 	}
 
 	// 4. delete shaders as they're linked in the program already (wow TIL) 

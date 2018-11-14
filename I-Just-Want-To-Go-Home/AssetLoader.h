@@ -24,7 +24,7 @@ public:
 	AssetLoader() {};
 	~AssetLoader() {};
 	
-	Entity* LoadModel(const std::string& path)
+	std::unique_ptr<Entity> LoadModel(const std::string& path)
 	{
 		// read file via assimp 
 		Assimp::Importer importer; 
@@ -43,8 +43,10 @@ public:
 		this->directory = directory;
 
 		// process root node recursively (gather all children)
-		Entity* rootEntity = new Entity();
-		ProcessNode(rootEntity, scene->mRootNode, scene);
+		// TODO: FIX EVERYTHING
+		auto rootEntity = std::make_unique<Entity>();
+		// Entity* rootEntity = new Entity();
+		ProcessNode(rootEntity.get(), scene->mRootNode, scene);
 
 		// cleanup and return 
 		this->directory = "";
@@ -153,6 +155,29 @@ private:
 		// specular: texture_specularN
 		// normal: texture_normalN
 
+		// create a renderable & material to house data in
+		std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
+		renderable->mesh = std::make_shared<Mesh>(vertices, indices);
+		renderable->material = std::make_shared<Material>();
+
+		aiColor4D aiColor;
+		// diffuse color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &aiColor))
+			renderable->material->SetVec3(SHADER_DIFFUSE.c_str(), aiColor4DToVec3(aiColor));
+		// specular color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &aiColor))
+			renderable->material->SetVec3(SHADER_SPECULAR.c_str(), aiColor4DToVec3(aiColor));
+		// ambient color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &aiColor))
+			renderable->material->SetVec3(SHADER_AMBIENT.c_str(), aiColor4DToVec3(aiColor));
+		// emissive color 
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &aiColor))
+			renderable->material->SetVec3(SHADER_EMISSIVE.c_str(), aiColor4DToVec3(aiColor));
+		// shininess strength 
+		float shininess;
+		if (AI_SUCCESS == aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess))
+			renderable->material->SetFloat(SHADER_SHININESS.c_str(), shininess);
+
 		// 1. diffuse maps
 		std::vector<TextureInfo> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, SHADER_TEX_DIFFUSE);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
@@ -165,12 +190,10 @@ private:
 		// 4. height maps
 		std::vector<TextureInfo> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, SHADER_TEX_HEIGHT);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-		// return a mesh object created from the extracted mesh data
-		std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
-		renderable->mesh = std::make_shared<Mesh>(vertices, indices);
-		renderable->material = std::make_shared<Material>();
+		// add texture to material 
 		renderable->material->AddTextures(textures);
+		
+		// return a mesh object created from the extracted mesh data
 		return renderable;
 	}
 
@@ -214,16 +237,37 @@ private:
 
 	
 public:
-	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false)
+	// load a texture.
+	unsigned int LoadTexture(const std::string& path, int* width, int* height)
+	{
+		// check for a preloaded texture 
+		for (unsigned int j = 0; j < textures_loaded.size(); j++)
+		{
+			if (std::strcmp(textures_loaded[j].path.data(), path.c_str()) == 0)
+			{
+				auto& t = textures_loaded[j];
+				*width = t.width;
+				*height = t.height;
+				return t.id;
+			}
+		}
+
+		// else load 
+		return TextureFromFile(path.c_str(), "", false, width, height);
+	}
+
+	// load a texture into opengl, regardless if it's been loaded already. 
+	unsigned int TextureFromFile(const char* path, const std::string& directory, 
+		bool gamma = false, int* wOut = nullptr, int* hOut = nullptr)
 	{
 		std::cout << "Loading texture name: " << path << std::endl;
 
-		std::string filename = directory + '/' + std::string(path);
+		std::string filename = (directory.empty()) ? std::string(path) : directory + '/' + std::string(path);
 
 		// read image file 
 		int width, height, nrComponents;
 		unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-		// stbi_set_flip_vertically_on_load(true);
+		stbi_set_flip_vertically_on_load(true);
 		
 		if (data == NULL)
 		{
@@ -257,7 +301,9 @@ public:
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		stbi_image_free(data);
-		
+
+		if (wOut != nullptr) *wOut = width;
+		if (hOut != nullptr) *hOut = height;
 		return textureID;
 	}
 
@@ -270,6 +316,16 @@ public:
 		to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
 		to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
 		return to;
+	}
+
+	glm::vec3 aiColor4DToVec3(const aiColor4D &from)
+	{
+		return glm::vec3(from.r, from.g, from.b);
+	}
+	
+	glm::vec3 aiVec3ToVec3(const aiVector3D &from)
+	{
+		return glm::vec3(from.x, from.y, from.x);
 	}
 };
 
