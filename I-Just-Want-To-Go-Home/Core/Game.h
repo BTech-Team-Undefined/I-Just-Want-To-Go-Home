@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <set>
 #include <memory>
+#include <chrono>
 #include <SDL2\SDL.h>
 #include "../AssetLoader.h"
 #include "..\EntitySystems\System.h"
@@ -60,6 +61,7 @@ private:
 	std::vector<EntityAction> _additionList;
 	std::set<int> _additionVerification;	// used to ensure an entity isn't added twice
 	std::vector<std::unique_ptr<System>> _systems;
+	const std::chrono::nanoseconds _frameTime = std::chrono::milliseconds( (long)(16.6666666666666666666) );
 	bool _initialized = false;
 	bool _running = false;
 

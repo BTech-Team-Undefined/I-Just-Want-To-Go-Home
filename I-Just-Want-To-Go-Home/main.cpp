@@ -37,6 +37,7 @@
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
+#include "Physics\Trigger.h"
 
 #include "Core\Game.h"
 
@@ -71,8 +72,9 @@ int main(int argc, char* args[])
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
+	
 	// physics 
-	auto e6Collider = std::make_shared<Collider2D>("e1Box");
+	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
 	vector<Point> e6ColliderBox;
 	e6ColliderBox.push_back(Point(-1, -1)); // top left
 	e6ColliderBox.push_back(Point(1, -1)); // top right
@@ -138,7 +140,7 @@ int main(int argc, char* args[])
 	e1->position = glm::vec3(-2, 0, -2);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
-	auto e1Collider = std::make_shared<Collider2D>("e1Box");
+	auto e1Collider = std::make_shared<Trigger>([] {std::cout << "this is a test" << endl; });
 	vector<Point> e1ColliderBox;
 	e1ColliderBox.push_back(Point(-1, -1)); // top left
 	e1ColliderBox.push_back(Point(1, -1)); // top right

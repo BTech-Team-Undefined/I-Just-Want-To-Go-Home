@@ -54,9 +54,9 @@ public:
 			}
 		};
 
-		_actions[SDL_EventType::SDL_MOUSEMOTION] = [](SDL_Event e)
+		_actions[SDL_EventType::SDL_MOUSEMOTION] = [this](SDL_Event e)
 		{
-			
+			rot = static_cast<float>(e.motion.xrel);
 		};
 		
 	}
@@ -83,5 +83,6 @@ private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
 	float xvel;
 	float yvel;
+	float rot;
 
 };

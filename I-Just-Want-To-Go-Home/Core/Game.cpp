@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "../Physics/PhysicsSystem.h"
 #include <SDL2\SDL.h>
-#include <chrono>
 
 Game::~Game()
 {
@@ -94,31 +93,37 @@ void Game::loop()
 {
 	_running = true;
 
+	// ===== PERFORMANCE MEASUREMENTS =====
+		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
+	std::chrono::nanoseconds timeSinceLastUpdate = std::chrono::nanoseconds(0);
+	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
+
 	while (_running)
 	{
-		// ===== PERFORMANCE MEASUREMENTS =====
-		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
-		std::chrono::high_resolution_clock::time_point startTime;
-		std::chrono::high_resolution_clock::time_point endTime;
-
-		startTime = std::chrono::high_resolution_clock::now();
+		previous = current;
+		current = std::chrono::high_resolution_clock::now();
 
 		// 1. entity addition & deletion 
 		resolveEntities(activeScene->rootEntity.get());
 		resolveCleanup();
 
-		// 2. entity update 
-		updateEntity(activeScene->rootEntity.get(), 0.016f);
-
-		// 3. system update 
-		for (int i = 0; i < _systems.size(); i++)
+		timeSinceLastUpdate += std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
+		while (timeSinceLastUpdate > _frameTime)
 		{
-			_systems[i]->update(0.016f);
-			_systems[i]->clearComponents();	// cleanup for next iteration
-		}
+			timeSinceLastUpdate -= _frameTime;
+			// 2. entity update 
+			std::chrono::duration<double> dt = (_frameTime);
+			updateEntity(activeScene->rootEntity.get(), dt.count());
 
-		endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+			// 3. system update 
+			for (int i = 0; i < _systems.size(); i++)
+			{
+				_systems[i]->update(dt.count());
+				_systems[i]->clearComponents();	// cleanup for next iteration
+			}
+		}
+		
 		// TODO: do stuff with execution duration (like adjust which system gets updates).
 		
 		SDL_GL_SwapWindow(_window);
