@@ -37,7 +37,8 @@
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
-
+#include "Rendering\UI\ImageComponent.h"
+#include "Rendering\UI\TextComponent.h"
 #include "Core\Game.h"
 
 
@@ -213,6 +214,50 @@ int main(int argc, char* args[])
 	eLight2->position = glm::vec3(-3, 3, -7);
 	eLight2->rotation = glm::vec3(glm::radians(-45.0f), glm::radians(160.0f), 0);
 
+	// ===== TEXT =====
+	auto eText1 = new Entity();
+	eText1->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT -50.0f, 0);
+	eText1->addComponent<TextComponent>();
+	auto text1 = eText1->getComponent<TextComponent>();
+	text1->setText("I JUST WANT TO GO HOME");
+	text1->color = glm::vec3(1.0f, 0.0f, 0.0f);
+	text1->font = "fonts/futur.ttf";
+	
+	auto eText2 = new Entity();
+	eText2->position = glm::vec3(0, -50.0f, 0);
+	eText2->addComponent<TextComponent>();
+	auto text2 = eText2->getComponent<TextComponent>();
+	text2->setText("By Team Undefined");
+	text2->color = glm::vec3(0.0f, 1.0f, 0.0f);
+	text2->scale = 0.5f;
+	text2->font = "fonts/Cool.ttf";
+	eText1->addChild(eText2);
+
+	auto eText3 = new Entity();
+	eText3->position = glm::vec3(0, 0, 0);
+	eText3->addComponent<TextComponent>();
+	auto text3 = eText3->getComponent<TextComponent>();
+	text3->setText("GAS, GAS, GAS! I'M GONNA STEP ON THE GAS, TONIGHT I'LL FLY! AND BE YOUR LOVER, YEAH YEAH YEAH! I'LL BE SO QUICK AS A FLASH, AND I'LL BE YOUR HERO! ");
+	text3->color = glm::vec3(0.0f, 0.0f, 1.0f);
+	text3->scale = 0.2f;
+
+	// ===== UI ===== 
+	auto eImage1 = new Entity();
+	eImage1->scale = glm::vec3(0.1f, 0.1f, 0.1f);
+	eImage1->position = glm::vec3(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 0);
+	eImage1->addComponent<ImageComponent>();
+	auto image1 = eImage1->getComponent<ImageComponent>();
+	image1->loadImage("textures/racecar.png");
+	image1->layer = 0;
+	
+	auto eImage2 = new Entity();
+	eImage2->scale = glm::vec3(2.0f, 2.0f, 2.0f);	// or set the image width / height
+	eImage2->position = glm::vec3(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 5, 0);
+	eImage2->addComponent<ImageComponent>();
+	auto image2 = eImage2->getComponent<ImageComponent>();
+	image2->loadImage("textures/pinacle.png");
+	image2->layer = 1;
+
 	// ===== START GAME ======
 	Game::instance().addEntity(eLight);
 	Game::instance().addEntity(eLight2);
@@ -221,6 +266,10 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(e3);
 	Game::instance().addEntity(e4);
 	Game::instance().addEntity(playerEntity);
+	Game::instance().addEntity(eText1);
+	Game::instance().addEntity(eText3);
+	Game::instance().addEntity(eImage1);
+	Game::instance().addEntity(eImage2);
 
 	Game::instance().loop();
 

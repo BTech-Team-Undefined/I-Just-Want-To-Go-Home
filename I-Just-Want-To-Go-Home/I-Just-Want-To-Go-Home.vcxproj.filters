@@ -32,6 +32,9 @@
     <ClCompile Include="Physics\PhysicsSystem.cpp" />
     <ClCompile Include="Physics\PhysicsVector.cpp" />
     <ClCompile Include="Physics\Point.cpp" />
+    <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
+    <ClCompile Include="Rendering\UI\TextComponent.cpp" />
+    <ClCompile Include="Rendering\UI\View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -69,6 +72,9 @@
     <ClInclude Include="Physics\PhysicsVector.h" />
     <ClInclude Include="Physics\Point.h" />
     <ClInclude Include="DebugInputComponent.h" />
+    <ClInclude Include="Rendering\UI\ImageComponent.h" />
+    <ClInclude Include="Rendering\UI\TextComponent.h" />
+    <ClInclude Include="Rendering\UI\View.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -107,7 +107,9 @@
 xcopy "$(ProjectDir)glew32.dll" "$(TargetDir)"
 xcopy "$(ProjectDir)Textures" "$(TargetDir)Textures" /s /i /e /y
 xcopy "$(ProjectDir)Models" "$(TargetDir)Models" /s /i /e /y
-xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
+xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y
+xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -147,6 +149,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Physics\Collider2D.cpp" />
     <ClCompile Include="Physics\PhysicsComponent.cpp" />
     <ClCompile Include="Physics\PhysicsSystem.cpp" />
@@ -170,6 +173,8 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
+    <ClCompile Include="Rendering\UI\TextComponent.cpp" />
+    <ClCompile Include="Rendering\UI\View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -184,6 +189,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Rendering\UI\ImageComponent.h" />
     <ClInclude Include="Physics\Collider2D.h" />
     <ClInclude Include="Physics\PhysicsComponent.h" />
     <ClInclude Include="Physics\PhysicsSystem.h" />
@@ -204,6 +210,8 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <ClInclude Include="Rendering\Mesh.h" />
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Shader.h" />
+    <ClInclude Include="Rendering\UI\TextComponent.h" />
+    <ClInclude Include="Rendering\UI\View.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EntitySystems\Component.h" />
@@ -223,6 +231,8 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <Import Project="..\packages\glm.0.9.9\build\native\glm.targets" Condition="Exists('..\packages\glm.0.9.9\build\native\glm.targets')" />
     <Import Project="..\packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets" Condition="Exists('..\packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets')" />
     <Import Project="..\packages\Assimp.3.0.0\build\native\Assimp.targets" Condition="Exists('..\packages\Assimp.3.0.0\build\native\Assimp.targets')" />
+    <Import Project="..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets" Condition="Exists('..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets')" />
+    <Import Project="..\packages\freetype.2.8.0.1\build\native\freetype.targets" Condition="Exists('..\packages\freetype.2.8.0.1\build\native\freetype.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -231,5 +241,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y</Command>
     <Error Condition="!Exists('..\packages\glm.0.9.9\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\glm.0.9.9\build\native\glm.targets'))" />
     <Error Condition="!Exists('..\packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets'))" />
     <Error Condition="!Exists('..\packages\Assimp.3.0.0\build\native\Assimp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Assimp.3.0.0\build\native\Assimp.targets'))" />
+    <Error Condition="!Exists('..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\freetype.2.8.0.1\build\native\freetype.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\freetype.2.8.0.1\build\native\freetype.targets'))" />
   </Target>
 </Project>
