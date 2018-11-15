@@ -108,26 +108,29 @@ public:
 #pragma region Logging functions 
 
 	// should formatted string be logged in a file
-	void LogOutput(const std::string filename)
+	CpuProfiler& LogOutput(const std::string filename)
 	{
 		file.open("logs/" + filename, std::ofstream::out | std::ofstream::trunc);
 		loggingOutput = true;
 		createOutput = true;
+		return *this;
 	}
 
 	// should formatted string be printed on console
-	void PrintOutput(bool singleLine)
+	CpuProfiler& PrintOutput(bool singleLine)
 	{
 		std::cout << std::setw(2) << std::setfill('0');
 		printingOutput = true;
 		printingOutputFlushed = singleLine;
 		createOutput = true;
+		return *this;
 	}
 
 	// should formatted string show duration in milliseconds or nanoseconds?
-	void FormatMilliseconds(bool torf)
+	CpuProfiler& FormatMilliseconds(bool torf)
 	{
 		outputMilliseconds = torf;
+		return *this;
 	}
 
 	// get formatted string
