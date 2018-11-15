@@ -35,6 +35,10 @@
 /packages
 [Ll]ogs/
 
+# Profiling
+*.psess
+*.vsp
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
