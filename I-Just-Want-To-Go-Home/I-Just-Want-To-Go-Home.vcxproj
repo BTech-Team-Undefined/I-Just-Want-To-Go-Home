@@ -143,6 +143,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="Core\Game.cpp" />
+    <ClCompile Include="Core\CpuProfiler.cpp" />
     <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
@@ -190,6 +191,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Core\CpuProfiler.h" />
     <ClInclude Include="DebugInputComponent.h" />
     <ClInclude Include="EntitySystems\DestructionComponent.h" />
     <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />

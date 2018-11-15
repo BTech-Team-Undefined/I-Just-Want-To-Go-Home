@@ -41,6 +41,7 @@
     <ClCompile Include="libs\json\json_value.cpp" />
     <ClCompile Include="libs\json\json_writer.cpp" />
     <ClCompile Include="Game\StickyTransformComponent.cpp" />
+    <ClCompile Include="Core\CpuProfiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="libs\json\writer.h" />
     <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
+    <ClInclude Include="Core\CpuProfiler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

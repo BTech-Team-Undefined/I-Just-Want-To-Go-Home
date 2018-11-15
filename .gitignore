@@ -33,6 +33,7 @@
 # Additional
 .vs
 /packages
+[Ll]ogs/
 
 # Build results
 [Dd]ebug/
