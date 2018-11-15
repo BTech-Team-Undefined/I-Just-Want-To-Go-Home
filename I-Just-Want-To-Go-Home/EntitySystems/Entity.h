@@ -44,6 +44,8 @@ private:
 	glm::vec3 _worldRotation;
 	glm::vec3 _worldScale;
 
+	glm::mat4 _worldTransformation;
+
 	// may want to store world position,scale,rotation for optimization
 
 // Functions 
@@ -160,6 +162,12 @@ public:
 	// Sets local scale via a world scale.
 	// TODO: implement
 	void setWorldScale(glm::vec3 scale);
+
+	// precompute the world transformation matrix given a parent transformation. 
+	void configureTransform(glm::mat4 parent);
+
+	// precompute the world transformation matrix by automatically retrieving it's parent.
+	void configureTransform();
 
 	// Inform this entity to destroy itself. 
 	void destroy();

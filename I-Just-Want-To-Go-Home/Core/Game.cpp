@@ -182,7 +182,7 @@ void Game::updateEntity(Entity * entity, float dt)
 	}
 }
 
-void Game::resolveEntities(Entity * entity, bool collectComponents)
+void Game::resolveEntities(Entity * entity, bool parentEnabled)
 {
 	int id = entity->getID();
 
@@ -209,9 +209,11 @@ void Game::resolveEntities(Entity * entity, bool collectComponents)
 		std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
 		_additionList.end());	
 
-	// for all components notify systems 
-	if (collectComponents)
+	if (parentEnabled)
 	{
+		// precalculate world transformation matrix 
+		entity->configureTransform();
+		// for all components notify systems 
 		auto components = entity->getComponents();
 		for (int i = 0; i < components.size(); i++)
 		{
@@ -230,7 +232,7 @@ void Game::resolveEntities(Entity * entity, bool collectComponents)
 	auto children = entity->getChildren();
 	for (int i = 0; i < children.size(); i++)
 	{
-		resolveEntities(children[i], collectComponents && entity->getEnabled());
+		resolveEntities(children[i], parentEnabled && entity->getEnabled());
 	}
 }
 

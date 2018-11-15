@@ -96,11 +96,7 @@ glm::mat4 Entity::getLocalTransformation()
 
 glm::mat4 Entity::getWorldTransformation()
 {
-	glm::mat4 transform = getLocalTransformation();
-	if (getParent() == nullptr)
-		return transform;
-	else
-		return getParent()->getWorldTransformation() * transform;
+	return _worldTransformation;
 }
 
 glm::vec3 Entity::getWorldPosition()
@@ -152,6 +148,17 @@ void Entity::setLocalTransform(glm::mat4 matrix)
 std::vector<Entity*> const& Entity::getChildren() const
 {
 	return _children;
+}
+
+void Entity::configureTransform(glm::mat4 parent)
+{
+	_worldTransformation = parent * getLocalTransformation();
+}
+
+void Entity::configureTransform()
+{
+	glm::mat4 transform = getLocalTransformation();
+	_worldTransformation = (getParent() == nullptr) ? transform : getParent()->getWorldTransformation() * transform;
 }
 
 void Entity::destroy()
