@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "../Physics/PhysicsSystem.h"
 #include <SDL2\SDL.h>
+#include <SDL2\SDL_mixer.h>
 #include <chrono>
 
 Game::~Game()
@@ -11,7 +12,20 @@ Game::~Game()
 
 void Game::initialize()
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	// measure performance 
+	//	0: general use 
+	//	1: entity resolve 
+	//	2: fixed update cycle
+	//	3: frame update cycle
+	//	4: SDL initialization 
+	_profiler.InitializeTimers(5);
+	_profiler.LogOutput("Engine.log");	// optional
+	_profiler.PrintOutput(true);		// optional
+	_profiler.FormatMilliseconds(true);	// optional
+
+	_profiler.StartTimer(4);
+
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
 	{
 		std::cerr << "ERROR: SDL could not initialize. SDL_Error:  " << SDL_GetError() << std::endl;
 		return;
@@ -50,10 +64,20 @@ void Game::initialize()
 	std::cout << "Vendor:\t" << glGetString(GL_VENDOR) << std::endl
 		<< "Renderer:\t" << glGetString(GL_RENDERER) << std::endl
 		<< "Version:\t" << glGetString(GL_VERSION) << std::endl;
+	//cout << "SOUND:"<<SDL_GetCurrentAudioDriver()<<endl;
 
 	// configure opengl 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	 //initialize SDL sound mixer context
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+		printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+		return;
+	}
+
+	_profiler.StopTimer(4);
+	std::cout << "Engine initialization finished: " << _profiler.GetDuration(4) << "ns" << std::endl;
 }
 
 void Game::setActiveScene(Scene* scene)
@@ -72,7 +96,10 @@ void Game::setActiveScene(Scene* scene)
 
 void Game::addSystem(std::unique_ptr<System> system)
 {
-	_systems.push_back(std::move(system));
+	if (system->onlyReceiveFrameUpdates)
+		_frameSystems.push_back(std::move(system));
+	else
+		_systems.push_back(std::move(system));
 }
 
 void Game::addEntity(Entity* entity)
@@ -94,33 +121,58 @@ void Game::loop()
 {
 	_running = true;
 
+	// ===== PERFORMANCE MEASUREMENTS =====
+		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
+	std::chrono::nanoseconds timeSinceLastUpdate = std::chrono::nanoseconds(0);
+	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
+
+	int frame = 0;
+
 	while (_running)
 	{
-		// ===== PERFORMANCE MEASUREMENTS =====
-		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
-		std::chrono::high_resolution_clock::time_point startTime;
-		std::chrono::high_resolution_clock::time_point endTime;
+		frame++;
+		previous = current;
+		current = std::chrono::high_resolution_clock::now();
 
-		startTime = std::chrono::high_resolution_clock::now();
-
-		// 1. entity addition & deletion 
-		resolveEntities(activeScene->rootEntity.get());
+		// 1. entity addition & deletion, and system component notification 
+		_profiler.StartTimer(1);
+		resolveEntities(activeScene->rootEntity.get(), true);
 		resolveCleanup();
+		_profiler.StopTimer(1);
 
-		// 2. entity update 
-		updateEntity(activeScene->rootEntity.get(), 0.016f);
 
-		// 3. system update 
-		for (int i = 0; i < _systems.size(); i++)
+		_profiler.StartTimer(2);
+		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
+		timeSinceLastUpdate += frameDelta;
+		while (timeSinceLastUpdate > _frameTime)
 		{
-			_systems[i]->update(0.016f);
-			_systems[i]->clearComponents();	// cleanup for next iteration
-		}
+			// std::cout << "updated on frame: " << frame << std::endl;
+			timeSinceLastUpdate -= _frameTime;
+			// 2. entity update 
+			std::chrono::duration<double> dt = (_frameTime);
+			updateEntity(activeScene->rootEntity.get(), dt.count());
 
-		endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-		// TODO: do stuff with execution duration (like adjust which system gets updates).
-		
+			// 3. fixed system update 
+			for (int i = 0; i < _systems.size(); i++)
+			{
+				_systems[i]->update(dt.count());
+				_systems[i]->clearComponents();	// cleanup for next iteration
+			}
+		}
+		_profiler.StopTimer(2);
+
+		// 3. frame system update 
+		_profiler.StartTimer(3);
+		for (int i = 0; i < _frameSystems.size(); i++)
+		{
+			_frameSystems[i]->update(frameDelta.count() / 1000000);
+			_frameSystems[i]->clearComponents();	// cleanup for next iteration
+		}
+		_profiler.StopTimer(3);
+
+		_profiler.FrameFinish();
+
 		SDL_GL_SwapWindow(_window);
 	}
 }
@@ -152,15 +204,10 @@ void Game::updateEntity(Entity * entity, float dt)
 		// ... update it ...
 		auto type = std::type_index(typeid(*components[i]));
 		components[i]->update(dt);
-		// ... and notify systems
-		for (int j = 0; j < _systems.size(); j++)
-		{
-			_systems[j]->addComponent(type, components[i]);
-		}
 	}
 }
 
-void Game::resolveEntities(Entity * entity)
+void Game::resolveEntities(Entity * entity, bool parentEnabled)
 {
 	int id = entity->getID();
 
@@ -187,11 +234,31 @@ void Game::resolveEntities(Entity * entity)
 		std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
 		_additionList.end());	
 
+	if (parentEnabled)
+	{
+		// precalculate world transformation matrix 
+		if (entity->getEnabled() && !entity->getStatic())
+			entity->configureTransform();
+		// for all components notify systems 
+		auto components = entity->getComponents();
+		for (int i = 0; i < components.size(); i++)
+		{
+			// ... ensure it is enabled ...
+			if (!components[i]->getEnabled()) continue;
+			// ... and notify systems
+			auto type = std::type_index(typeid(*components[i]));
+			for (int j = 0; j < _systems.size(); j++)
+				_systems[j]->addComponent(type, components[i]);
+			for (int j = 0; j < _frameSystems.size(); j++)
+				_frameSystems[j]->addComponent(type, components[i]);
+		}
+	}
+
 	// go thru remaining children 
 	auto children = entity->getChildren();
 	for (int i = 0; i < children.size(); i++)
 	{
-		resolveEntities(children[i]);
+		resolveEntities(children[i], parentEnabled && entity->getEnabled());
 	}
 }
 

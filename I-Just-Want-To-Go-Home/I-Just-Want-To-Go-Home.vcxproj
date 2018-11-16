@@ -87,8 +87,9 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -100,7 +101,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)SDL2.dll" "$(TargetDir)"
@@ -143,6 +145,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="Core\Game.cpp" />
+    <ClCompile Include="Core\CpuProfiler.cpp" />
     <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
@@ -152,6 +155,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="libs\json\json_reader.cpp" />
     <ClCompile Include="libs\json\json_value.cpp" />
     <ClCompile Include="libs\json\json_writer.cpp" />
+    <ClCompile Include="Game\StickyTransformComponent.cpp" />
     <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Physics\Collider2D.cpp" />
     <ClCompile Include="Physics\PhysicsComponent.cpp" />
@@ -189,12 +193,14 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Core\CpuProfiler.h" />
     <ClInclude Include="DebugInputComponent.h" />
     <ClInclude Include="EntitySystems\DestructionComponent.h" />
     <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Game\StickyTransformComponent.h" />
     <ClInclude Include="libs\json\allocator.h" />
     <ClInclude Include="libs\json\assertions.h" />
     <ClInclude Include="libs\json\autolink.h" />
@@ -213,6 +219,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="Physics\PhysicsSystem.h" />
     <ClInclude Include="Physics\PhysicsVector.h" />
     <ClInclude Include="Physics\Point.h" />
+    <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />
     <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />

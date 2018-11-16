@@ -4,6 +4,7 @@
 #include <ft2build.h>
 #include <freetype\freetype.h>
 #include "OpenGLProfiler.h"
+#include "../Core/CpuProfiler.h"
 #include "Renderable.h"
 #include "RenderComponent.h"
 #include "../Camera.h"
@@ -48,6 +49,7 @@ public:
 
 private:
 	OpenGLProfiler profiler;
+	CpuProfiler cpuProfiler;
 	unsigned int quadVAO;
 	unsigned int FBO, posTex, nrmTex, colTex, dphTex;
 	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
