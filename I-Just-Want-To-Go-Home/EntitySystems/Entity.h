@@ -31,6 +31,7 @@ private:
 	static unsigned int _curID;
 	unsigned int _id = 0;
 	bool _enabled = true;
+	bool _static = false;
 
 	ComponentMap _components;
 	std::vector<Entity*> _children;
@@ -168,6 +169,14 @@ public:
 
 	// precompute the world transformation matrix by automatically retrieving it's parent.
 	void configureTransform();
+
+	// gets the entity's static status. 
+	bool getStatic() const;
+
+	// Sets the static flag on this entity. Setting this to true will completely freeze all transforms 
+	// on this entity and it's children. Moving the parent (even if not static) will not move this entity.
+	// ONLY call when you're done configuring it.
+	void setStatic(bool torf);
 
 	// Inform this entity to destroy itself. 
 	void destroy();

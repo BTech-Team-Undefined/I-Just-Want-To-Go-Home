@@ -237,7 +237,8 @@ void Game::resolveEntities(Entity * entity, bool parentEnabled)
 	if (parentEnabled)
 	{
 		// precalculate world transformation matrix 
-		entity->configureTransform();
+		if (entity->getEnabled() && !entity->getStatic())
+			entity->configureTransform();
 		// for all components notify systems 
 		auto components = entity->getComponents();
 		for (int i = 0; i < components.size(); i++)

@@ -183,6 +183,28 @@ void Entity::configureTransform()
 	_worldTransformation = (getParent() == nullptr) ? transform : getParent()->getWorldTransformation() * transform;
 }
 
+bool Entity::getStatic() const
+{
+	return _static;
+}
+
+void Entity::setStatic(bool torf)
+{
+	if (torf)
+	{
+		configureTransform();		// save transformation 
+		_static = true;				// freeze data 
+		for (auto& e : _children)	// apply to all children 
+			e->setStatic(true);
+	}
+	else
+	{
+		_static = false;
+		for (auto& e : _children)
+			e->setStatic(false);
+	}
+}
+
 void Entity::destroy()
 {
 	Game::instance().deleteEntity(this);

@@ -197,6 +197,7 @@ int main(int argc, char* args[])
 		}
 		
 		trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);
+		trackEntities[currentIndex]->setStatic(true);
 		Game::instance().addEntity(trackEntities[currentIndex].get());
 	}
 	/*
@@ -379,6 +380,9 @@ int main(int argc, char* args[])
 	timeTextComponent->color = glm::vec3(1, 1, 1);
 	timeTextComponent->font = "fonts/futur.ttf";
 	timeTextComponent->alignment = TextAlignment::Center;
+
+	// ===== FREEZE OBJECTS ===== 
+	eTime->setStatic(true);
 
 	// ===== START GAME ======
 	// Game::instance().addEntity(eLight);
