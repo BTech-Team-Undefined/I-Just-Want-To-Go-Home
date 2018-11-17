@@ -31,6 +31,8 @@ RenderingSystem::RenderingSystem() : System()
 	textShader = new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
 	imageShader = new Shader("shaders/image_vertex.glsl", "shaders/image_fragment.glsl");
 	postShader = new Shader("shaders/post_vertex.glsl", "shaders/post_fragment.glsl");
+	postToScreenShader = new Shader("shaders/post2screen_vertex.glsl", "shaders/post2screen_fragment.glsl");
+	
 	// initialize frame buffers for geometry rendering pass 
 	// InitializeFrameBuffers(); waiting for screen size
 	
@@ -80,7 +82,7 @@ void RenderingSystem::RenderGeometryPass()
 	geometryShader->use();
 	// bind geometry frame buffers 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	glDrawBuffers(3, attachments);
+	glDrawBuffers(4, attachments);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// begin rendering each renderable 
@@ -117,7 +119,7 @@ void RenderingSystem::RenderGeometryPass()
 			*/
 		}
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	profiler.StopTimer(0);
 	cpuProfiler.StopTimer(0);
@@ -163,6 +165,8 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StartTimer(2);
 	cpuProfiler.StartTimer(2);
 
+	glDrawBuffers(1, ppAttachment);
+
 	compositionShader->use();
 	compositionShader->setInt("u_PosTex", 0);	// set order 
 	compositionShader->setInt("u_NrmTex", 1);
@@ -203,6 +207,51 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(2);
 	cpuProfiler.StopTimer(2);
+
+	// 3.5 pass - post processing tentative 
+	for (auto& pp : _postProcesses)
+	{
+		// we keep on swapping the finished read/write texture so PP can read/write to current image 
+		std::swap(finWriteTex, finReadTex);			// allow pp to read from current rendered image 
+		std::swap(ppAttachment, ppBackAttachment);	// allow pp to write to finished image 
+		glDrawBuffers(1, ppAttachment);				// render to this 
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, posTex);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, nrmTex);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, colTex);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, dphTex);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, finReadTex);
+
+		// load post-process shader & settings 
+		pp->shader->use();
+		pp->settings->LoadMaterial(pp->shader, GL_TEXTURE5);
+
+		// render 
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
+	}
+
+	// render to back buffer
+	postToScreenShader->use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, finWriteTex);	// load in the last thing post process wrote in
+	// render
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+
+	// LOL. well i need to get the attachments back in normal order for the next frame... 
+	if (_postProcesses.size() % 2 != 0)
+	{
+		std::swap(ppAttachment, ppBackAttachment);
+		std::swap(finWriteTex, finReadTex);
+	}
 
 	// 4th pass - Postprocessing
 	profiler.StartTimer(3);
@@ -457,6 +506,20 @@ void RenderingSystem::InitializeFrameBuffers()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, colTex, 0);
+	// final (rendered image) writable texture
+	glGenTextures(1, &finWriteTex);
+	glBindTexture(GL_TEXTURE_2D, finWriteTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, finWriteTex, 0);
+	// final (rendered image) readable texture
+	glGenTextures(1, &finReadTex);
+	glBindTexture(GL_TEXTURE_2D, finReadTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, finReadTex, 0);
 	// depth texture (create as texture so we can read from it) 
 	glGenTextures(1, &dphTex);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
@@ -466,8 +529,8 @@ void RenderingSystem::InitializeFrameBuffers()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dphTex, 0);
 
 	// Create our render targets. Order in array determines order for shader layout = #. 
-	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, attachments);
+	// unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(5, attachments);	// defined in header file 
 
 	// check if FBO is ok 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

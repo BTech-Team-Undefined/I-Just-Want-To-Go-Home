@@ -3,8 +3,6 @@
 in vec2 f_Uv; 
 in vec4 f_LightPos;
 
-out vec4 o_Col;
-
 // Remember to set texture location via uniforms 
 uniform sampler2D u_PosTex; 
 uniform sampler2D u_NrmTex; 
@@ -18,6 +16,8 @@ uniform bool u_DisplayNrm;
 uniform bool u_DisplayCol; 
 uniform bool u_DisplayDph;
 uniform bool u_DisplayNoS;
+
+out layout(location = 0) vec4 o_Col;
 
 // Lighting 
 #define MAX_LIGHTS 32
@@ -119,56 +119,16 @@ void main()
     
     // todo: no lighting yet :@) 
 
-    if (u_DisplayPos)
-    {
-        float depths = LinearizeDepth(pos.z);
-        o_Col = vec4(vec3(depths), 1.0);
-        o_Col = vec4(pos, 1.0);
-    }
-    else if (u_DisplayNrm)
-    {
-        o_Col = vec4(nrm, 1.0);
-    }
-    else if (u_DisplayCol)
-    {
-        o_Col = col;
-    }
-    else if (u_DisplayDph)
-    {
-        o_Col = vec4(vec3(LinearizeDepth(depth) / far), 1.0);
-    }
-    else if (u_DisplayNoS)
-    {
-        // calculate ambient lighting 
-        vec4 ambient = col * u_AmbientIntensity;
-        vec3 surfToEye = normalize(u_ViewPosition - pos);
-        // calculate point lights 
-        for (int i = 0; i < MAX_LIGHTS; i++)
-        {
-            float lightDist = length(u_Lights[i].Position - pos);
-            vec3 surfToLight = normalize(u_Lights[i].Position - pos);
-
-            vec3 diffuse = max(dot(nrm, surfToLight), 0.0) * col.rgb * u_Lights[i].Color * 0.1;	// hardcoded 0.2 to reduce intensity
-            float attenuation = 1.0 / (lightDist * ATTENUATION);
-			attenuation *= attenuation;
-            diffuse *= attenuation;
-            ambient += vec4(diffuse, 1.0);
-        }
-        o_Col = ambient; 
-    }
-    else 
-    {
-        vec3 lightColor = vec3(1.0);
-        // ambient
-        vec3 ambient = (0.10 * col).rgb;
-        // diffuse 
-        // vec3 lightDir = normalize(u_LightPos - pos); 
-        float diff = 0.5; 
-        // max(dot(lightDir, nrm), 0.0);
-        vec3 diffuse = diff * lightColor;
-        // shadow 
-        float shadow = ShadowCalculation(u_LightSpaceMatrix * vec4(pos, 1.0));
-        vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * col.rgb;   // not sure what this last * col is for. 
-        o_Col = vec4(lighting, 1.0);
-    }
+    vec3 lightColor = vec3(1.0);
+    // ambient
+    vec3 ambient = (0.10 * col).rgb;
+    // diffuse 
+    // vec3 lightDir = normalize(u_LightPos - pos); 
+    float diff = 0.5; 
+    // max(dot(lightDir, nrm), 0.0);
+    vec3 diffuse = diff * lightColor;
+    // shadow 
+    float shadow = ShadowCalculation(u_LightSpaceMatrix * vec4(pos, 1.0));
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse)) * col.rgb;   // not sure what this last * col is for. 
+    o_Col = vec4(lighting, 1.0);
 }

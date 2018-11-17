@@ -14,6 +14,7 @@
 #include "UI\View.h"
 #include "UI\ImageComponent.h"
 #include "UI\TextComponent.h"
+#include "PostProcess\PostProcess.h"
 
 
 #define RENDERING_SYSTEM_DEFAULT_FONT "fonts/arial.ttf"
@@ -46,14 +47,20 @@ public:
 	Shader* textShader;			// default text shader 
 	Shader* imageShader;		// default UI shader 
 	Shader* postShader;			// default postprocessing shader 
+	Shader* postToScreenShader;	// default shader to move final texture to back buffer
 
 private:
 	OpenGLProfiler profiler;
 	CpuProfiler cpuProfiler;
 	unsigned int quadVAO;
-	unsigned int FBO, posTex, nrmTex, colTex, dphTex;
-	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	unsigned int FBO, posTex, nrmTex, colTex, dphTex, finWriteTex, finReadTex;
 	unsigned int screenWidth, screenHeight; 
+	unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+	unsigned int backAttachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT3 };
+
+	// oh my lord..... this is NOT right. 
+	unsigned int ppAttachment[1]	  = { GL_COLOR_ATTACHMENT3 };
+	unsigned int ppBackAttachment[1]  = { GL_COLOR_ATTACHMENT4 };
 
 	FT_Library ft;
 	unsigned int textVAO;	// quad to draw a single letter 
@@ -66,6 +73,8 @@ private:
 	std::vector<Camera*> _cameras;
 	std::vector<TextComponent*> _texts;
 	std::vector<ImageComponent*> _images; 
+
+	std::vector<PostProcess*> _postProcesses;
 
 public:
 	RenderingSystem();
