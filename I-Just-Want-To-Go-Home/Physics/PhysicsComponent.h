@@ -5,6 +5,9 @@
 #include "../EntitySystems/Component.h"
 #include "Collider2D.h"
 #include "PhysicsVector.h"
+#include <math.h>
+
+#define _USE_MATH_DEFINES
 using namespace std;
 
 class Collider2D;
@@ -25,6 +28,7 @@ public:
 	PhysicsVector velocity;
 	PhysicsVector force;
 	float angularForce;
+	float steering;
 	float angularVelocity;
 
 	bool directionalDrag;

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <string>
 #include "PhysicsSystem.h"
-
+#include <math.h> //added By Johnny Kang
 using namespace std;
 
 PhysicsSystem::PhysicsSystem() : System()
@@ -309,7 +309,7 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	const float gravity = 9.8; // Acceleration from gravity; for purpose of calculating friction
 	auto pc = e->getComponent<PhysicsComponent>();
 	float im = 1 / pc->mass;
-	
+	float length = 4; // length of the chasis. Added by Johnny Kang
 	PhysicsVector f = pc->force;
 	float af = pc->angularForce;
 	PhysicsVector v = pc->velocity;
@@ -349,7 +349,7 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	if (pc->velocity.y < 0.05 && pc->velocity.y > -0.05) {
 		pc->velocity.y = 0.0f;
 	}
-
+	
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;
 	pc->angularVelocity = av;
