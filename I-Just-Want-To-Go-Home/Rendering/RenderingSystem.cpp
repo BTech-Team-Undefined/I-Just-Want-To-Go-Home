@@ -9,6 +9,10 @@
 #include <ft2build.h>
 #include <freetype\freetype.h>
 #include "Constants.h"
+#include "PostProcess\PostProcess.h"
+#include "PostProcess\NegativePP.h"
+#include "PostProcess\BlurPP.h"
+#include "PostProcess\FxaaPP.h"
 
 RenderingSystem::RenderingSystem() : System()
 {
@@ -45,6 +49,23 @@ RenderingSystem::RenderingSystem() : System()
 	LoadFont("fonts/Cool.ttf");
 	LoadFont("fonts/Inconsolata-Regular.ttf");
 
+	//// TESTING post processing 
+	// negative colors 
+	_postProcesses.push_back(new NegativePP()); 
+	// _postProcesses.push_back(new NegativePP());	
+
+	// gaussian blur using a two pass (more efficient) 
+	auto b1 = new BlurPP();							// horizontal blur
+	auto b2 = new BlurPP();							// vertical blur 
+	b2->settings->SetBool("u_Horizontal", false);
+	//_postProcesses.push_back(b1);
+	//_postProcesses.push_back(b2);
+
+	// pseudo FXAA
+	auto fxaa = new FxaaPP();						
+	_postProcesses.push_back(fxaa);
+	//// END TESTING
+
 	cpuProfiler.StopTimer(7);
 }
 
@@ -79,10 +100,15 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StartTimer(0);
 	cpuProfiler.StartTimer(0);
 
+	// cleanup 
+	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, ppReadFBO);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	geometryShader->use();
 	// bind geometry frame buffers 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	glDrawBuffers(4, attachments);
+	glDrawBuffers(3, attachments);	// need to clear out ALL frame buffers (even though we only draw to 3 + depth at the moment).
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// begin rendering each renderable 
@@ -119,7 +145,7 @@ void RenderingSystem::RenderGeometryPass()
 			*/
 		}
 	}
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	profiler.StopTimer(0);
 	cpuProfiler.StopTimer(0);
@@ -165,7 +191,8 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StartTimer(2);
 	cpuProfiler.StartTimer(2);
 
-	glDrawBuffers(1, ppAttachment);
+	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+	glDrawBuffers(1, ppAttachments);
 
 	compositionShader->use();
 	compositionShader->setInt("u_PosTex", 0);	// set order 
@@ -209,12 +236,24 @@ void RenderingSystem::RenderGeometryPass()
 	cpuProfiler.StopTimer(2);
 
 	// 3.5 pass - post processing tentative 
+	profiler.StartTimer(3);
+	cpuProfiler.StartTimer(3);
+
 	for (auto& pp : _postProcesses)
 	{
 		// we keep on swapping the finished read/write texture so PP can read/write to current image 
-		std::swap(finWriteTex, finReadTex);			// allow pp to read from current rendered image 
-		std::swap(ppAttachment, ppBackAttachment);	// allow pp to write to finished image 
-		glDrawBuffers(1, ppAttachment);				// render to this 
+		std::swap(finWriteTex, finReadTex);				// allow pp to read from current rendered image 
+		std::swap(ppWriteFBO, ppReadFBO);				// allow pp to write to "current rendered" image (for next pp)
+		glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+		glDrawBuffers(1, ppAttachments);
+
+		pp->shader->use();
+		// set order 
+		pp->shader->setInt("u_PosTex", 0);	
+		pp->shader->setInt("u_NrmTex", 1);
+		pp->shader->setInt("u_ColTex", 2);
+		pp->shader->setInt("u_DphTex", 3);
+		pp->shader->setInt("u_FinTex", 4);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, posTex);
@@ -227,8 +266,7 @@ void RenderingSystem::RenderGeometryPass()
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, finReadTex);
 
-		// load post-process shader & settings 
-		pp->shader->use();
+		// load post-process settings 
 		pp->settings->LoadMaterial(pp->shader, GL_TEXTURE5);
 
 		// render 
@@ -237,22 +275,22 @@ void RenderingSystem::RenderGeometryPass()
 		glBindVertexArray(0);
 	}
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	// render to back buffer
 	postToScreenShader->use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, finWriteTex);	// load in the last thing post process wrote in
-	// render
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 
-	// LOL. well i need to get the attachments back in normal order for the next frame... 
-	if (_postProcesses.size() % 2 != 0)
-	{
-		std::swap(ppAttachment, ppBackAttachment);
-		std::swap(finWriteTex, finReadTex);
-	}
+	profiler.StopTimer(3);
+	cpuProfiler.StopTimer(3);
 
+	// TODO: change into PostProcess (requires extra info though)
+
+	/*
 	// 4th pass - Postprocessing
 	profiler.StartTimer(3);
 	cpuProfiler.StartTimer(3);
@@ -276,6 +314,7 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(3);
 	cpuProfiler.StopTimer(3);
+	*/
 
 	// 5th pass - UI images 
 	profiler.StartTimer(4);
@@ -479,7 +518,7 @@ void RenderingSystem::InitializeFrameBuffers()
 	// cleanup any previous FBO 
 	if (FBO != 0)
 	{
-		glDeleteFramebuffers(1, new unsigned int[1] { FBO });
+		glDeleteFramebuffers(3, new unsigned int[3] { FBO, ppWriteFBO, ppReadFBO });
 	}
 
 	// initialize frame buffer object 
@@ -506,20 +545,6 @@ void RenderingSystem::InitializeFrameBuffers()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, colTex, 0);
-	// final (rendered image) writable texture
-	glGenTextures(1, &finWriteTex);
-	glBindTexture(GL_TEXTURE_2D, finWriteTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, finWriteTex, 0);
-	// final (rendered image) readable texture
-	glGenTextures(1, &finReadTex);
-	glBindTexture(GL_TEXTURE_2D, finReadTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, finReadTex, 0);
 	// depth texture (create as texture so we can read from it) 
 	glGenTextures(1, &dphTex);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
@@ -527,15 +552,68 @@ void RenderingSystem::InitializeFrameBuffers()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dphTex, 0);
-
+	
 	// Create our render targets. Order in array determines order for shader layout = #. 
 	// unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(5, attachments);	// defined in header file 
+	glDrawBuffers(3, attachments);	// defined in header file 
 
 	// check if FBO is ok 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		std::cerr << "OPENGL: Failed to create FBO. GL ERROR: " << glGetError() << std::endl;
+	}
+
+	// initialize frame buffer object 
+	glGenFramebuffers(1, &ppWriteFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+	// final (rendered image) writeable texture
+	glGenTextures(1, &finWriteTex);
+	glBindTexture(GL_TEXTURE_2D, finWriteTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, finWriteTex, 0);
+	// create depth buffer 
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// create render target
+	glDrawBuffers(1, ppAttachments);
+	// check if FBO is ok 
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cerr << "OPENGL: Failed to create Post-Process write FBO. GL ERROR: " << glGetError() << std::endl;
+	}
+
+	// initialize frame buffer object 
+	glGenFramebuffers(1, &ppReadFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ppReadFBO);
+	// final (rendered image) readable texture
+	glGenTextures(1, &finReadTex);
+	glBindTexture(GL_TEXTURE_2D, finReadTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, finReadTex, 0);
+	// create depth buffer 
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// create render target
+	glDrawBuffers(1, ppAttachments);
+	// check if FBO is ok 
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cerr << "OPENGL: Failed to create Post-Process read FBO. GL ERROR: " << glGetError() << std::endl;
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

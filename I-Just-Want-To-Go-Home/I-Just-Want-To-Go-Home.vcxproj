@@ -109,7 +109,7 @@
 xcopy "$(ProjectDir)glew32.dll" "$(TargetDir)"
 xcopy "$(ProjectDir)Textures" "$(TargetDir)Textures" /s /i /e /y
 xcopy "$(ProjectDir)Models" "$(TargetDir)Models" /s /i /e /y
-xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y
+xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y /d
 xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
       </Command>
     </PostBuildEvent>
@@ -152,10 +152,14 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
     <ClCompile Include="libs\json\json_reader.cpp" />
     <ClCompile Include="libs\json\json_value.cpp" />
     <ClCompile Include="libs\json\json_writer.cpp" />
     <ClCompile Include="Game\StickyTransformComponent.cpp" />
+    <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
+    <ClCompile Include="Rendering\PostProcess\NegativePP.cpp" />
+    <ClCompile Include="Rendering\PostProcess\PostProcess.cpp" />
     <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Physics\Collider2D.cpp" />
     <ClCompile Include="Physics\PhysicsComponent.cpp" />
@@ -200,6 +204,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
     <ClInclude Include="libs\json\allocator.h" />
     <ClInclude Include="libs\json\assertions.h" />
@@ -213,6 +218,9 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="libs\json\value.h" />
     <ClInclude Include="libs\json\version.h" />
     <ClInclude Include="libs\json\writer.h" />
+    <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
+    <ClInclude Include="Rendering\PostProcess\NegativePP.h" />
+    <ClInclude Include="Rendering\PostProcess\PostProcess.h" />
     <ClInclude Include="Rendering\UI\ImageComponent.h" />
     <ClInclude Include="Physics\Collider2D.h" />
     <ClInclude Include="Physics\PhysicsComponent.h" />

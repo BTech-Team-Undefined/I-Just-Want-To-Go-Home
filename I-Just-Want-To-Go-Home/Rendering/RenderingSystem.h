@@ -54,13 +54,10 @@ private:
 	CpuProfiler cpuProfiler;
 	unsigned int quadVAO;
 	unsigned int FBO, posTex, nrmTex, colTex, dphTex, finWriteTex, finReadTex;
+	unsigned int ppWriteFBO, ppReadFBO;
 	unsigned int screenWidth, screenHeight; 
-	unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
-	unsigned int backAttachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT3 };
-
-	// oh my lord..... this is NOT right. 
-	unsigned int ppAttachment[1]	  = { GL_COLOR_ATTACHMENT3 };
-	unsigned int ppBackAttachment[1]  = { GL_COLOR_ATTACHMENT4 };
+	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	unsigned int ppAttachments[1] = { GL_COLOR_ATTACHMENT0 };
 
 	FT_Library ft;
 	unsigned int textVAO;	// quad to draw a single letter 
