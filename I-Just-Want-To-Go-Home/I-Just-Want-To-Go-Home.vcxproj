@@ -174,6 +174,8 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
+    <ClCompile Include="SoundComponent.cpp" />
+    <ClCompile Include="SoundSystem.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
     <ClCompile Include="Rendering\UI\TextComponent.cpp" />
     <ClCompile Include="Rendering\UI\View.cpp" />
@@ -231,6 +233,8 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   <ItemGroup>
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="Game\SpeedDisplayComponent.h" />
+    <ClInclude Include="SoundComponent.h" />
+    <ClInclude Include="SoundSystem.h" />
     <ClInclude Include="TestableClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

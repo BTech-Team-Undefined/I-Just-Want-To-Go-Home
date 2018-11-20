@@ -8,7 +8,7 @@
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
-#include <SDL2\SDL_mixer.h> // this is sound mixer
+//#include <SDL2\SDL_mixer.h> // this is sound mixer
 // OpenGL support 
 #include <gl\glad.h>
 #include <SDL2\SDL_opengl.h>
@@ -53,7 +53,7 @@ extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-Mix_Music *gMusic = NULL;
+
 
 int main(int argc, char* args[])
 {
@@ -78,15 +78,7 @@ int main(int argc, char* args[])
 	Scene* scene = new Scene();
 	Game::instance().setActiveScene(scene);
 
-	// ===== Test Sound =====
-	gMusic = Mix_LoadMUS("Sound/BGM.wav");
-	if (gMusic == NULL)
-	{
-		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
-	}
-	if (Mix_PlayingMusic() == 0) {
-		Mix_PlayMusic(gMusic, -1);
-	}
+	
 
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
