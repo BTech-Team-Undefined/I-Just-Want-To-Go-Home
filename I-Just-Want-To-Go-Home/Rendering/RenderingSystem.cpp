@@ -51,7 +51,7 @@ RenderingSystem::RenderingSystem() : System()
 
 	//// TESTING post processing 
 	// negative colors 
-	_postProcesses.push_back(new NegativePP()); 
+	// _postProcesses.push_back(new NegativePP()); 
 	// _postProcesses.push_back(new NegativePP());	
 
 	// gaussian blur using a two pass (more efficient) 
@@ -64,6 +64,12 @@ RenderingSystem::RenderingSystem() : System()
 	// pseudo FXAA
 	auto fxaa = new FxaaPP();						
 	_postProcesses.push_back(fxaa);
+
+	// fog 
+	auto fogPp = new PostProcess();		// too lazy to make a dedicated class
+	fogPp->shader = new Shader("shaders/pp_base_vertex.glsl", "shaders/pp_fog_fragment.glsl");
+	fogPp->settings = new Material();	// u_FogDensity, u_FogStart, u_FogColor
+	_postProcesses.push_back(fogPp);
 	//// END TESTING
 
 	cpuProfiler.StopTimer(7);
@@ -235,7 +241,7 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StopTimer(2);
 	cpuProfiler.StopTimer(2);
 
-	// 3.5 pass - post processing tentative 
+	// 4th pass - post processing tentative 
 	profiler.StartTimer(3);
 	cpuProfiler.StartTimer(3);
 
@@ -287,34 +293,6 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(3);
 	cpuProfiler.StopTimer(3);
-
-	// TODO: change into PostProcess (requires extra info though)
-
-	/*
-	// 4th pass - Postprocessing
-	profiler.StartTimer(3);
-	cpuProfiler.StartTimer(3);
-
-	postShader->use();
-
-	glBindVertexArray(quadVAO);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, posTex);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, dphTex);
-
-	postShader->setInt("u_Pos", 0);	// set order 
-	postShader->setInt("u_Depth", 1);
-	postShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
-
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
-
-	profiler.StopTimer(3);
-	cpuProfiler.StopTimer(3);
-	*/
 
 	// 5th pass - UI images 
 	profiler.StartTimer(4);
