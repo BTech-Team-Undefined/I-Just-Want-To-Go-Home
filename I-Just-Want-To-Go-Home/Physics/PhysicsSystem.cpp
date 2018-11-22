@@ -1,7 +1,8 @@
 #include <algorithm>
 #include <string>
 #include "PhysicsSystem.h"
-#include <math.h> //added By Johnny Kang
+#include <math.h> 
+#define _USE_MATH_DEFINES
 using namespace std;
 
 PhysicsSystem::PhysicsSystem() : System()
@@ -309,12 +310,16 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	const float gravity = 9.8; // Acceleration from gravity; for purpose of calculating friction
 	auto pc = e->getComponent<PhysicsComponent>();
 	float im = 1 / pc->mass;
-	float length = 4; // length of the chasis. Added by Johnny Kang
+	float length = 4; // length of the chasis. 
 	PhysicsVector f = pc->force;
 	float af = pc->angularForce;
 	PhysicsVector v = pc->velocity;
 	float av = pc->angularVelocity;
+	float turn;
+	
 
+	turn = length / tan(M_PI * af);
+	av = v.x / turn;
 	if (v.length() > 0) {
 		float drag = -v.dot(v) * pc->mass * pc->getDrag();
 		float fric = -pc->mass * gravity * pc->getFriction();
@@ -353,6 +358,8 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;
 	pc->angularVelocity = av;
+
+
 
 	e->position = glm::vec3(pos.x, e->position.y, pos.y);
 	e->rotation = glm::vec3(e->rotation.x, rot, e->rotation.z);

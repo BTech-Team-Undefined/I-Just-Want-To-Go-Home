@@ -30,12 +30,12 @@ public:
 			case SDLK_a:
 				//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 				//e6->getComponent<PhysicsComponent>()->force.x = -10;
-				getEntity()->getComponent<PhysicsComponent>()->angularForce += 10; // changed to increment
+				getEntity()->getComponent<PhysicsComponent>()->angularForce = 10; // changed to increment
 				break;
 			case SDLK_d:
 				//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
 				//e6->getComponent<PhysicsComponent>()->force.x = 10;
-				getEntity()->getComponent<PhysicsComponent>()->angularForce -= 10;//changed to decrement
+				getEntity()->getComponent<PhysicsComponent>()->angularForce = -10;//changed to decrement
 				break;
 			case SDLK_q:
 				//e6->rotation = glm::vec3(e4->rotation.x, e4->rotation.y - glm::radians(1.0f), e4->rotation.z);
