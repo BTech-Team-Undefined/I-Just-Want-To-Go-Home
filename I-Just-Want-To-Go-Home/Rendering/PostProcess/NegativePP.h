@@ -9,8 +9,8 @@ class NegativePP : public PostProcess
 public:
 	NegativePP() : PostProcess()
 	{
-		shader = new Shader("shaders/pp_base_vertex.glsl", "shaders/pp_negative_fragment.glsl");
-		settings = new Material();
+		shader = std::make_unique<Shader>("shaders/pp_base_vertex.glsl", "shaders/pp_negative_fragment.glsl");
+		settings = std::make_unique<Material>();
 	}
 	~NegativePP() {};
 };

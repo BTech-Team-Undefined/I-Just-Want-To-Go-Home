@@ -49,28 +49,16 @@ RenderingSystem::RenderingSystem() : System()
 	LoadFont("fonts/Cool.ttf");
 	LoadFont("fonts/Inconsolata-Regular.ttf");
 
-	//// TESTING post processing 
-	// negative colors 
-	// _postProcesses.push_back(new NegativePP()); 
-	// _postProcesses.push_back(new NegativePP());	
-
-	// gaussian blur using a two pass (more efficient) 
-	auto b1 = new BlurPP();							// horizontal blur
-	auto b2 = new BlurPP();							// vertical blur 
-	b2->settings->SetBool("u_Horizontal", false);
-	//_postProcesses.push_back(b1);
-	//_postProcesses.push_back(b2);
-
+	// built-in post processing 
 	// pseudo FXAA
-	auto fxaa = new FxaaPP();						
-	_postProcesses.push_back(fxaa);
-
+	auto fxaa = std::make_unique<FxaaPP>();
+	addPostProcess("FXAA", std::move(fxaa));
 	// fog 
-	auto fogPp = new PostProcess();		// too lazy to make a dedicated class
-	fogPp->shader = new Shader("shaders/pp_base_vertex.glsl", "shaders/pp_fog_fragment.glsl");
-	fogPp->settings = new Material();	// u_FogDensity, u_FogStart, u_FogColor
-	_postProcesses.push_back(fogPp);
-	//// END TESTING
+	auto fogPp = std::make_unique<PostProcess>();	// too lazy to make a dedicated class
+	fogPp->shader = std::make_unique<Shader>("shaders/pp_base_vertex.glsl", "shaders/pp_fog_fragment.glsl");
+	fogPp->settings = std::make_unique<Material>();	// u_FogDensity, u_FogStart, u_FogColor
+	fogPp->enabled = false;
+	addPostProcess("Fog", std::move(fogPp));
 
 	cpuProfiler.StopTimer(7);
 }
@@ -245,21 +233,23 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StartTimer(3);
 	cpuProfiler.StartTimer(3);
 
-	for (auto& pp : _postProcesses)
+	for (auto& pp : _pps)
 	{
+		if (!pp.second->enabled) continue;
+		
 		// we keep on swapping the finished read/write texture so PP can read/write to current image 
 		std::swap(finWriteTex, finReadTex);				// allow pp to read from current rendered image 
 		std::swap(ppWriteFBO, ppReadFBO);				// allow pp to write to "current rendered" image (for next pp)
 		glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
 		glDrawBuffers(1, ppAttachments);
 
-		pp->shader->use();
+		pp.second->shader->use();
 		// set order 
-		pp->shader->setInt("u_PosTex", 0);	
-		pp->shader->setInt("u_NrmTex", 1);
-		pp->shader->setInt("u_ColTex", 2);
-		pp->shader->setInt("u_DphTex", 3);
-		pp->shader->setInt("u_FinTex", 4);
+		pp.second->shader->setInt("u_PosTex", 0);	
+		pp.second->shader->setInt("u_NrmTex", 1);
+		pp.second->shader->setInt("u_ColTex", 2);
+		pp.second->shader->setInt("u_DphTex", 3);
+		pp.second->shader->setInt("u_FinTex", 4);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, posTex);
@@ -273,7 +263,7 @@ void RenderingSystem::RenderGeometryPass()
 		glBindTexture(GL_TEXTURE_2D, finReadTex);
 
 		// load post-process settings 
-		pp->settings->LoadMaterial(pp->shader, GL_TEXTURE5);
+		pp.second->settings->LoadMaterial(pp.second->shader.get(), GL_TEXTURE5);
 
 		// render 
 		glBindVertexArray(quadVAO);
@@ -769,6 +759,22 @@ void RenderingSystem::LoadFont(std::string path)
 	}
 
 	FT_Done_Face(face);
+}
+
+void RenderingSystem::addPostProcess(const std::string name, std::unique_ptr<PostProcess> postProcess)
+{
+	_pps[name] = std::move(postProcess);
+}
+
+void RenderingSystem::removePostProcess(const std::string name)
+{
+	_pps.erase(name);
+}
+
+PostProcess* RenderingSystem::getPostProcess(const std::string name)
+{
+	auto pp = _pps.find(name);
+	return (pp != _pps.end()) ? pp->second.get() : nullptr;
 }
 
 //void RenderingSystem::onComponentCreated(std::type_index t, Component* c)

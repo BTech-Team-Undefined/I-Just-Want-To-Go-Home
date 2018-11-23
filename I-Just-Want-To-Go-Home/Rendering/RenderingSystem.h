@@ -72,6 +72,7 @@ private:
 	std::vector<ImageComponent*> _images; 
 
 	std::vector<PostProcess*> _postProcesses;
+	std::map<std::string, std::unique_ptr<PostProcess>> _pps;
 
 public:
 	RenderingSystem();
@@ -82,7 +83,10 @@ public:
 	virtual void addComponent(std::type_index t, Component* component) override;
 	virtual void clearComponents() override;
 	void LoadFont(std::string path);
-
+	void addPostProcess(const std::string name, std::unique_ptr<PostProcess> postProcess);
+	void removePostProcess(const std::string name);
+	PostProcess* getPostProcess(const std::string name);
+	
 private: 
 	void RenderGeometryPass();
 	void RenderEntityGeometry(Entity* e, glm::mat4 transform);

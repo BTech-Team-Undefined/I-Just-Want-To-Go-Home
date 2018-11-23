@@ -8,7 +8,8 @@ class PostProcess
 public:
 	PostProcess();
 	~PostProcess();
-	Shader* shader;
-	Material* settings;
+	bool enabled = true;
+	std::unique_ptr<Shader> shader;
+	std::unique_ptr<Material> settings;
 };
 
