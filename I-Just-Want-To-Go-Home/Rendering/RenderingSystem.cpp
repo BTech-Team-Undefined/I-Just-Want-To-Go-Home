@@ -13,6 +13,7 @@
 #include "PostProcess\NegativePP.h"
 #include "PostProcess\BlurPP.h"
 #include "PostProcess\FxaaPP.h"
+#include "../Core/Game.h"
 
 RenderingSystem::RenderingSystem() : System()
 {
@@ -28,7 +29,7 @@ RenderingSystem::RenderingSystem() : System()
 	
 	cpuProfiler.StartTimer(7);
 
-	// debug? initialize the composition shader 
+	// initialize default shaders  
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
 	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
 	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
@@ -36,12 +37,15 @@ RenderingSystem::RenderingSystem() : System()
 	imageShader = new Shader("shaders/image_vertex.glsl", "shaders/image_fragment.glsl");
 	postShader = new Shader("shaders/post_vertex.glsl", "shaders/post_fragment.glsl");
 	postToScreenShader = new Shader("shaders/post2screen_vertex.glsl", "shaders/post2screen_fragment.glsl");
-	
+	skyboxShader = new Shader("shaders/skybox_vertex.glsl", "shaders/skybox_fragment.glsl");
+
 	// initialize frame buffers for geometry rendering pass 
 	// InitializeFrameBuffers(); waiting for screen size
 	
 	// create a quad that covers the screen for the composition pass 
 	InitializeScreenQuad();
+	// create a cube that can be used to render cubemaps
+	InitializeScreenCube();
 
 	// init text rendering 
 	InitializeTextEngine();
@@ -59,6 +63,18 @@ RenderingSystem::RenderingSystem() : System()
 	fogPp->settings = std::make_unique<Material>();	// u_FogDensity, u_FogStart, u_FogColor
 	fogPp->enabled = false;
 	addPostProcess("Fog", std::move(fogPp));
+
+	// default skybox 
+	std::vector<std::string> skyboxFaces = {
+		"textures/cubemaps/skybox/right.jpg",
+		"textures/cubemaps/skybox/left.jpg",
+		"textures/cubemaps/skybox/up.jpg",
+		"textures/cubemaps/skybox/down.jpg",
+		"textures/cubemaps/skybox/front.jpg",
+		"textures/cubemaps/skybox/back.jpg"
+	};
+	auto skyboxTexId = Game::instance().loader.LoadCubemap(skyboxFaces);
+	setSkybox(skyboxTexId);
 
 	cpuProfiler.StopTimer(7);
 }
@@ -208,7 +224,8 @@ void RenderingSystem::RenderGeometryPass()
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
-	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
 	for (int i = 0; i < _dlights.size(); i++)
 	{
@@ -229,11 +246,35 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StopTimer(2);
 	cpuProfiler.StopTimer(2);
 
+
+	// 3.5th pass - skybox pass (should be relatively cheap).
+	if (skyboxTexture != 0)
+	{
+		// set render target 
+		glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+		glDrawBuffers(1, ppAttachments);
+		// load settings 
+		// glDisable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		skyboxShader->use();
+		skyboxShader->setMat4("u_Projection", projection);
+		skyboxShader->setMat4("u_View", glm::mat4(glm::mat3(view)));	// view -> mat3 (remove translation) -> mat4 (compatable format)
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+		// draw 
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		// we're going to manually revert the depth test (b/c we don't want every single other pass doing it)
+		glDepthFunc(GL_LESS);
+	}
+
 	// 4th pass - post processing tentative 
 	profiler.StartTimer(3);
 	cpuProfiler.StartTimer(3);
 
-	for (auto& pp : _pps)
+	for (auto& pp : _postProcesses)
 	{
 		if (!pp.second->enabled) continue;
 		
@@ -613,6 +654,66 @@ void RenderingSystem::InitializeScreenQuad()
 	glBindVertexArray(0);
 }
 
+void RenderingSystem::InitializeScreenCube()
+{
+	float skyboxVertices[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+
+	glGenVertexArrays(1, &cubeVAO);
+	glBindVertexArray(cubeVAO);
+
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);	// remember this syntax only works here b/c we defined the array in the same scope 
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+}
+
 void RenderingSystem::InitializeTextEngine()
 {
 	// initialize FreeType (for loading font files) 
@@ -763,18 +864,23 @@ void RenderingSystem::LoadFont(std::string path)
 
 void RenderingSystem::addPostProcess(const std::string name, std::unique_ptr<PostProcess> postProcess)
 {
-	_pps[name] = std::move(postProcess);
+	_postProcesses[name] = std::move(postProcess);
 }
 
 void RenderingSystem::removePostProcess(const std::string name)
 {
-	_pps.erase(name);
+	_postProcesses.erase(name);
 }
 
 PostProcess* RenderingSystem::getPostProcess(const std::string name)
 {
-	auto pp = _pps.find(name);
-	return (pp != _pps.end()) ? pp->second.get() : nullptr;
+	auto pp = _postProcesses.find(name);
+	return (pp != _postProcesses.end()) ? pp->second.get() : nullptr;
+}
+
+void RenderingSystem::setSkybox(unsigned int cubemapId)
+{
+	skyboxTexture = cubemapId;
 }
 
 //void RenderingSystem::onComponentCreated(std::type_index t, Component* c)

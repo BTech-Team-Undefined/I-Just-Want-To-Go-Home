@@ -116,8 +116,12 @@ void main()
 	vec3 nrm = texture(u_NrmTex, f_Uv).rgb; 
 	vec4 col = vec4(texture(u_ColTex, f_Uv).rgb, 1.0); 
     float depth = texture(u_DphTex, f_Uv).x;
-    
+
     // todo: no lighting yet :@) 
+    if (depth >= 1.0)
+    {
+        discard;
+    }
 
     vec3 lightColor = vec3(1.0);
     // ambient
