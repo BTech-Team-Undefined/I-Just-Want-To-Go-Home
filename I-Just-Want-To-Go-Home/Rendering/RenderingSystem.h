@@ -48,11 +48,14 @@ public:
 	Shader* imageShader;		// default UI shader 
 	Shader* postShader;			// default postprocessing shader 
 	Shader* postToScreenShader;	// default shader to move final texture to back buffer
+	Shader* skyboxShader;		// default shader for skybox
+
+	unsigned int skyboxTexture;
 
 private:
 	OpenGLProfiler profiler;
 	CpuProfiler cpuProfiler;
-	unsigned int quadVAO;
+	unsigned int quadVAO, cubeVAO;
 	unsigned int FBO, posTex, nrmTex, colTex, dphTex, finWriteTex, finReadTex;
 	unsigned int ppWriteFBO, ppReadFBO;
 	unsigned int screenWidth, screenHeight; 
@@ -71,8 +74,8 @@ private:
 	std::vector<TextComponent*> _texts;
 	std::vector<ImageComponent*> _images; 
 
-	std::vector<PostProcess*> _postProcesses;
-	std::map<std::string, std::unique_ptr<PostProcess>> _pps;
+	std::map<std::string, std::unique_ptr<PostProcess>> _postProcesses;
+
 
 public:
 	RenderingSystem();
@@ -86,7 +89,8 @@ public:
 	void addPostProcess(const std::string name, std::unique_ptr<PostProcess> postProcess);
 	void removePostProcess(const std::string name);
 	PostProcess* getPostProcess(const std::string name);
-	
+	void setSkybox(unsigned int cubemapId);
+
 private: 
 	void RenderGeometryPass();
 	void RenderEntityGeometry(Entity* e, glm::mat4 transform);
@@ -95,6 +99,7 @@ private:
 	void RenderImage(Shader &s, ImageComponent* image);
 	void InitializeFrameBuffers();
 	void InitializeScreenQuad();
+	void InitializeScreenCube();
 	void InitializeTextEngine();
 	void DrawComponent(RenderComponent* component);
 };
