@@ -289,7 +289,13 @@ int main(int argc, char* args[])
 	eLightHolder->addComponent<StickyTransformComponent>();
 	eLightHolder->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
 	eLightHolder->addChild(eLight);
-	eLightHolder->addChild(eLight2);
+	//eLightHolder->addChild(eLight2);
+
+	auto ePLight1 = new Entity();
+	ePLight1->addComponent<PointLight>();
+	ePLight1->getComponent<PointLight>()->range = 2;
+	ePLight1->getComponent<PointLight>()->color = glm::vec3(1,0,0);
+	ePLight1->position = glm::vec3(-1, -0.5, 10);
 
 	// ===== TEXT =====
 	auto eText1 = new Entity();
@@ -392,6 +398,7 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(e3);
 	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(eLightHolder);
+	Game::instance().addEntity(ePLight1);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);

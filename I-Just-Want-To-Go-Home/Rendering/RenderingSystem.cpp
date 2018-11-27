@@ -21,7 +21,7 @@ RenderingSystem::RenderingSystem() : System()
 	onlyReceiveFrameUpdates = true;
 
 	// create profiler 
-	profiler.InitializeTimers(6);		// 1 for each pass so far 
+	profiler.InitializeTimers(7);		// 1 for each pass so far 
 	cpuProfiler.InitializeTimers(8);	// 1 for each pass, 1 for general use, 1 for initialization
 	cpuProfiler.LogOutput("RenderingSystem.log")
 		.FormatMilliseconds(true);
@@ -31,7 +31,8 @@ RenderingSystem::RenderingSystem() : System()
 
 	// initialize default shaders  
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
-	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+	compDLightShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_dl_fragment.glsl");
+	compPLightShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_pl_fragment.glsl");
 	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 	textShader = new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
 	imageShader = new Shader("shaders/image_vertex.glsl", "shaders/image_fragment.glsl");
@@ -204,13 +205,13 @@ void RenderingSystem::RenderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
 	glDrawBuffers(1, ppAttachments);
 
-	compositionShader->use();
-	compositionShader->setInt("u_PosTex", 0);	// set order 
-	compositionShader->setInt("u_NrmTex", 1);
-	compositionShader->setInt("u_ColTex", 2);
-	compositionShader->setInt("u_DphTex", 3);
-	compositionShader->setInt("u_ShadowMap", 4);
-	compositionShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
+	compDLightShader->use();
+	compDLightShader->setInt("u_PosTex", 0);	// set order 
+	compDLightShader->setInt("u_NrmTex", 1);
+	compDLightShader->setInt("u_ColTex", 2);
+	compDLightShader->setInt("u_DphTex", 3);
+	compDLightShader->setInt("u_ShadowMap", 4);
+	compDLightShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
 
 	// enable the sampler2D shader variables 
 	glActiveTexture(GL_TEXTURE0);
@@ -229,8 +230,8 @@ void RenderingSystem::RenderGeometryPass()
 
 	for (int i = 0; i < _dlights.size(); i++)
 	{
-		compositionShader->setVec3("u_LightPos", _dlights[i]->getEntity()->position);
-		compositionShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
+		compDLightShader->setVec3("u_LightPos", _dlights[i]->getEntity()->getWorldPosition());
+		compDLightShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*_dlights[i]).TexId);
 	
@@ -246,6 +247,68 @@ void RenderingSystem::RenderGeometryPass()
 	profiler.StopTimer(2);
 	cpuProfiler.StopTimer(2);
 
+	// 3.1rd pass - composision point lights
+	profiler.StartTimer(6);
+	cpuProfiler.StartTimer(6);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+	glDrawBuffers(1, ppAttachments);
+
+	compPLightShader->use();
+	compPLightShader->setInt("u_PosTex", 0);	// set order 
+	compPLightShader->setInt("u_NrmTex", 1);
+	compPLightShader->setInt("u_ColTex", 2);
+	compPLightShader->setInt("u_DphTex", 3);
+	compPLightShader->setInt("u_ShadowMap", 4);
+	compPLightShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
+	// we're rendering from camera this time - using light volumes
+	compPLightShader->setMat4("u_Projection", projection);	
+	compPLightShader->setMat4("u_View", view);
+
+	// enable the sampler2D shader variables 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, posTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, nrmTex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, colTex);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, dphTex);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	for (int i = 0; i < _plights.size(); i++)
+	{
+		compPLightShader->setVec3(SHADER_LIGHT_POS, _plights[i]->getEntity()->position);
+		compPLightShader->setVec3(SHADER_LIGHT_COLOR, _plights[i]->color);
+		compPLightShader->setFloat(SHADER_LIGHT_INTENSITY, _plights[i]->intensity);
+		compPLightShader->setFloat(SHADER_LIGHT_RANGE, _plights[i]->range);
+	
+		// scale model matrix (for light volume) one more time for light range 
+		auto model = glm::scale(
+			_plights[i]->getEntity()->getWorldTransformation(), 
+			glm::vec3(_plights[i]->range));
+		compPLightShader->setMat4(SHADER_MODEL, model);
+
+		// we're using a cube instead of a sphere b/c of less vertices 
+		//glBindVertexArray(cubeVAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glBindVertexArray(0);
+
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
+	}
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	profiler.StopTimer(6);
+	cpuProfiler.StopTimer(6);
 
 	// 3.5th pass - skybox pass (should be relatively cheap).
 	if (skyboxTexture != 0)
@@ -780,6 +843,8 @@ void RenderingSystem::addComponent(std::type_index t, Component * component)
 		_components.push_back(static_cast<RenderComponent*>(component));
 	else if (t == std::type_index(typeid(DirectionalLight)))
 		_dlights.push_back(static_cast<DirectionalLight*>(component));
+	else if (t == std::type_index(typeid(PointLight)))
+		_plights.push_back(static_cast<PointLight*>(component));
 	else if (t == std::type_index(typeid(Camera)))
 		_cameras.push_back(static_cast<Camera*>(component));
 	else if (t == std::type_index(typeid(TextComponent)))
@@ -792,6 +857,7 @@ void RenderingSystem::clearComponents()
 {
 	_components.clear();
 	_dlights.clear();
+	_plights.clear();
 	_cameras.clear();
 	_texts.clear();
 	_images.clear();

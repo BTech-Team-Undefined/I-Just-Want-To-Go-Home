@@ -46,6 +46,7 @@
     <ClCompile Include="Rendering\PostProcess\NegativePP.cpp" />
     <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
     <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
+    <ClCompile Include="Rendering\Lighting\PointLight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -107,6 +108,7 @@
     <ClInclude Include="Rendering\PostProcess\NegativePP.h" />
     <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
+    <ClInclude Include="Rendering\Lighting\PointLight.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
