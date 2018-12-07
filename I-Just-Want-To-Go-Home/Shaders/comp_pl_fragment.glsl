@@ -50,24 +50,41 @@ void main()
 
     float distance = length(u_LightPos - pos);
 
-    if (distance > u_LightRange)
-    {
-        o_Col = vec4(vec3(0), 1.0);
-        return;
-    }
+    //if (distance > u_LightRange)
+    //{
+    //    o_Col = vec4(vec3(0), 1.0);
+    //    return;
+    //}
 
     /* exponential  
-    float attenutation = 1.0 / (1.0  
+    floa5t attenutation = 1.0 / (1.0  
         + atten_linear * distance  
         + atten_quadratic * (distance * distance));
     */
 
+	// upwards parabola (softer, better)
+	// float attenutation = (1 / (u_LightRange * u_LightRange)) * (distance * distance - 2 * u_LightRange * distance + u_LightRange * u_LightRange);
+
     // upside down parabola 
-    float attenutation = ((distance * distance) / -(u_LightRange * u_LightRange)) + 1.0;
+    // float attenutation = ((distance * distance) / -(u_LightRange * u_LightRange)) + 1.0;
 
-    // // right way up parabola (softer, better)
-    // float attenutation = (1 / (u_LightRange * u_LightRange)) * (distance * distance - 2 * u_LightRange * distance + u_LightRange * u_LightRange);
+	float radius = 5.0;
+	float brightness = 0.5;	//range from 0 to 1 
+	// sigmoid function (good)
+	// float attenutation = brightness / (1 + exp(4 * distance / radius - 4));
 
-    vec3 diffuse = u_LightColor * attenutation; // *col;
-    o_Col = vec4(diffuse, 1.0);
+	vec3 fragToEye = normalize(u_ViewPosition - pos);
+	vec3 lightDir = normalize(pos - u_LightPos);
+	float yes = dot(lightDir, nrm);
+	if (yes < 0)
+	{
+		float attenutation = brightness / (1 + exp(4 * distance / radius - 4));
+		vec3 diffuse = u_LightColor * attenutation; // *col;
+		o_Col = vec4(diffuse, 1.0);
+	}
+	else
+	{
+		discard;
+	}
+
 }
