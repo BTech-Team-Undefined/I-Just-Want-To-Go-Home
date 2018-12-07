@@ -3,6 +3,8 @@
 #include <gl\glad.h>
 #include <vector>
 
+// A helper class to measure GPU performance.
+// To measure CPU performance use CpuProfiler.
 class OpenGLProfiler
 {
 // variables 

@@ -33,6 +33,11 @@
 # Additional
 .vs
 /packages
+[Ll]ogs/
+
+# Profiling
+*.psess
+*.vsp
 
 # Build results
 [Dd]ebug/

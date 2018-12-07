@@ -12,6 +12,7 @@
 #include "..\EntitySystems\System.h"
 #include "Scene.h"
 #include "ThreadType.h"
+#include "CpuProfiler.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1280;
@@ -74,6 +75,7 @@ private:
 	const std::chrono::nanoseconds _frameTime = std::chrono::milliseconds( (long)(16.6666666666666666666) );
 	bool _initialized = false;
 	bool _running[THREAD_TYPES];
+	CpuProfiler _profiler;
 
 // functions 
 public:

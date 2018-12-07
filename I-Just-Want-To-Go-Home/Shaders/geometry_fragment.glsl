@@ -1,4 +1,4 @@
-#version 450 core 
+#version 420 core 
 
 in vec3 f_Pos; 
 in vec2 f_Uv; 
