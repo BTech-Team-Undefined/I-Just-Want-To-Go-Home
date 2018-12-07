@@ -12,6 +12,19 @@ Game::~Game()
 
 void Game::initialize()
 {
+	// measure performance 
+	//	0: general use 
+	//	1: entity resolve 
+	//	2: fixed update cycle
+	//	3: frame update cycle
+	//	4: SDL initialization 
+	_profiler.InitializeTimers(5);
+	_profiler.LogOutput("Engine.log");	// optional
+	_profiler.PrintOutput(true);		// optional
+	_profiler.FormatMilliseconds(true);	// optional
+
+	_profiler.StartTimer(4);
+
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
 	{
 		std::cerr << "ERROR: SDL could not initialize. SDL_Error:  " << SDL_GetError() << std::endl;
@@ -20,7 +33,7 @@ void Game::initialize()
 
 	// prepare opengl version (4.5) for SDL 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	// using core as opposed to compatibility or ES 
 
 	// create window
@@ -62,6 +75,9 @@ void Game::initialize()
 		printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
 		return;
 	}
+
+	_profiler.StopTimer(4);
+	std::cout << "Engine initialization finished: " << _profiler.GetDuration(4) << "ns" << std::endl;
 }
 
 void Game::setActiveScene(Scene* scene)
@@ -132,6 +148,8 @@ void Game::loop(ThreadType type)
 			resolveCleanup();
 		}
 
+
+		_profiler.StartTimer(2);
 		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
 		timeSinceLastUpdate += frameDelta;
 		while (timeSinceLastUpdate > _frameTime)
@@ -152,6 +170,7 @@ void Game::loop(ThreadType type)
 				_systems[type][i]->clearComponents();	// cleanup for next iteration
 			}
 		}
+		_profiler.StopTimer(2);
 
 		// 3. frame system update 
 		for (int i = 0; i < _frameSystems[type].size(); i++)
@@ -159,6 +178,7 @@ void Game::loop(ThreadType type)
 			_frameSystems[type][i]->update(frameDelta.count() / 1000000);
 			_frameSystems[type][i]->clearComponents();	// cleanup for next iteration
 		}
+		_profiler.StopTimer(3);
 
 		// SDL actions should only happen in the graphics thread
 		if (type == ThreadType::graphics) {
@@ -239,6 +259,10 @@ void Game::resolveEntities(Entity * entity, bool collectComponents, ThreadType t
 	// for all components notify systems 
 	if (collectComponents)
 	{
+		// precalculate world transformation matrix 
+		if (entity->getEnabled() && !entity->getStatic())
+			entity->configureTransform();
+		// for all components notify systems 
 		auto components = entity->getComponents();
 		for (int i = 0; i < components.size(); i++)
 		{
