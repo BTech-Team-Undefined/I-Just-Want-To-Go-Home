@@ -63,6 +63,13 @@ RenderingSystem::RenderingSystem() : System()
 	fogPp->settings = std::make_unique<Material>();	// u_FogDensity, u_FogStart, u_FogColor
 	fogPp->enabled = false;
 	addPostProcess("Fog", std::move(fogPp));
+	// outline
+
+	auto outlinePp = std::make_unique<PostProcess>();	// too lazy to make a dedicated class
+	outlinePp->shader = std::make_unique<Shader>("shaders/pp_base_vertex.glsl", "shaders/pp_outline_fragment.glsl");
+	outlinePp->settings = std::make_unique<Material>();	// u_FogDensity, u_FogStart, u_FogColor
+	outlinePp->enabled = true;
+	addPostProcess("Outline", std::move(outlinePp));
 
 	// default skybox 
 	std::vector<std::string> skyboxFaces = {
