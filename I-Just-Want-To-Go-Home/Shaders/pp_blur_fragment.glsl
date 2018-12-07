@@ -1,7 +1,7 @@
 // this is the template for post-processing fragment shader. 
 // don't change the order and names of the variables! 
 
-#version 450 core
+#version 420 core
 
 in vec2 f_Uv;
 

@@ -1,6 +1,6 @@
 // see post_fragment.glsl for original blended version 
 
-#version 450 core
+#version 420 core
 
 in vec2 f_Uv;
 
