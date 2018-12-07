@@ -5,15 +5,20 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
+#include <SDL2\SDL_mixer.h> // this is sound mixer
 // OpenGL support 
 #include <gl\glad.h>
 #include <SDL2\SDL_opengl.h>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
+// jsoncpp
+#include "libs/json/json.h"
+#include "libs/json/value.h"
 // Engine objects 
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
@@ -37,6 +42,8 @@
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
+#include "Physics\Trigger.h"
+
 #include "Rendering\UI\ImageComponent.h"
 #include "Rendering\UI\TextComponent.h"
 #include "Core\Game.h"
@@ -49,6 +56,8 @@
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
+
+Mix_Music *gMusic = NULL;
 
 int main(int argc, char* args[])
 {
@@ -73,11 +82,22 @@ int main(int argc, char* args[])
 	Scene* scene = new Scene();
 	Game::instance().setActiveScene(scene);
 
+	// ===== Test Sound =====
+	gMusic = Mix_LoadMUS("Sound/BGM.wav");
+	if (gMusic == NULL)
+	{
+		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+	}
+	if (Mix_PlayingMusic() == 0) {
+		Mix_PlayMusic(gMusic, -1);
+	}
+
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
+	
 	// physics 
-	auto e6Collider = std::make_shared<Collider2D>("e1Box");
+	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
 	vector<Point> e6ColliderBox;
 	e6ColliderBox.push_back(Point(-1, -1)); // top left
 	e6ColliderBox.push_back(Point(1, -1)); // top right
@@ -92,8 +112,8 @@ int main(int argc, char* args[])
 	// input 
 	playerEntity->addComponent<DebugInputComponent>();
 	// visuals 
-	auto tankEntity = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
-	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	auto tankEntity = Game::instance().loader.LoadModel("Models/racingkit2/raceCarRed.obj");
+	tankEntity->rotation = glm::vec3(0, glm::radians(180.0f), 0);
 	// camera 
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
@@ -137,6 +157,50 @@ int main(int argc, char* args[])
 	planeRenderable->material = material1;
 
 	// ===== LEVEL ENTITIES =====
+
+	const float ENTITY_SCALE = 5;
+
+	const string MDL_ROAD_START = "Models/racingkit2/roadStart.obj";
+	const string MDL_ROAD_STRAIGHT = "Models/racingkit2/roadStraight.obj";
+	const string MDL_ROAD_STRAIGHT_LONG = "Models/racingkit2/roadStraightLong.obj";
+	const string MDL_ROAD_CORNER_SMALL = "Models/racingkit2/roadCornerSmall.obj";
+	const string MDL_ROAD_CORNER_SMALL_WALL = "Models/racingkit2/roadCornerSmallWall.obj";
+	const string MDL_ROAD_CORNER_LARGE = "Models/racingkit2/roadCornerLarge.obj";
+	const string MDL_ROAD_CORNER_LARGE_WALL = "Models/racingkit2/roadCornerLargeWall.obj";
+	const string MDL_ROAD_CORNER_LARGE_WALL_INNER = "Models/racingkit2/roadCornerLargeWallInner.obj";
+
+	Json::Value stageData;
+	std::ifstream stage_file("Maps/stage1.json", std::ifstream::binary);
+	stage_file >> stageData;
+
+	vector<unique_ptr<Entity>> trackEntities;
+	Json::Value tracks = stageData["tracks"];
+	for (int i = 0; i < tracks.size(); ++i)
+	{
+		string modelName = tracks[i]["model"].asString();
+		trackEntities.push_back(Game::instance().loader.LoadModel("Models/racingkit2/" + modelName + ".obj"));
+		int currentIndex = trackEntities.size() - 1;
+
+		Json::Value position = tracks[i]["position"];
+		double posX = position[0].asDouble();
+		double posY = position[1].asDouble();
+		double posZ = position[2].asDouble();
+		trackEntities[currentIndex]->position = glm::vec3(posX * ENTITY_SCALE, -2 + posY * ENTITY_SCALE, posZ * ENTITY_SCALE);
+
+		Json::Value rotation = tracks[i]["rotation"];
+		if (rotation != NULL)
+		{
+			double rotX = rotation[0].asDouble();
+			double rotY = rotation[1].asDouble();
+			double rotZ = rotation[2].asDouble();
+			trackEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));
+		}
+		
+		trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);
+		trackEntities[currentIndex]->setStatic(true);
+		Game::instance().addEntity(trackEntities[currentIndex].get());
+	}
+	/*
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
@@ -144,7 +208,7 @@ int main(int argc, char* args[])
 	e1->position = glm::vec3(-2, 0, -2);
 	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
-	auto e1Collider = std::make_shared<Collider2D>("e1Box");
+	auto e1Collider = std::make_shared<Trigger>([] {std::cout << "this is a test" << endl; });
 	vector<Point> e1ColliderBox;
 	e1ColliderBox.push_back(Point(-1, -1)); // top left
 	e1ColliderBox.push_back(Point(1, -1)); // top right
@@ -207,6 +271,7 @@ int main(int argc, char* args[])
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
+	*/
 
 	// ===== LIGHT ENTITIES ====
 	auto eLight = new Entity();
@@ -316,20 +381,17 @@ int main(int argc, char* args[])
 	timeTextComponent->font = "fonts/futur.ttf";
 	timeTextComponent->alignment = TextAlignment::Center;
 
-	auto eTest = new Entity();
-	eTest->addComponent<RenderComponent>();
-	eTest->getComponent<RenderComponent>()->renderables.push_back(cubeRenderable);
-	eTest->addComponent<StickyTransformComponent>();
-	eTest->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
+	// ===== FREEZE OBJECTS ===== 
+	eTime->setStatic(true);
 
 	// ===== START GAME ======
-	//Game::instance().addEntity(eLight);
-	//Game::instance().addEntity(eLight2);
+	// Game::instance().addEntity(eLight);
+	// Game::instance().addEntity(eLight2);
+	// Game::instance().addEntity(e1);
+	// Game::instance().addEntity(e2);
+	// Game::instance().addEntity(e3);
+	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(eLightHolder);
-	Game::instance().addEntity(e1);
-	Game::instance().addEntity(e2);
-	Game::instance().addEntity(e3);
-	Game::instance().addEntity(e4);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);
@@ -337,7 +399,6 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
-	Game::instance().addEntity(eTest);
 
 	Game::instance().loop();
 
