@@ -12,7 +12,17 @@
 
 RenderingSystem::RenderingSystem() : System()
 {
+	// system initialization 
 	onlyReceiveFrameUpdates = true;
+
+	// create profiler 
+	profiler.InitializeTimers(6);		// 1 for each pass so far 
+	cpuProfiler.InitializeTimers(8);	// 1 for each pass, 1 for general use, 1 for initialization
+	cpuProfiler.LogOutput("RenderingSystem.log")
+		.FormatMilliseconds(true);
+		//.PrintOutput(true);
+	
+	cpuProfiler.StartTimer(7);
 
 	// debug? initialize the composition shader 
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
@@ -33,8 +43,7 @@ RenderingSystem::RenderingSystem() : System()
 	LoadFont("fonts/Cool.ttf");
 	LoadFont("fonts/Inconsolata-Regular.ttf");
 
-	// create profiler 
-	profiler.InitializeTimers(6);	// 1 for each pass so far 
+	cpuProfiler.StopTimer(7);
 }
 
 RenderingSystem::~RenderingSystem()
@@ -66,6 +75,7 @@ void RenderingSystem::RenderGeometryPass()
 {
 	// 1. First pass - Geometry into gbuffers 
 	profiler.StartTimer(0);
+	cpuProfiler.StartTimer(0);
 
 	geometryShader->use();
 	// bind geometry frame buffers 
@@ -110,10 +120,12 @@ void RenderingSystem::RenderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	profiler.StopTimer(0);
+	cpuProfiler.StopTimer(0);
 
 
 	// 2nd Pass - lighting shadow map   
 	profiler.StartTimer(1);
+	cpuProfiler.StartTimer(1);
 
 	for (int i = 0; i < _dlights.size(); i++)
 	{
@@ -144,11 +156,13 @@ void RenderingSystem::RenderGeometryPass()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	profiler.StopTimer(1);
+	cpuProfiler.StopTimer(1);
 
 
 	// 3rd pass - composision
 	profiler.StartTimer(2);
-	
+	cpuProfiler.StartTimer(2);
+
 	compositionShader->use();
 	compositionShader->setInt("u_PosTex", 0);	// set order 
 	compositionShader->setInt("u_NrmTex", 1);
@@ -188,9 +202,11 @@ void RenderingSystem::RenderGeometryPass()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	profiler.StopTimer(2);
+	cpuProfiler.StopTimer(2);
 
 	// 4th pass - Postprocessing
 	profiler.StartTimer(3);
+	cpuProfiler.StartTimer(3);
 
 	postShader->use();
 
@@ -210,9 +226,11 @@ void RenderingSystem::RenderGeometryPass()
 	glBindVertexArray(0);
 
 	profiler.StopTimer(3);
+	cpuProfiler.StopTimer(3);
 
 	// 5th pass - UI images 
 	profiler.StartTimer(4);
+	cpuProfiler.StartTimer(4);
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
@@ -226,9 +244,11 @@ void RenderingSystem::RenderGeometryPass()
 	}
 
 	profiler.StopTimer(4);
+	cpuProfiler.StopTimer(4);
 
 	// 6th pass - UI text 
 	profiler.StartTimer(5);
+	cpuProfiler.StartTimer(5);
 
 	// render text components 
 	std::sort(_texts.begin(), _texts.end(), View::comparePointers);		// sort for rendering order
@@ -246,10 +266,12 @@ void RenderingSystem::RenderGeometryPass()
 	// glDisable(GL_BLEND);
 
 	profiler.StopTimer(5);
+	cpuProfiler.StopTimer(5);
 
 	profiler.FrameFinish();
+	cpuProfiler.FrameFinish();
 
-	// render debug info 
+	// render debug info (please note that this is pretty performance heavy ~2ms)
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(2)
 		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
