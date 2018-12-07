@@ -5,6 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <thread>
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
@@ -63,7 +64,7 @@ int main(int argc, char* args[])
 	// ===== INIT SYSTEMS =====
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	Game::instance().addSystem(std::move(rs));
+	Game::instance().addSystem(std::move(rs), ThreadType::graphics);
 
 	//auto es = std::make_unique<ExampleSystem>();
 	//Game::instance().addSystem(std::move(es));
@@ -355,7 +356,10 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(eTime);
 	Game::instance().addEntity(eTest);
 
-	Game::instance().loop();
+	std::thread graphicsThread([] {
+		Game::instance().loop(ThreadType::primary);
+	});
+	Game::instance().loop(ThreadType::graphics);
 
 	return 0;
 }

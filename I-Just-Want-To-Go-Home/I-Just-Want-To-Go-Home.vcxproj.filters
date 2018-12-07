@@ -82,6 +82,7 @@
     <ClInclude Include="Game\TimeDisplayComponent.h" />
     <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
+    <ClInclude Include="Core\ThreadType.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

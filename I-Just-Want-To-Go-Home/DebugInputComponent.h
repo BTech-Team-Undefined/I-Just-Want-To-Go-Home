@@ -121,6 +121,7 @@ public:
 		}
 		Entity* ent = getEntity();
 		float dir = ent->rotation.y;
+		ent->getComponent<PhysicsComponent>()->angularForce = 10;
 		ent->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust + std::sin(dir - 1.57) * sideThrust;
 		ent->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust + std::cos(dir - 1.57) * sideThrust;
 	}

@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{4B6144D8-A164-4BCC-9CD0-52C3332B01F5}</ProjectGuid>
     <RootNamespace>IJustWantToGoHome</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -186,6 +186,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Core\ThreadType.h" />
     <ClInclude Include="DebugInputComponent.h" />
     <ClInclude Include="EntitySystems\DestructionComponent.h" />
     <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />

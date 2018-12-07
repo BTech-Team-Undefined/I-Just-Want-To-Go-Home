@@ -6,10 +6,12 @@
 #include <set>
 #include <memory>
 #include <chrono>
+#include <mutex>
 #include <SDL2\SDL.h>
 #include "../AssetLoader.h"
 #include "..\EntitySystems\System.h"
 #include "Scene.h"
+#include "ThreadType.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1280;
@@ -39,7 +41,14 @@ public:
 	Game(Game const&) = delete;
 	void operator=(Game const&) = delete;
 private:
-	Game() { };
+	Game() {
+		// Fill the thread running data with 0s
+		for (int i = 0; i < THREAD_TYPES; i++) {
+			_running[i] = false;
+			_systems[i] = std::vector<std::unique_ptr<System>>();
+			_frameSystems[i] = std::vector<std::unique_ptr<System>>();
+		}
+	};
 	~Game();
 
 // variables 
@@ -60,11 +69,11 @@ private:
 	std::set<int> _deletionList;
 	std::vector<EntityAction> _additionList;
 	std::set<int> _additionVerification;	// used to ensure an entity isn't added twice
-	std::vector<std::unique_ptr<System>> _systems;		// systems that are only updated once per frame
-	std::vector<std::unique_ptr<System>> _frameSystems;	// systems that can be updated multiple times per frame (fixed update).
+	std::vector<std::unique_ptr<System>> _systems[THREAD_TYPES];		// systems that are only updated once per frame
+	std::vector<std::unique_ptr<System>> _frameSystems[THREAD_TYPES];	// systems that can be updated multiple times per frame (fixed update).
 	const std::chrono::nanoseconds _frameTime = std::chrono::milliseconds( (long)(16.6666666666666666666) );
 	bool _initialized = false;
-	bool _running = false;
+	bool _running[THREAD_TYPES];
 
 // functions 
 public:
@@ -76,16 +85,16 @@ public:
 	
 	// Add a system to receive updates and enabled components. 
 	// Note: components update function will run regardless if the system is in the update list or not.
-	void addSystem(std::unique_ptr<System> system);
+	void addSystem(std::unique_ptr<System> system, ThreadType type = ThreadType::primary);
 
 	// DEPRECATED
 	void addEntity(std::unique_ptr<Entity> entity);
 	
-	// Starts the game loop. Blocking.
-	void loop();
+	// Starts a game loop. Blocking.
+	void loop(ThreadType type = ThreadType::primary);
 	
-	// Stops the game loop.
-	void stop();
+	// Stops a game loop.
+	void stop(ThreadType type = ThreadType::primary);
 
 	// Properly dispose an entity in the next frame. 
 	// Note: Better to call Entity.delete() as there may be some custom funtionality.
@@ -114,8 +123,11 @@ private:
 	// will update all components in an entity, children in entity, and notify systems
 	void updateEntity(Entity* entity, float dt);
 
-	// crawls thru scene and resolves entity addition and deletion before updates
-	void resolveEntities(Entity* entity, bool collectComponents);
+	// updates systems
+	void resolveEntities(Entity* entity, bool collectComponents, ThreadType type);
+
+	// crawls thru scene and resolves entity addition and deletion 
+	void resolveAdditionDeletion(Entity* entity);
 
 	// cleans up any remaining entities to be deleted or added
 	void resolveCleanup();

@@ -145,7 +145,6 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(1);
 
-
 	// 3rd pass - composision
 	profiler.StartTimer(2);
 	

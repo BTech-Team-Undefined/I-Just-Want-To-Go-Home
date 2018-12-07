@@ -78,12 +78,12 @@ void Game::setActiveScene(Scene* scene)
 	scene->rootEntity->setEnabled(true);
 }
 
-void Game::addSystem(std::unique_ptr<System> system)
+void Game::addSystem(std::unique_ptr<System> system, ThreadType type)
 {
 	if (system->onlyReceiveFrameUpdates)
-		_frameSystems.push_back(std::move(system));
+		_frameSystems[type].push_back(std::move(system));
 	else
-		_systems.push_back(std::move(system));
+		_systems[type].push_back(std::move(system));
 }
 
 void Game::addEntity(Entity* entity)
@@ -101,9 +101,9 @@ void Game::addEntity(Entity* entity)
 	_additionVerification.insert(entity->getID());
 }
 
-void Game::loop()
+void Game::loop(ThreadType type)
 {
-	_running = true;
+	_running[type] = true;
 
 	// ===== PERFORMANCE MEASUREMENTS =====
 		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
@@ -113,15 +113,24 @@ void Game::loop()
 
 	int frame = 0;
 
-	while (_running)
+	while (_running[type])
 	{
 		frame++;
 		previous = current;
 		current = std::chrono::high_resolution_clock::now();
 
-		// 1. entity addition & deletion, and system component notification 
-		resolveEntities(activeScene->rootEntity.get(), true);
-		resolveCleanup();
+		// 1. entity addition & deletion
+		// Only the main thread should do this
+		if (type == ThreadType::primary) {
+			resolveAdditionDeletion(activeScene->rootEntity.get());
+		}
+		// System component notification
+		resolveEntities(activeScene->rootEntity.get(), true, type);
+		// Deleted entity cleanup
+		// Once again only the main thread should do this
+		if (type == ThreadType::primary) {
+			resolveCleanup();
+		}
 
 		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
 		timeSinceLastUpdate += frameDelta;
@@ -129,32 +138,38 @@ void Game::loop()
 		{
 			// std::cout << "updated on frame: " << frame << std::endl;
 			timeSinceLastUpdate -= _frameTime;
-			// 2. entity update 
 			std::chrono::duration<double> dt = (_frameTime);
-			updateEntity(activeScene->rootEntity.get(), dt.count());
+			// 2. entity update
+			// Only the main thread should do this
+			if (type == ThreadType::primary) {
+				updateEntity(activeScene->rootEntity.get(), dt.count());
+			}
 
 			// 3. fixed system update 
-			for (int i = 0; i < _systems.size(); i++)
+			for (int i = 0; i < _systems[type].size(); i++)
 			{
-				_systems[i]->update(dt.count());
-				_systems[i]->clearComponents();	// cleanup for next iteration
+				_systems[type][i]->update(dt.count());
+				_systems[type][i]->clearComponents();	// cleanup for next iteration
 			}
 		}
 
 		// 3. frame system update 
-		for (int i = 0; i < _frameSystems.size(); i++)
+		for (int i = 0; i < _frameSystems[type].size(); i++)
 		{
-			_frameSystems[i]->update(frameDelta.count() / 1000000);
-			_frameSystems[i]->clearComponents();	// cleanup for next iteration
+			_frameSystems[type][i]->update(frameDelta.count() / 1000000);
+			_frameSystems[type][i]->clearComponents();	// cleanup for next iteration
 		}
 
-		SDL_GL_SwapWindow(_window);
+		// SDL actions should only happen in the graphics thread
+		if (type == ThreadType::graphics) {
+			SDL_GL_SwapWindow(_window);
+		}
 	}
 }
 
-void Game::stop()
+void Game::stop(ThreadType type)
 {
-	_running = false;
+	_running[type] = false;
 }
 
 // will update all components in an entity, children in entity, and notify systems
@@ -182,8 +197,7 @@ void Game::updateEntity(Entity * entity, float dt)
 	}
 }
 
-void Game::resolveEntities(Entity * entity, bool collectComponents)
-{
+void Game::resolveAdditionDeletion(Entity *entity) {
 	int id = entity->getID();
 
 	// check if branch should be deleted
@@ -207,7 +221,20 @@ void Game::resolveEntities(Entity * entity, bool collectComponents)
 	// this is pretty efficient apparently. 
 	_additionList.erase(
 		std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
-		_additionList.end());	
+		_additionList.end());
+
+	// go thru remaining children 
+	auto children = entity->getChildren();
+	for (int i = 0; i < children.size(); i++)
+	{
+		resolveAdditionDeletion(children[i]);
+	}
+
+}
+
+void Game::resolveEntities(Entity * entity, bool collectComponents, ThreadType type)
+{
+	int id = entity->getID();
 
 	// for all components notify systems 
 	if (collectComponents)
@@ -218,11 +245,11 @@ void Game::resolveEntities(Entity * entity, bool collectComponents)
 			// ... ensure it is enabled ...
 			if (!components[i]->getEnabled()) continue;
 			// ... and notify systems
-			auto type = std::type_index(typeid(*components[i]));
-			for (int j = 0; j < _systems.size(); j++)
-				_systems[j]->addComponent(type, components[i]);
-			for (int j = 0; j < _frameSystems.size(); j++)
-				_frameSystems[j]->addComponent(type, components[i]);
+			auto componentType = std::type_index(typeid(*components[i]));
+			for (int j = 0; j < _systems[type].size(); j++)
+				_systems[type][j]->addComponent(componentType, components[i]);
+			for (int j = 0; j < _frameSystems[type].size(); j++)
+				_frameSystems[type][j]->addComponent(componentType, components[i]);
 		}
 	}
 
@@ -230,7 +257,7 @@ void Game::resolveEntities(Entity * entity, bool collectComponents)
 	auto children = entity->getChildren();
 	for (int i = 0; i < children.size(); i++)
 	{
-		resolveEntities(children[i], collectComponents && entity->getEnabled());
+		resolveEntities(children[i], collectComponents && entity->getEnabled(), type);
 	}
 }
 
