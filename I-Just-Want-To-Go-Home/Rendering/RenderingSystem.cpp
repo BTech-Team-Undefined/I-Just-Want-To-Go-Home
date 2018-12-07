@@ -273,6 +273,7 @@ void RenderingSystem::RenderGeometryPass()
 	// 4th pass - post processing tentative 
 	profiler.StartTimer(3);
 	cpuProfiler.StartTimer(3);
+	glDisable(GL_DEPTH_TEST);
 
 	for (auto& pp : _postProcesses)
 	{
