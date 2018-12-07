@@ -7,7 +7,11 @@
     [
         {
             "model": "roadStart",
-            "position": [0.125, 0, 0]
+            "position": [0.125, 0, 0],
+            "colliders":
+            [
+                [[0, 2], [-0.4, 2], [-0.4, 0], [0, 0]]
+            ]
         },
         {
             "model": "roadStraight",
@@ -99,6 +103,80 @@
             "model": "roadStraight",
             "position": [7, 0, 12],
             "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [6, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [5, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [4, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [3, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [2, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [1, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [0, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-1, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-2, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-3, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-4, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-5, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-6, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadCornerLarge",
+            "position": [-7, 0, 12],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "roadStraight",
+            "position": [-8, 0, 9]
         }
     ],
     "obstacles": []
