@@ -20,3 +20,8 @@ const std::string SHADER_LIGHT_D_POS   = "u_DirectionalLightPos";	// vec3
 const std::string SHADER_LIGHT_D_DIR   = "u_DirectionalLightDir";	// vec3
 const std::string SHADER_LIGHT_D_COLOR = "u_DirectionalLightColor";	// vec4 
 // todo etc. 
+
+const std::string SHADER_MODEL = "u_Model";
+const std::string SHADER_VIEW  = "u_View";
+const std::string SHADER_PROJECTION = "u_Projection"; 
+const GLchar* SHADER_SOMETHING = "u_Model";
