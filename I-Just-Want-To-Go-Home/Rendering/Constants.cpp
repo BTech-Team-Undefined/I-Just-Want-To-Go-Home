@@ -1,4 +1,5 @@
 #include "Constants.h"
+#include <gl\glad.h>
 
 #include <string>
 
