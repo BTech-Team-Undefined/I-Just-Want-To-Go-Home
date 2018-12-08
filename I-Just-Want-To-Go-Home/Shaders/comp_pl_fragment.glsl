@@ -68,8 +68,6 @@ void main()
     // upside down parabola 
     // float attenutation = ((distance * distance) / -(u_LightRange * u_LightRange)) + 1.0;
 
-	float radius = 5.0;
-	float brightness = 0.5;	//range from 0 to 1 
 	// sigmoid function (good)
 	// float attenutation = brightness / (1 + exp(4 * distance / radius - 4));
 
@@ -78,7 +76,7 @@ void main()
 	float yes = dot(lightDir, nrm);
 	if (yes < 0)
 	{
-		float attenutation = brightness / (1 + exp(4 * distance / radius - 4));
+		float attenutation = u_LightIntensity / (1 + exp(4 * distance / u_LightRange - 4));
 		vec3 diffuse = u_LightColor * attenutation; // *col;
 		o_Col = vec4(diffuse, 1.0);
 	}
