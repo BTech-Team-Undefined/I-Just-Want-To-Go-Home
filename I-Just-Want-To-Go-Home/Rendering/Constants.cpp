@@ -1,4 +1,5 @@
 #include "Constants.h"
+#include <gl\glad.h>
 
 #include <string>
 
@@ -6,6 +7,7 @@
 // http://assimp.sourceforge.net/lib_html/materials.html
 const std::string SHADER_MODEL         = "u_Model";
 const std::string SHADER_VIEW		   = "u_View";
+const std::string SHADER_PROJECTION    = "u_Projection";
 const std::string SHADER_DIFFUSE	   = "u_Diffuse";				// color
 const std::string SHADER_SPECULAR      = "u_Specular";				// color
 const std::string SHADER_AMBIENT	   = "u_Ambient";				// color
@@ -26,3 +28,4 @@ const std::string SHADER_LIGHT_D_POS   = "u_DirectionalLightPos";	// vec3
 const std::string SHADER_LIGHT_D_DIR   = "u_DirectionalLightDir";	// vec3
 const std::string SHADER_LIGHT_D_COLOR = "u_DirectionalLightColor";	// vec4 
 // todo etc. 
+

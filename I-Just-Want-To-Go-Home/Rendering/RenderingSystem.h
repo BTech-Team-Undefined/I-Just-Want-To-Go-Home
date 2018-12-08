@@ -79,6 +79,9 @@ private:
 
 	std::map<std::string, std::unique_ptr<PostProcess>> _postProcesses;
 
+	glm::mat4 projection;
+	glm::mat4 view;
+
 
 public:
 	RenderingSystem();
@@ -95,7 +98,23 @@ public:
 	void setSkybox(unsigned int cubemapId);
 
 private: 
+	
 	void RenderGeometryPass();
+
+	void RenderDirectionalLightingPass();	// composition
+		
+	void RenderPointLightingPass();			// composition 
+
+	void RenderShadowMapsPass();
+
+	void RenderSkyboxPass();
+
+	void RenderPostProcessPass();
+
+	void RenderUIImagesPass();
+
+	void RenderUITextPass();
+
 	void RenderEntityGeometry(Entity* e, glm::mat4 transform);
 	void RenderCompositionPass();
 	void RenderText(Shader &s, std::string text, TextAlignment alignment, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, std::string font = RENDERING_SYSTEM_DEFAULT_FONT);

@@ -1,7 +1,7 @@
 // https://www.youtube.com/watch?v=Z9bYzpwVINA
 // Simple FXAA that uses 5 samples in an X pattern. 
 
-#version 450 core
+#version 420 core
 
 in vec2 f_Uv;
 

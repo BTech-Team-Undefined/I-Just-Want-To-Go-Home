@@ -33,7 +33,7 @@ void Game::initialize()
 
 	// prepare opengl version (4.5) for SDL 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	// using core as opposed to compatibility or ES 
 
 	// create window
@@ -212,27 +212,39 @@ void Game::resolveEntities(Entity * entity, bool parentEnabled)
 	int id = entity->getID();
 
 	// check if branch should be deleted
-	auto toDelete = _deletionList.find(id);
-	if (toDelete != _deletionList.end())
+	if (_deletionList.size() > 0)
 	{
-		entity->release();
-		_deletionList.erase(toDelete);
-		return;
+		auto toDelete = _deletionList.find(id);
+		if (toDelete != _deletionList.end())
+		{
+			entity->release();
+			_deletionList.erase(toDelete);
+			return;
+		}
 	}
 
 	// check if something should be added 
-	for (auto& entry : _additionList)
+	if (_additionList.size() > 0)
 	{
-		if (entry.target == id)
+		bool updateList = false;
+
+		for (auto& entry : _additionList)
 		{
-			std::cout << "Adding entity " << entry.entity->getID() << " to parent entity " << id << std::endl;
-			entity->addChild(entry.entity);
+			if (entry.target == id)
+			{
+				std::cout << "Adding entity " << entry.entity->getID() << " to parent entity " << id << std::endl;
+				entity->addChild(entry.entity);
+				updateList = true;
+			}
+		}
+
+		if (updateList)
+		{
+			_additionList.erase(
+				std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
+				_additionList.end());
 		}
 	}
-	// this is pretty efficient apparently. 
-	_additionList.erase(
-		std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
-		_additionList.end());	
 
 	if (parentEnabled)
 	{
