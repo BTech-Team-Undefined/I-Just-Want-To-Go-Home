@@ -489,7 +489,7 @@ void RenderingSystem::RenderText(Shader& s,
 			return;
 		}
 	}
-	auto fontInfo = fonts[font];
+	const auto fontInfo = &fonts[font];
 
 	// Activate corresponding render state	
 	s.use();
@@ -509,7 +509,7 @@ void RenderingSystem::RenderText(Shader& s,
 		std::string::const_iterator c;
 		for (c = line.begin(); c != line.end(); c++)
 		{
-			Character ch = fontInfo.Characters[*c];
+			Character ch = fontInfo->Characters[*c];
 			// Bitshift by 6 to get value in pixels (2^6 = 64)
 			horSize += (ch.Advance >> 6) * scale; 
 		}
@@ -525,7 +525,7 @@ void RenderingSystem::RenderText(Shader& s,
 		// Iterate through all characters
 		for (c = line.begin(); c != line.end(); c++)
 		{
-			Character ch = fontInfo.Characters[*c];
+			Character ch = fontInfo->Characters[*c];
 
 			GLfloat xpos = x + ch.Bearing.x * scale;
 			GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
@@ -555,7 +555,7 @@ void RenderingSystem::RenderText(Shader& s,
 		}
 
 		// shift drawing position down for next line
-		y -= (fontInfo.LineHeight >> 6) * scale;
+		y -= (fontInfo->LineHeight >> 6) * scale;
 		// and reset x position 
 		x = initialX;
 		horSize = 0;
