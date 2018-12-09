@@ -312,10 +312,10 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	float im = 1 / pc->mass;
 	float length = 4; // length of the chasis. 
 	PhysicsVector f = pc->force;
-	float af = pc->angularForce;
+	float af = pc->angularForce; // steering
 	PhysicsVector v = pc->velocity;
-	float av = pc->angularVelocity;
-	float turn;
+	float av = pc->angularVelocity;//angular_velocity
+	float turn;//turn radius
 	
 
 	turn = length / tan(M_PI * af);
