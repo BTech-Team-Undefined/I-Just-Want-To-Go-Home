@@ -4,6 +4,7 @@
 #include <ft2build.h>
 #include <freetype\freetype.h>
 #include "OpenGLProfiler.h"
+#include "../Core/CpuProfiler.h"
 #include "Renderable.h"
 #include "RenderComponent.h"
 #include "../Camera.h"
@@ -13,6 +14,7 @@
 #include "UI\View.h"
 #include "UI\ImageComponent.h"
 #include "UI\TextComponent.h"
+#include "PostProcess\PostProcess.h"
 
 
 #define RENDERING_SYSTEM_DEFAULT_FONT "fonts/arial.ttf"
@@ -45,13 +47,20 @@ public:
 	Shader* textShader;			// default text shader 
 	Shader* imageShader;		// default UI shader 
 	Shader* postShader;			// default postprocessing shader 
+	Shader* postToScreenShader;	// default shader to move final texture to back buffer
+	Shader* skyboxShader;		// default shader for skybox
+
+	unsigned int skyboxTexture;
 
 private:
 	OpenGLProfiler profiler;
-	unsigned int quadVAO;
-	unsigned int FBO, posTex, nrmTex, colTex, dphTex;
-	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	CpuProfiler cpuProfiler;
+	unsigned int quadVAO, cubeVAO;
+	unsigned int FBO, posTex, nrmTex, colTex, dphTex, finWriteTex, finReadTex;
+	unsigned int ppWriteFBO, ppReadFBO;
 	unsigned int screenWidth, screenHeight; 
+	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	unsigned int ppAttachments[1] = { GL_COLOR_ATTACHMENT0 };
 
 	FT_Library ft;
 	unsigned int textVAO;	// quad to draw a single letter 
@@ -65,6 +74,9 @@ private:
 	std::vector<TextComponent*> _texts;
 	std::vector<ImageComponent*> _images; 
 
+	std::map<std::string, std::unique_ptr<PostProcess>> _postProcesses;
+
+
 public:
 	RenderingSystem();
 	~RenderingSystem();
@@ -74,6 +86,10 @@ public:
 	virtual void addComponent(std::type_index t, Component* component) override;
 	virtual void clearComponents() override;
 	void LoadFont(std::string path);
+	void addPostProcess(const std::string name, std::unique_ptr<PostProcess> postProcess);
+	void removePostProcess(const std::string name);
+	PostProcess* getPostProcess(const std::string name);
+	void setSkybox(unsigned int cubemapId);
 
 private: 
 	void RenderGeometryPass();
@@ -83,6 +99,7 @@ private:
 	void RenderImage(Shader &s, ImageComponent* image);
 	void InitializeFrameBuffers();
 	void InitializeScreenQuad();
+	void InitializeScreenCube();
 	void InitializeTextEngine();
 	void DrawComponent(RenderComponent* component);
 };

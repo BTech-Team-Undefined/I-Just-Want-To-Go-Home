@@ -37,7 +37,15 @@
     <ClCompile Include="Rendering\UI\View.cpp" />
     <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
     <ClCompile Include="Game\TimeDisplayComponent.cpp" />
+    <ClCompile Include="libs\json\json_reader.cpp" />
+    <ClCompile Include="libs\json\json_value.cpp" />
+    <ClCompile Include="libs\json\json_writer.cpp" />
     <ClCompile Include="Game\StickyTransformComponent.cpp" />
+    <ClCompile Include="Core\CpuProfiler.cpp" />
+    <ClCompile Include="Rendering\PostProcess\PostProcess.cpp" />
+    <ClCompile Include="Rendering\PostProcess\NegativePP.cpp" />
+    <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
+    <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -80,11 +88,29 @@
     <ClInclude Include="Rendering\UI\View.h" />
     <ClInclude Include="Game\SpeedDisplayComponent.h" />
     <ClInclude Include="Game\TimeDisplayComponent.h" />
+    <ClInclude Include="libs\json\allocator.h" />
+    <ClInclude Include="libs\json\assertions.h" />
+    <ClInclude Include="libs\json\autolink.h" />
+    <ClInclude Include="libs\json\config.h" />
+    <ClInclude Include="libs\json\features.h" />
+    <ClInclude Include="libs\json\forwards.h" />
+    <ClInclude Include="libs\json\json.h" />
+    <ClInclude Include="libs\json\json_tool.h" />
+    <ClInclude Include="libs\json\reader.h" />
+    <ClInclude Include="libs\json\value.h" />
+    <ClInclude Include="libs\json\version.h" />
+    <ClInclude Include="libs\json\writer.h" />
     <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
+    <ClInclude Include="Core\CpuProfiler.h" />
+    <ClInclude Include="Rendering\PostProcess\PostProcess.h" />
+    <ClInclude Include="Rendering\PostProcess\NegativePP.h" />
+    <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
+    <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="libs\json\json_valueiterator.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Rendering\DOCUMENTATION.txt" />
