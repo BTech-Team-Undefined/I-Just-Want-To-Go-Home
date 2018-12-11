@@ -21,8 +21,8 @@ RenderingSystem::RenderingSystem() : System()
 	onlyReceiveFrameUpdates = true;
 
 	// create profiler 
-	profiler.InitializeTimers(6);		// 1 for each pass so far 
-	cpuProfiler.InitializeTimers(8);	// 1 for each pass, 1 for general use, 1 for initialization
+	profiler.InitializeTimers(10);		// 1 for each pass so far 
+	cpuProfiler.InitializeTimers(10);	// 1 for each pass, 1 for general use, 1 for initialization
 	cpuProfiler.LogOutput("RenderingSystem.log")
 		.FormatMilliseconds(true);
 		//.PrintOutput(true);
@@ -111,39 +111,40 @@ void RenderingSystem::SetCamera(Camera * camera)
 	this->activeCamera = camera;
 }
 
+
 void RenderingSystem::RenderGeometryPass()
 {
 	// 1. First pass - Geometry into gbuffers 
-	profiler.StartTimer(0);
-	cpuProfiler.StartTimer(0);
-
 	// cleanup 
 	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, ppReadFBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	geometryShader->use();
 	// bind geometry frame buffers 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	glDrawBuffers(3, attachments);	// need to clear out ALL frame buffers (even though we only draw to 3 + depth at the moment).
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// begin rendering each renderable 
-	auto projection = activeCamera->GetProjectionMatrix();
-	auto view = activeCamera->GetViewMatrix();
-	geometryShader->setMat4("u_Projection", projection);
-	geometryShader->setMat4("u_View", view);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 
+	// begin rendering each renderable 
+	geometryShader->setMat4(SHADER_PROJECTION, projection);
+	geometryShader->setMat4(SHADER_VIEW, view);
+	
 	// go thru each component 
 	for (int i = 0; i < _components.size(); i++)
 	{
 		auto rc = _components[i];
-		auto model = rc->getEntity()->getWorldTransformation();		// this can be optimized 
-		geometryShader->setMat4("u_Model", model);
+		auto model = rc->getEntity()->getWorldTransformation();		
+		geometryShader->setMat4(SHADER_MODEL, model);
+		
 		// ensure default values incase material does not have it
-		geometryShader->setVec3(SHADER_DIFFUSE.c_str(), glm::vec3(1,1,1));
-		geometryShader->setVec3(SHADER_SPECULAR.c_str(), glm::vec3(1,1,1));
-		geometryShader->setVec3(SHADER_AMBIENT.c_str(), glm::vec3(1,1,1));
+		geometryShader->setVec3(SHADER_DIFFUSE, glm::vec3(1,1,1));
+		geometryShader->setVec3(SHADER_SPECULAR, glm::vec3(1,1,1));
+		geometryShader->setVec3(SHADER_AMBIENT, glm::vec3(1,1,1));
 
 		// go thru each renderable package 
 		for (int i = 0; i < rc->renderables.size(); i++)
@@ -163,15 +164,11 @@ void RenderingSystem::RenderGeometryPass()
 		}
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-	profiler.StopTimer(0);
-	cpuProfiler.StopTimer(0);
-
-
+void RenderingSystem::RenderShadowMapsPass()
+{
 	// 2nd Pass - lighting shadow map   
-	profiler.StartTimer(1);
-	cpuProfiler.StartTimer(1);
-
 	for (int i = 0; i < _dlights.size(); i++)
 	{
 		shadowmapShader->use();
@@ -182,8 +179,17 @@ void RenderingSystem::RenderGeometryPass()
 		for (int i = 0; i < _components.size(); i++)
 		{
 			auto rc = _components[i];
-			auto model = rc->getEntity()->getWorldTransformation();		// this can be optimized 
-			shadowmapShader->setMat4("u_Model", model);
+			//auto model = rc->getEntity()->getWorldTransformation();		// this can be optimized 
+			//shadowmapShader->setMat4("u_Model", rc->getEntity()->getWorldTransformation());
+
+			// above 2 lines is equivalent to below (but below is 2-4x faster for some reason).
+			glUniformMatrix4fv(
+				glGetUniformLocation(shadowmapShader->programId, "u_Model"), 
+				1, 
+				GL_FALSE, 
+				&rc->getEntity()->getWorldTransformation()[0][0]);
+
+			shadowmapShader->setMat4(SHADER_MODEL, rc->getEntity()->getWorldTransformation());
 
 			// go thru each renderable package 
 			for (int i = 0; i < rc->renderables.size(); i++)
@@ -199,15 +205,11 @@ void RenderingSystem::RenderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-	profiler.StopTimer(1);
-	cpuProfiler.StopTimer(1);
-
-
+void RenderingSystem::RenderDirectionalLightingPass()
+{
 	// 3rd pass - composision
-	profiler.StartTimer(2);
-	cpuProfiler.StartTimer(2);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
 	glDrawBuffers(1, ppAttachments);
 
@@ -228,7 +230,7 @@ void RenderingSystem::RenderGeometryPass()
 	glBindTexture(GL_TEXTURE_2D, colTex);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, dphTex);
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glEnable(GL_DEPTH_TEST);
@@ -240,7 +242,7 @@ void RenderingSystem::RenderGeometryPass()
 		compositionShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*_dlights[i]).TexId);
-	
+
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
@@ -252,9 +254,15 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(2);
 	cpuProfiler.StopTimer(2);
+}
 
+void RenderingSystem::RenderPointLightingPass()
+{
+}
 
-	// 3.5th pass - skybox pass (should be relatively cheap).
+void RenderingSystem::RenderSkyboxPass()
+{
+	// skybox pass 
 	if (skyboxTexture != 0)
 	{
 		// set render target 
@@ -276,16 +284,17 @@ void RenderingSystem::RenderGeometryPass()
 		// we're going to manually revert the depth test (b/c we don't want every single other pass doing it)
 		glDepthFunc(GL_LESS);
 	}
+}
 
-	// 4th pass - post processing tentative 
-	profiler.StartTimer(3);
-	cpuProfiler.StartTimer(3);
+void RenderingSystem::RenderPostProcessPass()
+{
+	// post processing 
 	glDisable(GL_DEPTH_TEST);
 
 	for (auto& pp : _postProcesses)
 	{
 		if (!pp.second->enabled) continue;
-		
+
 		// we keep on swapping the finished read/write texture so PP can read/write to current image 
 		std::swap(finWriteTex, finReadTex);				// allow pp to read from current rendered image 
 		std::swap(ppWriteFBO, ppReadFBO);				// allow pp to write to "current rendered" image (for next pp)
@@ -294,7 +303,7 @@ void RenderingSystem::RenderGeometryPass()
 
 		pp.second->shader->use();
 		// set order 
-		pp.second->shader->setInt("u_PosTex", 0);	
+		pp.second->shader->setInt("u_PosTex", 0);
 		pp.second->shader->setInt("u_NrmTex", 1);
 		pp.second->shader->setInt("u_ColTex", 2);
 		pp.second->shader->setInt("u_DphTex", 3);
@@ -329,10 +338,10 @@ void RenderingSystem::RenderGeometryPass()
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
+}
 
-	profiler.StopTimer(3);
-	cpuProfiler.StopTimer(3);
-
+void RenderingSystem::RenderUIImagesPass()
+{
 	// 5th pass - UI images 
 	profiler.StartTimer(4);
 	cpuProfiler.StartTimer(4);
@@ -350,7 +359,10 @@ void RenderingSystem::RenderGeometryPass()
 
 	profiler.StopTimer(4);
 	cpuProfiler.StopTimer(4);
+}
 
+void RenderingSystem::RenderUITextPass()
+{
 	// 6th pass - UI text 
 	profiler.StartTimer(5);
 	cpuProfiler.StartTimer(5);
@@ -363,33 +375,25 @@ void RenderingSystem::RenderGeometryPass()
 		RenderText(*textShader,
 			_texts[i]->getText(),
 			_texts[i]->alignment,
-			pos.x, pos.y, 
-			_texts[i]->scale, 
-			_texts[i]->color, 
+			pos.x, pos.y,
+			_texts[i]->scale,
+			_texts[i]->color,
 			_texts[i]->font);
-	}	
+	}
 	// glDisable(GL_BLEND);
 
 	profiler.StopTimer(5);
 	cpuProfiler.StopTimer(5);
-
-	profiler.FrameFinish();
-	cpuProfiler.FrameFinish();
-
-	// render debug info (please note that this is pretty performance heavy ~2ms)
-	std::stringstream ss;
-	ss << std::fixed << std::setprecision(2)
-		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
-		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
-		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
-		<< "Postprocessing Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
-		<< "Image Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
-		<< "Text Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n";
-	RenderText(*textShader, ss.str(), TextAlignment::Left, 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
-
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
 }
+
+void RenderingSystem::RenderCompositionPass()
+{
+}
+
+
+
+
+
 
 void RenderingSystem::DrawComponent(RenderComponent* component)
 {
@@ -399,10 +403,6 @@ void RenderingSystem::DrawComponent(RenderComponent* component)
 	{
 		auto r = component->renderables[i];
 	}
-}
-
-void RenderingSystem::RenderCompositionPass()
-{
 }
 
 // adapted from https://learnopengl.com/In-Practice/Text-Rendering
@@ -746,6 +746,8 @@ void RenderingSystem::InitializeTextEngine()
 
 void RenderingSystem::update(float dt)
 {
+	cpuProfiler.StartTimer(0);
+
 	// Cleanup 
 	glClearDepth(1.0f);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -778,8 +780,77 @@ void RenderingSystem::update(float dt)
 		std::cerr << "ERROR: No camera has been set for rendering" << std::endl;
 	}
 
+
+	// Render 
+
+	// prepare data 
+	projection = activeCamera->GetProjectionMatrix();
+	view = activeCamera->GetViewMatrix();
+
+	cpuProfiler.StopTimer(0);
+
 	// draw everything
-	RenderGeometryPass();	// this actually does all the passes at the moment
+	profiler.StartTimer(1);
+	cpuProfiler.StartTimer(1);
+	RenderGeometryPass();				// 1st pass (geometry)
+	profiler.StopTimer(1);
+	cpuProfiler.StopTimer(1);
+
+	profiler.StartTimer(2);
+	cpuProfiler.StartTimer(2);
+	RenderShadowMapsPass();				// 2nd pass (shadow maps)
+	profiler.StopTimer(2);
+	cpuProfiler.StopTimer(2);
+
+	profiler.StartTimer(3);
+	cpuProfiler.StartTimer(3);
+	RenderDirectionalLightingPass();	// 3rd pass (lighting)
+	profiler.StopTimer(3);
+	cpuProfiler.StopTimer(3);
+
+	profiler.StartTimer(4);
+	cpuProfiler.StartTimer(4);
+	RenderPointLightingPass();			// 4rd pass (lighting)
+	profiler.StopTimer(4);
+	cpuProfiler.StopTimer(4);
+
+	profiler.StartTimer(5);
+	cpuProfiler.StartTimer(5);
+	RenderSkyboxPass();					// 5th pass (skybox)
+	profiler.StopTimer(5);
+	cpuProfiler.StopTimer(5);
+
+	profiler.StartTimer(6);
+	cpuProfiler.StartTimer(6);
+	RenderPostProcessPass();			// 6th pass (post processes)
+	profiler.StopTimer(6);
+	cpuProfiler.StopTimer(6);
+
+	profiler.StartTimer(7);
+	cpuProfiler.StartTimer(7);
+	RenderUIImagesPass();				// 7th pass (UI)
+	profiler.StopTimer(7);
+	cpuProfiler.StopTimer(7);
+
+	profiler.StartTimer(8);
+	cpuProfiler.StartTimer(8);
+	RenderUITextPass();					// 8th pass (UI)
+	profiler.StopTimer(8);
+	cpuProfiler.StopTimer(8);
+
+	profiler.FrameFinish();
+	cpuProfiler.FrameFinish();
+
+	// render debug info (please note that this is pretty performance heavy ~2ms)
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2)
+		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
+		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
+		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
+		<< "Postprocessing Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
+		<< "Image Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
+		<< "Text Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n";
+	RenderText(*textShader, ss.str(), TextAlignment::Left, 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
 }
 
 void RenderingSystem::addComponent(std::type_index t, Component * component)
@@ -798,11 +869,13 @@ void RenderingSystem::addComponent(std::type_index t, Component * component)
 
 void RenderingSystem::clearComponents()
 {
+	cpuProfiler.StartTimer(9);
 	_components.clear();
 	_dlights.clear();
 	_cameras.clear();
 	_texts.clear();
 	_images.clear();
+	cpuProfiler.StopTimer(9);
 }
 
 void RenderingSystem::LoadFont(std::string path)

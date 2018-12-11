@@ -42,6 +42,8 @@ void PhysicsSystem::CheckCollisions()
 	this->_justChecked.clear();
 	for (int from = 0; from < this->_colliders.size(); ++from)
 	{
+		if (this->_colliders[from]->GetEntity()->getStatic())
+			continue;
 		for (int to = 0; to < this->_colliders.size(); ++to)
 		{
 			// if self
