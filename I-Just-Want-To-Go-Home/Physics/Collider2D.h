@@ -18,6 +18,7 @@ public:
 	// relative to the origin of the renderable object
 	Point roughCenter = Point(0, 0);
 	float roughRadius = 0;
+	bool hasPhysics = true;
 	// relative to the origin of the renderable object
 	vector<Point> collider;
 	vector<int> collidingIds;
