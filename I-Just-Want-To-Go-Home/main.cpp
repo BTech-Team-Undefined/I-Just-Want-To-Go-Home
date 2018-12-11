@@ -99,10 +99,10 @@ int main(int argc, char* args[])
 	// physics 
 	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
 	vector<Point> e6ColliderBox;
-	e6ColliderBox.push_back(Point(-1, -1)); // top left
-	e6ColliderBox.push_back(Point(1, -1)); // top right
-	e6ColliderBox.push_back(Point(1, 1)); // bottom right
-	e6ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
+	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
+	e6ColliderBox.push_back(Point(0.25, 0.25)); // bottom right
+	e6ColliderBox.push_back(Point(-0.25, 0.25)); // bottom left
 	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
 	playerEntity->addComponent<PhysicsComponent>();
 	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
@@ -181,6 +181,8 @@ int main(int argc, char* args[])
 		trackEntities.push_back(Game::instance().loader.LoadModel("Models/racingkit2/" + modelName + ".obj"));
 		int currentIndex = trackEntities.size() - 1;
 
+		trackEntities[currentIndex]->setStatic(true);
+
 		Json::Value position = tracks[i]["position"];
 		double posX = position[0].asDouble();
 		double posY = position[1].asDouble();
@@ -195,18 +197,47 @@ int main(int argc, char* args[])
 			double rotZ = rotation[2].asDouble();
 			trackEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));
 		}
+
+		Json::Value colliders = tracks[i]["colliders"];
+		if (colliders != NULL)
+		{
+			trackEntities[currentIndex]->addComponent<PhysicsComponent>();
+			auto trackPhysics = trackEntities[currentIndex]->getComponent<PhysicsComponent>();
+			trackPhysics->isStatic = true;
+			trackPhysics->directionalDrag = false;
+
+			for (int i = 0; i < colliders.size(); ++i)
+			{
+				Json::Value collider = colliders[i];
+				Json::Value topLeft = collider[0];
+				Json::Value topRight = collider[1];
+				Json::Value bottomRight = collider[2];
+				Json::Value bottomLeft = collider[3];
+
+				auto colliderObj = std::make_shared<Trigger>([] {std::cout << "collision!"; });
+				vector<Point> colliderBox;
+
+				colliderBox.push_back(Point(topLeft[0].asDouble() * ENTITY_SCALE, topLeft[1].asDouble() * ENTITY_SCALE)); // top left
+				colliderBox.push_back(Point(topRight[0].asDouble() * ENTITY_SCALE, topRight[1].asDouble() * ENTITY_SCALE)); // top right
+				colliderBox.push_back(Point(bottomRight[0].asDouble() * ENTITY_SCALE, bottomRight[1].asDouble() * ENTITY_SCALE)); // bottom right
+				colliderBox.push_back(Point(bottomLeft[0].asDouble() * ENTITY_SCALE, bottomLeft[1].asDouble() * ENTITY_SCALE)); // bottom left
+
+				colliderObj->SetCollider(colliderBox, Point(0, 0), 4.0f * ENTITY_SCALE);
+				trackPhysics->AddCollider(colliderObj);
+			}
+		}
 		
 		trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);
 		trackEntities[currentIndex]->setStatic(true);
 		Game::instance().addEntity(trackEntities[currentIndex].get());
 	}
+
 	/*
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
 	rc1->renderables.push_back(cubeRenderable);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 0, -2);
-	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
 	auto e1Collider = std::make_shared<Trigger>([] {std::cout << "this is a test" << endl; });
 	vector<Point> e1ColliderBox;
@@ -289,7 +320,48 @@ int main(int argc, char* args[])
 	eLightHolder->addComponent<StickyTransformComponent>();
 	eLightHolder->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
 	eLightHolder->addChild(eLight);
-	eLightHolder->addChild(eLight2);
+	//eLightHolder->addChild(eLight2);
+
+	auto ePLight1 = new Entity();
+	ePLight1->addComponent<PointLight>();
+	ePLight1->getComponent<PointLight>()->range = 1;
+	ePLight1->getComponent<PointLight>()->color = glm::vec3(1,0,0);
+	ePLight1->position = glm::vec3(-1, -0.5, 10);
+
+	auto ePLightGateL = new Entity();
+	ePLightGateL->addComponent<PointLight>();
+	ePLightGateL->getComponent<PointLight>()->range = 0.8;
+	ePLightGateL->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
+	ePLightGateL->position = glm::vec3(-1.2, 0.9, 4);
+
+	auto ePLightGateR = new Entity();
+	ePLightGateR->addComponent<PointLight>();
+	ePLightGateR->getComponent<PointLight>()->range = 0.8;
+	ePLightGateR->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
+	ePLightGateR->position = glm::vec3(-3.7, 0.9, 4);
+
+	auto ePLightStartHolder = new Entity();
+	ePLightStartHolder->addChild(ePLightGateL);
+	ePLightStartHolder->addChild(ePLightGateR);
+
+	for (int i = 0; i < 4; i++)
+	{
+		auto epLeft = new Entity();
+		auto epRight = new Entity();
+		epLeft->position = glm::vec3(-4.3, -0.5, 8 + i * 3);
+		epRight->position = glm::vec3(-0.2, -0.5, 8 + i * 3);
+
+		epLeft->addComponent<PointLight>();
+		epLeft->getComponent<PointLight>()->color = (i % 2 == 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
+		epLeft->getComponent<PointLight>()->range = 1.0;
+		epRight->addComponent<PointLight>();
+		epRight->getComponent<PointLight>()->color = (i % 2 != 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
+		epRight->getComponent<PointLight>()->range = 1.0;
+
+		ePLightStartHolder->addChild(epLeft);
+		ePLightStartHolder->addChild(epRight);
+	}
+
 
 	// ===== TEXT =====
 	auto eText1 = new Entity();
@@ -392,6 +464,8 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(e3);
 	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(eLightHolder);
+	Game::instance().addEntity(ePLightStartHolder);
+	Game::instance().addEntity(ePLight1);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);

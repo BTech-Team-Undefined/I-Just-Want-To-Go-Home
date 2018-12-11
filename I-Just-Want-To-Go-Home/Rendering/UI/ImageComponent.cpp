@@ -4,6 +4,7 @@
 
 ImageComponent::ImageComponent() : Component(std::type_index(typeid(ImageComponent)))
 {
+	alignment = TextAlignment::Center;
 }
 
 
