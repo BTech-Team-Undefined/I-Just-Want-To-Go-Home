@@ -572,6 +572,13 @@ void RenderingSystem::RenderImage(Shader & s, ImageComponent * image)
 	auto size = glm::vec2(image->width / 2, image->height / 2);		// size of box 
 	auto transform = image->getEntity()->getWorldTransformation();	// transform
 
+	// default 
+	if (image->alignment == TextAlignment::Left)
+		transform = glm::translate(transform, glm::vec3(size.x, 0, 0));
+	else if (image->alignment == TextAlignment::Right)
+		transform = glm::translate(transform, glm::vec3(-size.x, 0, 0));
+	// else alignment is center, don't do anything.
+
 	imageShader->setVec2("u_Size", size);
 	imageShader->setMat4("u_Model", transform);
 	imageShader->setMat4("u_Projection", uiProjection);
