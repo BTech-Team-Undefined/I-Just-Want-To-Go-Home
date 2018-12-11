@@ -36,6 +36,7 @@ public:
 
 		// operate on the components
 		// ===== Test Sound =====
+		cout << "Sound Update" << endl;
 		playSound("file.test");
 		gMusic = Mix_LoadMUS("Sound/BGM.wav");
 		if (gMusic == NULL)
@@ -51,6 +52,7 @@ public:
 		{
 			if (!component->playing)
 			{
+				cout << "Sound Update" << endl;
 				playSound(component->audioPath.c_str());
 				// load audio ( component -> audioPath );
 				// play audio 
