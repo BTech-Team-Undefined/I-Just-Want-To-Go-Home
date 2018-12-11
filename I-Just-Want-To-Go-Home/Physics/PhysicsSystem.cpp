@@ -255,19 +255,21 @@ void PhysicsSystem::CheckCollisions()
 				int toID = toCollider->GetEntity()->getID();
 				Entity* higher = fromID > toID ? fromCollider->GetEntity() : toCollider->GetEntity();
 				Entity* lower = fromID > toID ? toCollider->GetEntity() : fromCollider->GetEntity();
-				if (collisions.count(lower->getID() + "x" + higher->getID()) == 0 && lower != higher) {
-					collisions.insert(
-						pair<string, Collision*>(
-							lower->getID() + "x" + higher->getID(),
-							new Collision(pair<Entity*, Entity*>(lower, higher),
-								pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>(fromCollider, toCollider))
-						)
-					);
-				}
-				else {
-					collisions[lower->getID() + "x" + higher->getID()]->colliders.push_back(
-						pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>(fromCollider, toCollider)
-					);
+				if (lower != higher) {
+					if (collisions.count(lower->getID() + "x" + higher->getID()) == 0) {
+						collisions.insert(
+							pair<string, Collision*>(
+								lower->getID() + "x" + higher->getID(),
+								new Collision(pair<Entity*, Entity*>(lower, higher),
+									pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>(fromCollider, toCollider))
+								)
+						);
+					}
+					else {
+						collisions[lower->getID() + "x" + higher->getID()]->colliders.push_back(
+							pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>(fromCollider, toCollider)
+						);
+					}
 				}
 				if (find(fromCollider->collidingIds.begin(), fromCollider->collidingIds.end(), toCollider->colliderId) == fromCollider->collidingIds.end())
 				{
@@ -394,9 +396,9 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 	PhysicsVector n = dist.unit();
 
 	// Bad positional correction
-	const float ratio = 0.035;
-	PhysicsVector corr1 = -n * ratio * im1;
-	PhysicsVector corr2 = n * ratio * im2;
+	const float ratio = 0.025;
+	PhysicsVector corr1 = -n * ratio * im1 * pc1->velocity.length();
+	PhysicsVector corr2 = n * ratio * im2 * pc2->velocity.length();
 	e1->position = glm::vec3(e1->position.x + corr1.x, e1->position.y, e1->position.z + corr1.y);
 	e2->position = glm::vec3(e2->position.x + corr2.x, e2->position.y, e2->position.z + corr2.y);
 	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
