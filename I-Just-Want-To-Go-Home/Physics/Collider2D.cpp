@@ -28,6 +28,22 @@ Point Collider2D::GetOrigin()
 	return Point(pos.x, pos.z);
 }
 
+Point Collider2D::GetCenter()
+{
+	return GetOrigin() + GetLocalCenter();
+}
+
+Point Collider2D::GetLocalCenter()
+{
+	Point c = Point(0, 0);
+	float weight = 1.0 / collider.size();
+	for (auto a = collider.begin(); a < collider.end(); a++) {
+		c.x += a->x * weight;
+		c.y += a->y * weight;
+	}
+	return c;
+}
+
 float Collider2D::GetRotationY()
 {
 	return this->_entity->rotation.y;
