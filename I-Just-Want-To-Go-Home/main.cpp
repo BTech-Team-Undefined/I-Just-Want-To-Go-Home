@@ -5,15 +5,20 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
+#include <SDL2\SDL_mixer.h> // this is sound mixer
 // OpenGL support 
 #include <gl\glad.h>
 #include <SDL2\SDL_opengl.h>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
+// jsoncpp
+#include "libs/json/json.h"
+#include "libs/json/value.h"
 // Engine objects 
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
@@ -52,6 +57,8 @@ extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
+Mix_Music *gMusic = NULL;
+
 int main(int argc, char* args[])
 {
 	// ===== INITIALIZE CORE GAME ENGINE =====
@@ -75,6 +82,16 @@ int main(int argc, char* args[])
 	Scene* scene = new Scene();
 	Game::instance().setActiveScene(scene);
 
+	// ===== Test Sound =====
+	gMusic = Mix_LoadMUS("Sound/BGM.wav");
+	if (gMusic == NULL)
+	{
+		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+	}
+	if (Mix_PlayingMusic() == 0) {
+		Mix_PlayMusic(gMusic, -1);
+	}
+
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
@@ -95,8 +112,8 @@ int main(int argc, char* args[])
 	// input 
 	playerEntity->addComponent<DebugInputComponent>();
 	// visuals 
-	auto tankEntity = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
-	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	auto tankEntity = Game::instance().loader.LoadModel("Models/racingkit2/raceCarRed.obj");
+	tankEntity->rotation = glm::vec3(0, glm::radians(180.0f), 0);
 	// camera 
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
@@ -139,7 +156,58 @@ int main(int argc, char* args[])
 	planeRenderable->mesh = planeMesh;
 	planeRenderable->material = material1;
 
+	// create generic colliders 
+	std::vector<Point> colBox;
+	colBox.push_back(Point(-1, -1));
+	colBox.push_back(Point(1, -1));
+	colBox.push_back(Point(1, 1));
+	colBox.push_back(Point(-1, 1));
+
 	// ===== LEVEL ENTITIES =====
+
+	const float ENTITY_SCALE = 5;
+
+	const string MDL_ROAD_START = "Models/racingkit2/roadStart.obj";
+	const string MDL_ROAD_STRAIGHT = "Models/racingkit2/roadStraight.obj";
+	const string MDL_ROAD_STRAIGHT_LONG = "Models/racingkit2/roadStraightLong.obj";
+	const string MDL_ROAD_CORNER_SMALL = "Models/racingkit2/roadCornerSmall.obj";
+	const string MDL_ROAD_CORNER_SMALL_WALL = "Models/racingkit2/roadCornerSmallWall.obj";
+	const string MDL_ROAD_CORNER_LARGE = "Models/racingkit2/roadCornerLarge.obj";
+	const string MDL_ROAD_CORNER_LARGE_WALL = "Models/racingkit2/roadCornerLargeWall.obj";
+	const string MDL_ROAD_CORNER_LARGE_WALL_INNER = "Models/racingkit2/roadCornerLargeWallInner.obj";
+
+	Json::Value stageData;
+	std::ifstream stage_file("Maps/stage1.json", std::ifstream::binary);
+	stage_file >> stageData;
+
+	vector<unique_ptr<Entity>> trackEntities;
+	Json::Value tracks = stageData["tracks"];
+	for (int i = 0; i < tracks.size(); ++i)
+	{
+		string modelName = tracks[i]["model"].asString();
+		trackEntities.push_back(Game::instance().loader.LoadModel("Models/racingkit2/" + modelName + ".obj"));
+		int currentIndex = trackEntities.size() - 1;
+
+		Json::Value position = tracks[i]["position"];
+		double posX = position[0].asDouble();
+		double posY = position[1].asDouble();
+		double posZ = position[2].asDouble();
+		trackEntities[currentIndex]->position = glm::vec3(posX * ENTITY_SCALE, -2 + posY * ENTITY_SCALE, posZ * ENTITY_SCALE);
+
+		Json::Value rotation = tracks[i]["rotation"];
+		if (rotation != NULL)
+		{
+			double rotX = rotation[0].asDouble();
+			double rotY = rotation[1].asDouble();
+			double rotZ = rotation[2].asDouble();
+			trackEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));
+		}
+		
+		trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);
+		trackEntities[currentIndex]->setStatic(true);
+		Game::instance().addEntity(trackEntities[currentIndex].get());
+	}
+	/*
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
@@ -210,6 +278,7 @@ int main(int argc, char* args[])
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
+	*/
 
 	// ===== LIGHT ENTITIES ====
 	auto eLight = new Entity();
@@ -319,22 +388,22 @@ int main(int argc, char* args[])
 	timeTextComponent->font = "fonts/futur.ttf";
 	timeTextComponent->alignment = TextAlignment::Center;
 
-	auto eTest = new Entity();
-	eTest->addComponent<RenderComponent>();
-	eTest->getComponent<RenderComponent>()->renderables.push_back(cubeRenderable);
-	eTest->addComponent<StickyTransformComponent>();
-	eTest->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
+	// ===== FREEZE OBJECTS ===== 
+	eTime->setStatic(true);
 
 	// win text 
 	auto eWinDisplay = new Entity();
 	eWinDisplay->setEnabled(false);
+	eWinDisplay->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0);
 	eWinDisplay->addComponent<ImageComponent>();
+	eWinDisplay->addComponent<TextComponent>();
 	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
 	cWinBg->loadImage("textures/UI/grey_panel.png");
 	cWinBg->width = 500;
 	cWinBg->height = 500;
-	eWinDisplay->addComponent<TextComponent>();
-	eWinDisplay->getComponent<TextComponent>()->setText("FINISHED");
+	auto cWinText = eWinDisplay->getComponent<TextComponent>();
+	cWinText->setText("FINISHED");
+	cWinText->alignment = TextAlignment::Center;
 
 	// goal collider
 	auto eGoal = new Entity();
@@ -343,20 +412,23 @@ int main(int argc, char* args[])
 	eGoal->addComponent<RenderComponent>();
 	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
 	auto tGoalTrigger = std::make_shared<Trigger>(
-		std::bind(&Entity::setEnabled, eWinDisplay, false)
+		//[] {}
+		std::bind(&Entity::setEnabled, eWinDisplay, true)
 	);
+	tGoalTrigger->SetCollider(colBox, Point(0, 0), 1.5f);
 	cGoalPhys->AddCollider(tGoalTrigger);
+
 	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
 	cGoalRdr->addRenderable(cubeRenderable);
 
 	// ===== START GAME ======
-	//Game::instance().addEntity(eLight);
-	//Game::instance().addEntity(eLight2);
+	// Game::instance().addEntity(eLight);
+	// Game::instance().addEntity(eLight2);
+	// Game::instance().addEntity(e1);
+	// Game::instance().addEntity(e2);
+	// Game::instance().addEntity(e3);
+	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(eLightHolder);
-	Game::instance().addEntity(e1);
-	Game::instance().addEntity(e2);
-	Game::instance().addEntity(e3);
-	Game::instance().addEntity(e4);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);
@@ -364,7 +436,6 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
-	Game::instance().addEntity(eTest);
 	Game::instance().addEntity(eWinDisplay);
 	Game::instance().addEntity(eGoal);
 

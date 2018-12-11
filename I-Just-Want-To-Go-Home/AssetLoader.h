@@ -53,10 +53,15 @@ public:
 		return rootEntity;
 	}
 
+
+
 private:
 	// todo: vector of weak pointers 
 	std::vector<TextureInfo> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-												// currently this works on a per model basis (i.e textures shared between models or reloading a model will not be optimized)
+												// (this needs to be checked) currently this works on a per model basis (i.e textures shared between models or reloading a model will not be optimized)
+												// uniform member is invalid here. make a copy if you wish to use the TextureInfo
+	std::vector<TextureInfo> cubemaps_loaded;	// stores all the cubemap textures loaded so far. 
+												// only id and path members are valid here. make a copy if you wish to use the TextureInfo.
 	std::string directory;
 
 	void ProcessNode(Entity* entity, aiNode* node, const aiScene* scene)
@@ -253,7 +258,17 @@ public:
 		}
 
 		// else load 
-		return TextureFromFile(path.c_str(), "", false, width, height);
+		auto id = TextureFromFile(path.c_str(), "", false, width, height);
+
+		// track 
+		TextureInfo texture;
+		texture.id = id;
+		texture.width = *width;
+		texture.height = *height;
+		texture.path = path;
+		textures_loaded.push_back(texture);
+
+		return id;
 	}
 
 	// load a texture into opengl, regardless if it's been loaded already. 
@@ -304,6 +319,80 @@ public:
 
 		if (wOut != nullptr) *wOut = width;
 		if (hOut != nullptr) *hOut = height;
+		return textureID;
+	}
+
+	// load a cubemap. will return a preloaded resource if found.
+	unsigned int LoadCubemap(std::vector<std::string> facesPath)
+	{
+		std::string pathId = "";
+		for (auto& s : facesPath)
+			pathId += s;
+
+		// check for a preloaded texture 
+		for (unsigned int j = 0; j < cubemaps_loaded.size(); j++)
+		{
+			if (std::strcmp(cubemaps_loaded[j].path.data(), pathId.c_str()) == 0)
+			{
+				auto& t = cubemaps_loaded[j];
+				return t.id;
+			}
+		}
+
+		// else load 
+		auto id = CubemapFromFiles(facesPath);
+		
+		// track 
+		TextureInfo texture;
+		texture.id = id;
+		texture.path = pathId;
+		cubemaps_loaded.push_back(texture);
+
+		return id;
+	}
+
+	// https://learnopengl.com/Advanced-OpenGL/Cubemaps
+	// load a cubemap texture into opengl with 6 specified paths to images. 
+	// always loads, regardless if it's been loaded already.
+	// order: right,left,top,bottom,front,back
+	unsigned int CubemapFromFiles(std::vector<std::string> facesPath)
+	{
+		unsigned int textureID;
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+		int width, height, nrChannels;
+		for (unsigned int i = 0; i < facesPath.size(); i++)
+		{
+			unsigned char *data = stbi_load(facesPath[i].c_str(), &width, &height, &nrChannels, 0);
+			if (data)
+			{
+				// determine format 
+				GLenum format;
+				if (nrChannels == 1)
+					format = GL_RED;
+				else if (nrChannels == 3)
+					format = GL_RGB;
+				else if (nrChannels == 4)
+					format = GL_RGBA;
+
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+					0, GL_RGB, width, height, 0, format, GL_UNSIGNED_BYTE, data
+				);
+				stbi_image_free(data);
+			}
+			else
+			{
+				std::cerr << "ERROR: Cubemap texture failed to load at path: " << facesPath[i] << std::endl;
+				stbi_image_free(data);
+			}
+		}
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
 		return textureID;
 	}
 
