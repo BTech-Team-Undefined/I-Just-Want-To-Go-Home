@@ -47,16 +47,34 @@ public:
 			//drifting
 			if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
 				if (e.key.keysym.sym == SDLK_LSHIFT) {
+					drift = true;
 					if (getEntity()->getComponent<PhysicsComponent>()->angularForce > 0) { //going left
-						getEntity()->getComponent<PhysicsComponent>()->angularForce = 15;
+						//getEntity()->getComponent<PhysicsComponent>()->angularForce += (0.25 * driftTime);
 					}
 					else { //going right
-						getEntity()->getComponent<PhysicsComponent>()->angularForce = -15;
+						//getEntity()->getComponent<PhysicsComponent>()->angularForce += (-0.25 * driftTime);
 					}
-					
+					boost = 1 * sqrt(driftTime);
+					std::cout << "Boost: " << boost << std::endl;
+				}
+				else {
+					drift = false;
+					thrust += boost;
+					std::cout << "Thrust: " << thrust << std::endl;
 				}
 			}
 			
+			switch (e.key.keysym.sym) {
+			case SDLK_SPACE:
+				getEntity()->position.x = 0;
+				getEntity()->position.z = 0;
+				getEntity()->rotation.y = 0;
+				getEntity()->getComponent<PhysicsComponent>()->force.x = 0;
+				getEntity()->getComponent<PhysicsComponent>()->force.y = 0;
+				thrust = 0;
+				sideThrust = 0;
+				break;
+			}
 		};
 
 		_actions[SDL_EventType::SDL_KEYUP] = [this](SDL_Event e)
@@ -100,7 +118,13 @@ public:
 
 	}
 	void update(float dt)
-	{
+	{//instance var, number 
+		if (drift) {
+			driftTime += dt;
+		}
+		else {
+			driftTime = 0;
+		}
 		//Event handler
 		SDL_Event e;
 		//Handle events on queue
@@ -129,4 +153,7 @@ private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
 	float thrust;
 	float sideThrust;
+	float driftTime;
+	float boost;
+	bool drift;
 };
