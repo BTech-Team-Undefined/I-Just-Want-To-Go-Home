@@ -19,7 +19,7 @@ public:
 			{
 			case SDLK_w: {
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-				thrust = 50.0;
+				thrust = 15.0;
 				break;
 			}
 			case SDLK_s: {
