@@ -399,25 +399,25 @@ int main(int argc, char* args[])
 	eWinDisplay->addComponent<TextComponent>();
 	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
 	cWinBg->loadImage("textures/UI/grey_panel.png");
-	cWinBg->width = 500;
-	cWinBg->height = 500;
+	cWinBg->width = 400;
+	cWinBg->height = 300;
 	auto cWinText = eWinDisplay->getComponent<TextComponent>();
 	cWinText->setText("FINISHED");
+	cWinText->font = "fonts/futur.ttf";
 	cWinText->alignment = TextAlignment::Center;
 
 	// goal collider
 	auto eGoal = new Entity();
-	eGoal->position = glm::vec3(0, 0, 5);
+	eGoal->position = glm::vec3(5, 0, -25);
 	eGoal->addComponent<PhysicsComponent>();
 	eGoal->addComponent<RenderComponent>();
 	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
 	auto tGoalTrigger = std::make_shared<Trigger>(
-		//[] {}
+		// [] {}
 		std::bind(&Entity::setEnabled, eWinDisplay, true)
 	);
 	tGoalTrigger->SetCollider(colBox, Point(0, 0), 1.5f);
 	cGoalPhys->AddCollider(tGoalTrigger);
-
 	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
 	cGoalRdr->addRenderable(cubeRenderable);
 
