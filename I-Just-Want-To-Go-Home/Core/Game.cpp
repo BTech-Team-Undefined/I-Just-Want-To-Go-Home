@@ -157,8 +157,12 @@ void Game::loop()
 			for (int i = 0; i < _systems.size(); i++)
 			{
 				_systems[i]->update(dt.count());
-				_systems[i]->clearComponents();	// cleanup for next iteration
 			}
+		}
+		// 3. fixed system update 
+		for (int i = 0; i < _systems.size(); i++)
+		{
+			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
 		_profiler.StopTimer(2);
 
