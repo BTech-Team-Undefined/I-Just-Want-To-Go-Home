@@ -15,6 +15,7 @@ const std::string SHADER_TEX_DIFFUSE   = "u_TexDiffuse";			// texture
 const std::string SHADER_TEX_SPECULAR  = "u_TexSpecular";			// texture 
 const std::string SHADER_TEX_NORMAL    = "u_TexNormal";				// texture 
 const std::string SHADER_TEX_HEIGHT    = "u_TexHeight";				// texture
+const std::string SHADER_TEX_CUBEMAP   = "u_TexCubeMap";			// texture 
 const std::string SHADER_LIGHT_D_POS   = "u_DirectionalLightPos";	// vec3 
 const std::string SHADER_LIGHT_D_DIR   = "u_DirectionalLightDir";	// vec3
 const std::string SHADER_LIGHT_D_COLOR = "u_DirectionalLightColor";	// vec4 

@@ -3,5 +3,4 @@
 
 RenderComponent::RenderComponent() : Component(std::type_index(typeid(RenderComponent)))
 {
-	std::cout << "RenderComponent created" << std::endl;
 }

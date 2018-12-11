@@ -87,8 +87,9 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -100,14 +101,15 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)SDL2.dll" "$(TargetDir)"
 xcopy "$(ProjectDir)glew32.dll" "$(TargetDir)"
 xcopy "$(ProjectDir)Textures" "$(TargetDir)Textures" /s /i /e /y
 xcopy "$(ProjectDir)Models" "$(TargetDir)Models" /s /i /e /y
-xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y
+xcopy "$(ProjectDir)Shaders" "$(TargetDir)Shaders" /s /i /e /y /d
 xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
       </Command>
     </PostBuildEvent>
@@ -143,12 +145,21 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   <ItemGroup>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="Core\Game.cpp" />
+    <ClCompile Include="Core\CpuProfiler.cpp" />
     <ClCompile Include="EntitySystems\DestructionComponent.cpp" />
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
+    <ClCompile Include="libs\json\json_reader.cpp" />
+    <ClCompile Include="libs\json\json_value.cpp" />
+    <ClCompile Include="libs\json\json_writer.cpp" />
+    <ClCompile Include="Game\StickyTransformComponent.cpp" />
+    <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
+    <ClCompile Include="Rendering\PostProcess\NegativePP.cpp" />
+    <ClCompile Include="Rendering\PostProcess\PostProcess.cpp" />
     <ClCompile Include="Rendering\UI\ImageComponent.cpp" />
     <ClCompile Include="Physics\Collider2D.cpp" />
     <ClCompile Include="Physics\PhysicsComponent.cpp" />
@@ -179,24 +190,44 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="Game\TimeDisplayComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="libs\json\json_valueiterator.inl" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Core\CpuProfiler.h" />
     <ClInclude Include="DebugInputComponent.h" />
     <ClInclude Include="EntitySystems\DestructionComponent.h" />
     <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
+    <ClInclude Include="Game\StickyTransformComponent.h" />
+    <ClInclude Include="libs\json\allocator.h" />
+    <ClInclude Include="libs\json\assertions.h" />
+    <ClInclude Include="libs\json\autolink.h" />
+    <ClInclude Include="libs\json\config.h" />
+    <ClInclude Include="libs\json\features.h" />
+    <ClInclude Include="libs\json\forwards.h" />
+    <ClInclude Include="libs\json\json.h" />
+    <ClInclude Include="libs\json\json_tool.h" />
+    <ClInclude Include="libs\json\reader.h" />
+    <ClInclude Include="libs\json\value.h" />
+    <ClInclude Include="libs\json\version.h" />
+    <ClInclude Include="libs\json\writer.h" />
+    <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
+    <ClInclude Include="Rendering\PostProcess\NegativePP.h" />
+    <ClInclude Include="Rendering\PostProcess\PostProcess.h" />
     <ClInclude Include="Rendering\UI\ImageComponent.h" />
     <ClInclude Include="Physics\Collider2D.h" />
     <ClInclude Include="Physics\PhysicsComponent.h" />
     <ClInclude Include="Physics\PhysicsSystem.h" />
     <ClInclude Include="Physics\PhysicsVector.h" />
     <ClInclude Include="Physics\Point.h" />
+    <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Rendering\PlaneMesh.h" />
     <ClInclude Include="Rendering\CubeMesh.h" />
     <ClInclude Include="Rendering\RenderComponent.h" />

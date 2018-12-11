@@ -361,8 +361,10 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	auto pc2 = e2->getComponent<PhysicsComponent>();
-	if (pc1->isStatic && pc2->isStatic) {
-		return; // Both are static; no point in calculating anything
+	if (pc1->isStatic && pc2->isStatic || !pc1->hasPhysicsCollision || !pc2->hasPhysicsCollision) {
+		// Either both are static in which there's no reason to calculate anything
+		// Or one of them doesn't have physics collisions, which means nothing happens to either
+		return;
 	}
 	float im1 = 1 / pc1->mass;
 	float im2 = 1 / pc2->mass;

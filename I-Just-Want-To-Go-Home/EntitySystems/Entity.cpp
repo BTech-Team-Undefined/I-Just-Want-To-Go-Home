@@ -83,24 +83,42 @@ void Entity::bindEntities(Entity * parent, Entity * child)
 		parent->_children.push_back(child);
 }
 
+
 glm::mat4 Entity::getLocalTransformation()
 {
+	// we going super-sonic http://www.opengl-tutorial.org/assets/faq_quaternions/index.html#Q26
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, position);
-	model = glm::rotate(model, rotation.y, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, rotation.x, glm::vec3(1, 0, 0));
-	model = glm::rotate(model, rotation.z, glm::vec3(0, 0, 1));
+
+	auto A = glm::cos(rotation.x);
+	auto B = glm::sin(rotation.x);
+	auto C = glm::cos(rotation.y);
+	auto D = glm::sin(rotation.y);	
+	auto E = glm::cos(rotation.z);
+	auto F = glm::sin(rotation.z);
+	auto BC = B * C;
+	auto BD = B * D;
+
+	glm::mat4 rot = glm::mat4(0.0f);	// this is the precalculated y*x*z rotation matrix. (x2 faster)
+	rot[0][0] =  C * E + BD * F;
+	rot[0][1] =  A * F;
+	rot[0][2] = -D * E + BC * F;
+	rot[1][0] = -C * F + BD * E;
+	rot[1][1] =  A * E;
+	rot[1][2] =  D * F + BC * E;
+	rot[2][0] =  A * D;
+	rot[2][1] = -B;
+	rot[2][2] =  A * C;
+	rot[3][3] =  1.0f;
+	model = model * rot;
+
 	model = glm::scale(model, scale);
 	return model;
 }
 
 glm::mat4 Entity::getWorldTransformation()
 {
-	glm::mat4 transform = getLocalTransformation();
-	if (getParent() == nullptr)
-		return transform;
-	else
-		return getParent()->getWorldTransformation() * transform;
+	return _worldTransformation;
 }
 
 glm::vec3 Entity::getWorldPosition()
@@ -152,6 +170,39 @@ void Entity::setLocalTransform(glm::mat4 matrix)
 std::vector<Entity*> const& Entity::getChildren() const
 {
 	return _children;
+}
+
+void Entity::configureTransform(glm::mat4 parent)
+{
+	_worldTransformation = parent * getLocalTransformation();
+}
+
+void Entity::configureTransform()
+{
+	glm::mat4 transform = getLocalTransformation();
+	_worldTransformation = (getParent() == nullptr) ? transform : getParent()->getWorldTransformation() * transform;
+}
+
+bool Entity::getStatic() const
+{
+	return _static;
+}
+
+void Entity::setStatic(bool torf)
+{
+	if (torf)
+	{
+		configureTransform();		// save transformation 
+		_static = true;				// freeze data 
+		for (auto& e : _children)	// apply to all children 
+			e->setStatic(true);
+	}
+	else
+	{
+		_static = false;
+		for (auto& e : _children)
+			e->setStatic(false);
+	}
 }
 
 void Entity::destroy()
