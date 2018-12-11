@@ -50,9 +50,11 @@ public:
 					drift = true;
 					if (getEntity()->getComponent<PhysicsComponent>()->angularForce > 0) { //going left
 						//getEntity()->getComponent<PhysicsComponent>()->angularForce += (0.25 * driftTime);
+						getEntity()->getComponent<PhysicsComponent>()->angularForce = 20;
 					}
 					else { //going right
 						//getEntity()->getComponent<PhysicsComponent>()->angularForce += (-0.25 * driftTime);
+						getEntity()->getComponent<PhysicsComponent>()->angularForce = -20;
 					}
 					boost = 1 * sqrt(driftTime);
 					std::cout << "Boost: " << boost << std::endl;
@@ -60,7 +62,11 @@ public:
 				else {
 					drift = false;
 					thrust += boost;
-					std::cout << "Thrust: " << thrust << std::endl;
+					boost -= 0.05;
+					if (boost < 0) {
+						boost = 0;
+					}
+					std::cout << "Boost: " << boost << "   |    Thrust: " << thrust << std::endl;
 				}
 			}
 			
@@ -73,6 +79,7 @@ public:
 				getEntity()->getComponent<PhysicsComponent>()->force.y = 0;
 				thrust = 0;
 				sideThrust = 0;
+				boost = 0;
 				break;
 			}
 		};
