@@ -325,6 +325,30 @@ int main(int argc, char* args[])
 	eTest->addComponent<StickyTransformComponent>();
 	eTest->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
 
+	// win text 
+	auto eWinDisplay = new Entity();
+	eWinDisplay->setEnabled(false);
+	eWinDisplay->addComponent<ImageComponent>();
+	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
+	cWinBg->loadImage("textures/UI/grey_panel.png");
+	cWinBg->width = 500;
+	cWinBg->height = 500;
+	eWinDisplay->addComponent<TextComponent>();
+	eWinDisplay->getComponent<TextComponent>()->setText("FINISHED");
+
+	// goal collider
+	auto eGoal = new Entity();
+	eGoal->position = glm::vec3(0, 0, 5);
+	eGoal->addComponent<PhysicsComponent>();
+	eGoal->addComponent<RenderComponent>();
+	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
+	auto tGoalTrigger = std::make_shared<Trigger>(
+		std::bind(&Entity::setEnabled, eWinDisplay, false)
+	);
+	cGoalPhys->AddCollider(tGoalTrigger);
+	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
+	cGoalRdr->addRenderable(cubeRenderable);
+
 	// ===== START GAME ======
 	//Game::instance().addEntity(eLight);
 	//Game::instance().addEntity(eLight2);
@@ -341,6 +365,8 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
 	Game::instance().addEntity(eTest);
+	Game::instance().addEntity(eWinDisplay);
+	Game::instance().addEntity(eGoal);
 
 	Game::instance().loop();
 
