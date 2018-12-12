@@ -20,7 +20,7 @@ public:
 			switch (e.key.keysym.sym) {
 			case SDLK_w: 
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z - 0.1f);
-				thrust = 50.0;
+				thrust = drift ? 17.0 : 20.0;
 				break;		
 			case SDLK_s: 
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
@@ -29,34 +29,58 @@ public:
 			}
 
 			//moving left or right; only when moving forward
-			//if (thrust != 0) {
+			if (getEntity()->getComponent<PhysicsComponent>()->velocity.length() > 1) {
 				switch (e.key.keysym.sym) {
 				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = -10;
-					getEntity()->getComponent<PhysicsComponent>()->angularForce = 10;
+					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? 1.0 : .75) * getEntity()->getComponent<PhysicsComponent>()->velocity.length();
 					
 					break;
 				case SDLK_d:
 					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = 10;
-					getEntity()->getComponent<PhysicsComponent>()->angularForce = -10;
+					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? -1.0 : -.75) * getEntity()->getComponent<PhysicsComponent>()->velocity.length();
 					break;
 				}
 			//}
 			//drifting
-			if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
+			//if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
 				if (e.key.keysym.sym == SDLK_LSHIFT) {
-					if (getEntity()->getComponent<PhysicsComponent>()->angularForce > 0) { //going left
-						getEntity()->getComponent<PhysicsComponent>()->angularForce = 15;
-					}
-					else { //going right
-						getEntity()->getComponent<PhysicsComponent>()->angularForce = -15;
-					}
-					
-				}
+					drift = true;
+					//if (getEntity()->getComponent<PhysicsComponent>()->angularForce >= 0) { //going left
+					//	//getEntity()->getComponent<PhysicsComponent>()->angularForce += (0.25 * driftTime);
+					//	getEntity()->getComponent<PhysicsComponent>()->angularForce = 7;
+					//}
+					//else { //going right
+					//	//getEntity()->getComponent<PhysicsComponent>()->angularForce += (-0.25 * driftTime);
+					//	getEntity()->getComponent<PhysicsComponent>()->angularForce = -7;
+					//}
+					//boost = 1 * sqrt(driftTime);
+					//std::cout << "Boost: " << boost << std::endl;
+				//}
+				//else {
+				//	drift = false;
+				//	thrust += boost;
+				//	boost -= 0.05;
+				//	if (boost < 0) {
+				//		boost = 0;
+				//	}
+				//	std::cout << "Boost: " << boost << "   |    Thrust: " << thrust << std::endl;
+				//}
 			}
 			
+			switch (e.key.keysym.sym) {
+			case SDLK_SPACE:
+				getEntity()->position.x = 0;
+				getEntity()->position.z = 0;
+				getEntity()->rotation.y = 0;
+				getEntity()->getComponent<PhysicsComponent>()->force.x = 0;
+				getEntity()->getComponent<PhysicsComponent>()->force.y = 0;
+				thrust = 0;
+				boost = 0;
+				break;
+			}
 		};
 
 		_actions[SDL_EventType::SDL_KEYUP] = [this](SDL_Event e)
@@ -89,22 +113,35 @@ public:
 			
 
 			if (e.key.keysym.sym == SDLK_LSHIFT) { // when drifting is done to get boost
-				thrust *= 2;
+				if (enableBoost)
+				{
+					enableBoost = false;
+					thrust = 40;
+					
+				}
+				drift = false;
 			}
-		};
-
-		_actions[SDL_EventType::SDL_MOUSEMOTION] = [](SDL_Event e)
-		{
-
 		};
 
 	}
 	void update(float dt)
-	{
 	}
 
 	void notify(vector<SDL_Event>* events, float dt)
 	{
+    if (drift)
+		{
+			driftTime += dt;
+		}
+		else
+		{
+			driftTime = 0;
+		}
+		if (driftTime >= maxDriftTime)
+		{
+			driftTime = 0;
+			enableBoost = true;
+		}
 		//User requests quit
 		for (auto ep = events->begin(); ep < events->end(); ep++) {
 			auto e = *ep;
@@ -117,12 +154,16 @@ public:
 		}
 		Entity* ent = getEntity();
 		float dir = ent->rotation.y;
-		ent->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust + std::sin(dir - 1.57) * sideThrust;
-		ent->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust + std::cos(dir - 1.57) * sideThrust;
+		ent->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust + std::sin(dir - 1.57) ;//* sideThrust;
+		ent->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust + std::cos(dir - 1.57) ;//* sideThrust;
 	}
 
 private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;
 	float thrust;
-	float sideThrust;
+	float driftTime = 0.0f;
+	const float maxDriftTime = 2.0f;
+	float boost;
+	bool enableBoost = false;
+	bool drift;
 };
