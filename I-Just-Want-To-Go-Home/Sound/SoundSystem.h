@@ -56,8 +56,6 @@ public:
 			case AudioAction::REQUEST_PLAYFX: {
 				cout << "sound" << endl;
 				auto sfx = GetAudioChunk(component->audioPath);
-				// play:
-				sfx = GetAudioChunk("Sound/car_idle1.wav");
 				Mix_PlayChannel(component->cChannel, sfx, -1);
 				Mix_Volume(component->cChannel, MIX_MAX_VOLUME * component->cVolume);
 				// increment 
