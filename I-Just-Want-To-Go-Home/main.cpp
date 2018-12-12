@@ -42,6 +42,7 @@
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
+#include "SoundSystem.h"
 #include "Physics\Trigger.h"
 
 #include "Rendering\UI\ImageComponent.h"
@@ -77,6 +78,10 @@ int main(int argc, char* args[])
 
 	auto ps = std::make_unique<PhysicsSystem>();
 	Game::instance().addSystem(std::move(ps));
+
+	auto ss = std::make_unique<SoundSystem>();
+	ss->loadBgm("Sound/BGM.wav");
+	Game::instance().addSystem(std::move(ss));
 
 	// ===== INIT SCENE =====
 	Scene* scene = new Scene();
@@ -491,6 +496,13 @@ int main(int argc, char* args[])
 	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
 	cGoalRdr->addRenderable(cubeRenderable);
 
+	// ===== AUDIO =====
+	auto eSfx = new Entity();
+	eSfx->addComponent<SoundComponent>();
+	auto cSound = eSfx->getComponent<SoundComponent>();
+	cSound->audioPath = "Sound/firework.wav";
+	cSound->Play();
+
 	// ===== START GAME ======
 	// Game::instance().addEntity(eLight);
 	// Game::instance().addEntity(eLight2);
@@ -510,6 +522,7 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(eTime);
 	Game::instance().addEntity(eWinDisplay);
 	Game::instance().addEntity(eGoal);
+	Game::instance().addEntity(eSfx);
 
 	Game::instance().loop();
 
