@@ -46,6 +46,14 @@ Point Point::operator+(const Point& p)
 	return newPoint;
 }
 
+Point Point::operator-(const Point& p)
+{
+	Point newPoint(this->x, this->y);
+	newPoint.x -= p.x;
+	newPoint.y -= p.y;
+	return newPoint;
+}
+
 Point Point::Rotate(float angleRadian)
 {
 	float s = sin(angleRadian);
