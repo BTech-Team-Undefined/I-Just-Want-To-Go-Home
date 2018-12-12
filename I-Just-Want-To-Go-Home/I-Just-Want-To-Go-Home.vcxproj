@@ -152,6 +152,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
+    <ClCompile Include="Physics\Collision.cpp" />
     <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
     <ClCompile Include="libs\json\json_reader.cpp" />
     <ClCompile Include="libs\json\json_value.cpp" />
