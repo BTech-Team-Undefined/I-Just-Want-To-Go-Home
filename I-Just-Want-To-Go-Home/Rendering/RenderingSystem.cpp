@@ -31,7 +31,8 @@ RenderingSystem::RenderingSystem() : System()
 
 	// initialize default shaders  
 	geometryShader = new Shader("shaders/geometry_vertex.glsl", "shaders/geometry_fragment.glsl");
-	compositionShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_fragment.glsl");
+	compDLightShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_dl_fragment.glsl");
+	compPLightShader = new Shader("shaders/comp_vertex.glsl", "shaders/comp_pl_fragment.glsl");
 	shadowmapShader = new Shader("shaders/shadowmap_vertex.glsl", "shaders/shadowmap_fragment.glsl");
 	textShader = new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
 	imageShader = new Shader("shaders/image_vertex.glsl", "shaders/image_fragment.glsl");
@@ -213,13 +214,13 @@ void RenderingSystem::RenderDirectionalLightingPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
 	glDrawBuffers(1, ppAttachments);
 
-	compositionShader->use();
-	compositionShader->setInt("u_PosTex", 0);	// set order 
-	compositionShader->setInt("u_NrmTex", 1);
-	compositionShader->setInt("u_ColTex", 2);
-	compositionShader->setInt("u_DphTex", 3);
-	compositionShader->setInt("u_ShadowMap", 4);
-	compositionShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
+	compDLightShader->use();
+	compDLightShader->setInt("u_PosTex", 0);	// set order 
+	compDLightShader->setInt("u_NrmTex", 1);
+	compDLightShader->setInt("u_ColTex", 2);
+	compDLightShader->setInt("u_DphTex", 3);
+	compDLightShader->setInt("u_ShadowMap", 4);
+	compDLightShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
 
 	// enable the sampler2D shader variables 
 	glActiveTexture(GL_TEXTURE0);
@@ -238,8 +239,8 @@ void RenderingSystem::RenderDirectionalLightingPass()
 
 	for (int i = 0; i < _dlights.size(); i++)
 	{
-		compositionShader->setVec3("u_LightPos", _dlights[i]->getEntity()->position);
-		compositionShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
+		compDLightShader->setVec3("u_LightPos", _dlights[i]->getEntity()->getWorldPosition());
+		compDLightShader->setMat4("u_LightSpaceMatrix", _dlights[i]->getLightSpaceMatrix());
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, dynamic_cast<DirectionalLight&>(*_dlights[i]).TexId);
 
@@ -258,8 +259,64 @@ void RenderingSystem::RenderDirectionalLightingPass()
 
 void RenderingSystem::RenderPointLightingPass()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, ppWriteFBO);
+	glDrawBuffers(1, ppAttachments);
+
+	compPLightShader->use();
+	compPLightShader->setInt("u_PosTex", 0);	// set order 
+	compPLightShader->setInt("u_NrmTex", 1);
+	compPLightShader->setInt("u_ColTex", 2);
+	compPLightShader->setInt("u_DphTex", 3);
+	compPLightShader->setInt("u_ShadowMap", 4);
+	compPLightShader->setVec3("u_ViewPosition", activeCamera->getEntity()->getWorldPosition());
+	// we're rendering from camera this time - using light volumes
+	compPLightShader->setMat4("u_Projection", projection);
+	compPLightShader->setMat4("u_View", view);
+
+	// enable the sampler2D shader variables 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, posTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, nrmTex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, colTex);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, dphTex);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	for (int i = 0; i < _plights.size(); i++)
+	{
+		compPLightShader->setVec3(SHADER_LIGHT_POS, _plights[i]->getEntity()->position);
+		compPLightShader->setVec3(SHADER_LIGHT_COLOR, _plights[i]->color);
+		compPLightShader->setFloat(SHADER_LIGHT_INTENSITY, _plights[i]->intensity);
+		compPLightShader->setFloat(SHADER_LIGHT_RANGE, _plights[i]->range);
+
+		// scale model matrix (for light volume) one more time for light range 
+		auto model = glm::scale(
+			_plights[i]->getEntity()->getWorldTransformation(),
+			glm::vec3(_plights[i]->range));
+		compPLightShader->setMat4(SHADER_MODEL, model);
+
+		// we're using a cube instead of a sphere b/c of less vertices 
+		//glBindVertexArray(cubeVAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glBindVertexArray(0);
+
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
+	}
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+// 3.5th pass - skybox pass (should be relatively cheap).
 void RenderingSystem::RenderSkyboxPass()
 {
 	// skybox pass 
@@ -432,7 +489,7 @@ void RenderingSystem::RenderText(Shader& s,
 			return;
 		}
 	}
-	auto fontInfo = fonts[font];
+	const auto fontInfo = &fonts[font];
 
 	// Activate corresponding render state	
 	s.use();
@@ -452,7 +509,7 @@ void RenderingSystem::RenderText(Shader& s,
 		std::string::const_iterator c;
 		for (c = line.begin(); c != line.end(); c++)
 		{
-			Character ch = fontInfo.Characters[*c];
+			Character ch = fontInfo->Characters[*c];
 			// Bitshift by 6 to get value in pixels (2^6 = 64)
 			horSize += (ch.Advance >> 6) * scale; 
 		}
@@ -468,7 +525,7 @@ void RenderingSystem::RenderText(Shader& s,
 		// Iterate through all characters
 		for (c = line.begin(); c != line.end(); c++)
 		{
-			Character ch = fontInfo.Characters[*c];
+			Character ch = fontInfo->Characters[*c];
 
 			GLfloat xpos = x + ch.Bearing.x * scale;
 			GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
@@ -498,7 +555,7 @@ void RenderingSystem::RenderText(Shader& s,
 		}
 
 		// shift drawing position down for next line
-		y -= (fontInfo.LineHeight >> 6) * scale;
+		y -= (fontInfo->LineHeight >> 6) * scale;
 		// and reset x position 
 		x = initialX;
 		horSize = 0;
@@ -514,6 +571,13 @@ void RenderingSystem::RenderImage(Shader & s, ImageComponent * image)
 
 	auto size = glm::vec2(image->width / 2, image->height / 2);		// size of box 
 	auto transform = image->getEntity()->getWorldTransformation();	// transform
+
+	// default 
+	if (image->alignment == TextAlignment::Left)
+		transform = glm::translate(transform, glm::vec3(size.x, 0, 0));
+	else if (image->alignment == TextAlignment::Right)
+		transform = glm::translate(transform, glm::vec3(-size.x, 0, 0));
+	// else alignment is center, don't do anything.
 
 	imageShader->setVec2("u_Size", size);
 	imageShader->setMat4("u_Model", transform);
@@ -844,12 +908,14 @@ void RenderingSystem::update(float dt)
 	// render debug info (please note that this is pretty performance heavy ~2ms)
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(2)
-		<< "Geometry Pass: " << profiler.GetDuration(0) / 1000000.0 << "ms\n"
-		<< "Shadowmap Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
-		<< "Composition Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
-		<< "Postprocessing Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
-		<< "Image Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
-		<< "Text Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n";
+		<< "Geometry Pass: " << profiler.GetDuration(1) / 1000000.0 << "ms\n"
+		<< "Shadowmap Pass: " << profiler.GetDuration(2) / 1000000.0 << "ms\n"
+		<< "Directional Lighting Pass: " << profiler.GetDuration(3) / 1000000.0 << "ms\n"
+		<< "Point Lighting Pass: " << profiler.GetDuration(4) / 1000000.0 << "ms\n"
+		<< "Skybox Pass: " << profiler.GetDuration(5) / 1000000.0 << "ms\n"
+		<< "Postprocessing Pass: " << profiler.GetDuration(6) / 1000000.0 << "ms\n"
+		<< "Image Pass: " << profiler.GetDuration(7) / 1000000.0 << "ms\n"
+		<< "Text Pass: " << profiler.GetDuration(8) / 1000000.0 << "ms\n";
 	RenderText(*textShader, ss.str(), TextAlignment::Left, 0.0f, screenHeight - 20.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), "fonts/Inconsolata-Regular.ttf");
 }
 
@@ -859,6 +925,8 @@ void RenderingSystem::addComponent(std::type_index t, Component * component)
 		_components.push_back(static_cast<RenderComponent*>(component));
 	else if (t == std::type_index(typeid(DirectionalLight)))
 		_dlights.push_back(static_cast<DirectionalLight*>(component));
+	else if (t == std::type_index(typeid(PointLight)))
+		_plights.push_back(static_cast<PointLight*>(component));
 	else if (t == std::type_index(typeid(Camera)))
 		_cameras.push_back(static_cast<Camera*>(component));
 	else if (t == std::type_index(typeid(TextComponent)))
@@ -872,6 +940,7 @@ void RenderingSystem::clearComponents()
 	cpuProfiler.StartTimer(9);
 	_components.clear();
 	_dlights.clear();
+	_plights.clear();
 	_cameras.clear();
 	_texts.clear();
 	_images.clear();

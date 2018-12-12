@@ -328,7 +328,48 @@ int main(int argc, char* args[])
 	eLightHolder->addComponent<StickyTransformComponent>();
 	eLightHolder->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
 	eLightHolder->addChild(eLight);
-	eLightHolder->addChild(eLight2);
+	//eLightHolder->addChild(eLight2);
+
+	auto ePLight1 = new Entity();
+	ePLight1->addComponent<PointLight>();
+	ePLight1->getComponent<PointLight>()->range = 1;
+	ePLight1->getComponent<PointLight>()->color = glm::vec3(1,0,0);
+	ePLight1->position = glm::vec3(-1, -0.5, 10);
+
+	auto ePLightGateL = new Entity();
+	ePLightGateL->addComponent<PointLight>();
+	ePLightGateL->getComponent<PointLight>()->range = 0.8;
+	ePLightGateL->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
+	ePLightGateL->position = glm::vec3(-1.2, 0.9, 4);
+
+	auto ePLightGateR = new Entity();
+	ePLightGateR->addComponent<PointLight>();
+	ePLightGateR->getComponent<PointLight>()->range = 0.8;
+	ePLightGateR->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
+	ePLightGateR->position = glm::vec3(-3.7, 0.9, 4);
+
+	auto ePLightStartHolder = new Entity();
+	ePLightStartHolder->addChild(ePLightGateL);
+	ePLightStartHolder->addChild(ePLightGateR);
+
+	for (int i = 0; i < 4; i++)
+	{
+		auto epLeft = new Entity();
+		auto epRight = new Entity();
+		epLeft->position = glm::vec3(-4.3, -0.5, 8 + i * 3);
+		epRight->position = glm::vec3(-0.2, -0.5, 8 + i * 3);
+
+		epLeft->addComponent<PointLight>();
+		epLeft->getComponent<PointLight>()->color = (i % 2 == 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
+		epLeft->getComponent<PointLight>()->range = 1.0;
+		epRight->addComponent<PointLight>();
+		epRight->getComponent<PointLight>()->color = (i % 2 != 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
+		epRight->getComponent<PointLight>()->range = 1.0;
+
+		ePLightStartHolder->addChild(epLeft);
+		ePLightStartHolder->addChild(epRight);
+	}
+
 
 	// ===== TEXT =====
 	auto eText1 = new Entity();
@@ -466,6 +507,8 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(e3);
 	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(eLightHolder);
+	Game::instance().addEntity(ePLightStartHolder);
+	Game::instance().addEntity(ePLight1);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);
