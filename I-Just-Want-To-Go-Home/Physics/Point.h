@@ -13,6 +13,7 @@ public:
 	bool Near(Point p, float distance);
 	float Distance(Point p);
 	Point operator+(const Point& p);
+	Point operator-(const Point& p);
 	Point Rotate(float angle);
 
 	float x;

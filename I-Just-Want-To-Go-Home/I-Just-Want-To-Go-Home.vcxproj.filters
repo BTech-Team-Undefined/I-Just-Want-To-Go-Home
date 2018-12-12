@@ -46,6 +46,7 @@
     <ClCompile Include="Rendering\PostProcess\NegativePP.cpp" />
     <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
     <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
+    <ClCompile Include="Physics\Collision.cpp" />
     <ClCompile Include="EntitySystems\InputSystem.cpp" />
   </ItemGroup>
   <ItemGroup>

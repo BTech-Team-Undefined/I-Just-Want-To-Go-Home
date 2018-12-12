@@ -34,13 +34,13 @@ public:
 				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = -10;
-					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? 5 : 3) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length());
+					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? 3 : 2) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length()) + 2;
 
 					break;
 				case SDLK_d:
 					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
 					//e6->getComponent<PhysicsComponent>()->force.x = 10;
-					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? -5 : -3) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length());
+					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? -3 : -2) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length()) - 2;
 					break;
 				}
 				//}

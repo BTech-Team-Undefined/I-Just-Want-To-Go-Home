@@ -389,11 +389,33 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 		im2 = 0;
 	}
 
-	// For now just assume the first collision is the only one that needs to be corrected
 	Point center1 = c->colliders[0].first->GetCenter();
 	Point center2 = c->colliders[0].second->GetCenter();
 	PhysicsVector dist = PhysicsVector(center2.x - center1.x, center2.y - center1.y);
 	PhysicsVector n = dist.unit();
+
+	vector<Point> collPoints = c->getCollisionPoints();
+
+	if (collPoints.size() >= 2) {
+		// Only consider the first two points
+		// The normal should be perpandicular to the collision points
+		Point startPt = collPoints[0];
+		Point endPt = collPoints[1];
+		PhysicsVector normUnnormalized = PhysicsVector(endPt.y - startPt.y, startPt.x - endPt.x);
+		if (normUnnormalized.dot(n) > 0) {
+			// If the normal is already facing away from the center, just use it
+			n = normUnnormalized.unit();
+		}
+		else {
+			// Otherwise use the opposite
+			n = -normUnnormalized.unit();
+		}
+	}
+
+	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
+	if (vNorm > 0) {
+		return;
+	}
 
 	// Bad positional correction
 	const float ratio = 0.025;
@@ -401,10 +423,6 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 	PhysicsVector corr2 = n * ratio * im2 * pc2->velocity.length();
 	e1->position = glm::vec3(e1->position.x + corr1.x, e1->position.y, e1->position.z + corr1.y);
 	e2->position = glm::vec3(e2->position.x + corr2.x, e2->position.y, e2->position.z + corr2.y);
-	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
-	if (vNorm > 0) {
-		return;
-	}
 
 	float e = pc1->elasticity < pc2->elasticity ? pc1->elasticity : pc2->elasticity;
 	float j = -(1 + e) * vNorm / (im1 + im2);
