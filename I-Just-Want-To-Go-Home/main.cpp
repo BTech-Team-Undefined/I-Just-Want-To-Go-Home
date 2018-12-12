@@ -97,7 +97,7 @@ int main(int argc, char* args[])
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
 	
 	// physics 
-	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
+	auto e6Collider = std::make_shared<Collider2D>("Player");
 	vector<Point> e6ColliderBox;
 	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
 	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
@@ -106,6 +106,7 @@ int main(int argc, char* args[])
 	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
 	playerEntity->addComponent<PhysicsComponent>();
 	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
+	
 	pc6->isStatic = false;
 	pc6->directionalDrag = true;
 	pc6->AddCollider(e6Collider);
@@ -480,14 +481,19 @@ int main(int argc, char* args[])
 
 	// goal collider
 	auto eGoal = new Entity();
-	eGoal->position = glm::vec3(5, 0, -25);
+	eGoal->position = glm::vec3(-3, -2, 25);
 	eGoal->addComponent<PhysicsComponent>();
 	eGoal->addComponent<RenderComponent>();
 	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
+	cGoalPhys->hasPhysicsCollision = false;
 	auto tGoalTrigger = std::make_shared<Trigger>(
-		// [] {}
-		std::bind(&Entity::setEnabled, eWinDisplay, true)
-	);
+	[&eWinDisplay]
+	{		
+		eWinDisplay->setEnabled(true);
+		Game::instance().pause(true);
+	});
+	//std::bind(&Entity::setEnabled, eWinDisplay, true)
+	
 	tGoalTrigger->SetCollider(colBox, Point(0, 0), 1.5f);
 	cGoalPhys->AddCollider(tGoalTrigger);
 	auto cGoalRdr = eGoal->getComponent<RenderComponent>();

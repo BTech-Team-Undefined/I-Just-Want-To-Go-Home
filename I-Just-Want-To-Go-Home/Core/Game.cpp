@@ -144,6 +144,8 @@ void Game::loop()
 
 		_profiler.StartTimer(2);
 		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
+		if (_isPause)
+			frameDelta = std::chrono::nanoseconds(0);
 		timeSinceLastUpdate += frameDelta;
 		while (timeSinceLastUpdate > _frameTime)
 		{
@@ -184,6 +186,11 @@ void Game::loop()
 void Game::stop()
 {
 	_running = false;
+}
+
+void Game::pause(bool p)
+{
+	_isPause = p;
 }
 
 // will update all components in an entity, children in entity, and notify systems
