@@ -1,13 +1,38 @@
 #include "Collision.h"
-vector<Point> Collision::getCollisionPoints() {
-	auto colliderA = colliders[0].first;
-	auto colliderB = colliders[0].second;
+vector<Point>* Collision::getCollisionPoints(int collNum) {
+	auto colliderA = colliders[collNum].first;
+	auto colliderB = colliders[collNum].second;
 	Point aOrigin = colliderA->GetOrigin();
 	Point bOrigin = colliderB->GetOrigin();
 	float rotationA = colliderA->GetRotationY();
 	float rotationB = colliderB->GetRotationY();
 
-	vector<Point> v = vector<Point>();
+	/*
+	cout << "===COLLIDER A===" << endl;
+	for (auto i = colliderA->collider.begin(); i < colliderA->collider.end(); i++) {
+		Point p = i->Rotate(rotationA) + aOrigin;
+		cout << p.x << ", " << p.y << endl;
+	}
+	{
+		auto i = colliderA->collider.begin();
+		Point p = i->Rotate(rotationA) + aOrigin;
+		cout << p.x << ", " << p.y << endl;
+	}
+
+	cout << "===COLLIDER B===" << endl;
+	for (auto i = colliderB->collider.begin(); i < colliderB->collider.end(); i++) {
+		Point p = i->Rotate(rotationB) + bOrigin;
+		cout << p.x << ", " << p.y << endl;
+	}
+	{
+		auto i = colliderB->collider.begin();
+		Point p = i->Rotate(rotationB) + bOrigin;
+		cout << p.x << ", " << p.y << endl;
+	}
+	cout << "===COLLISION POINTS===" << endl;
+	*/
+
+	vector<Point>* v = new vector<Point>();
 	for (auto si = colliderA->collider.begin(); si < colliderA->collider.end(); si++) {
 		auto fi = (si + 1);
 		if (fi >= colliderA->collider.end()) {
@@ -38,8 +63,8 @@ vector<Point> Collision::getCollisionPoints() {
 				float t = (d.x * (a.y - c.y) + d.y * (c.x - a.x)) / -denom;
 				if (u >= 0 && u <= 1 && t >= 0 && t <= 1) {
 					Point p = a + Point(b.x * t, b.y * t);
-					Point p2 = c + Point(d.x * u, d.y * u);
-					v.push_back(p);
+					//cout << p.x << ", " << p.y << endl;
+					v->push_back(p);
 				}
 			}
 		}

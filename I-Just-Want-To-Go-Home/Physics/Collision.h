@@ -22,5 +22,5 @@ public:
 	vector<pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>> colliders;
 
 public:
-	vector<Point> getCollisionPoints();
+	vector<Point>* getCollisionPoints(int collNum);
 };
