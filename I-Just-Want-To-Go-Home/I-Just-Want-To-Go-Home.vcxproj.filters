@@ -109,6 +109,7 @@
     <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
     <ClInclude Include="Rendering\Lighting\PointLight.h" />
+    <ClInclude Include="Physics\Collision.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
