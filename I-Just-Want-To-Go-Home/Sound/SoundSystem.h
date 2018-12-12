@@ -44,7 +44,6 @@ public:
 			{
 				// load:   
 				if (component->isMusic == true) {
-					cout << "MUS" << endl;
 					auto Bgm = GetBgm(component->audioPath);
 					Mix_FadeInMusic(Bgm, -1, 2000);
 					Mix_VolumeMusic(MIX_MAX_VOLUME * component->cVolume);
@@ -54,9 +53,12 @@ public:
 			}
 			break;
 			case AudioAction::REQUEST_PLAYFX: {
-				cout << "sound" << endl;
+
+				if (Mix_Playing(component->cChannel)) continue;
+
 				auto sfx = GetAudioChunk(component->audioPath);
-				Mix_PlayChannel(component->cChannel, sfx, -1);
+				auto repeat = component->repeat ? -1 : 0;
+				Mix_PlayChannel(component->cChannel, sfx, repeat);
 				Mix_Volume(component->cChannel, MIX_MAX_VOLUME * component->cVolume);
 				// increment 
 				//_currentChannel++;
@@ -64,12 +66,16 @@ public:
 				component->SetAction(AudioAction::NOTHING);
 				break;
 			}
-			
 			case AudioAction::REQUEST_STOP:
 			{
-				auto sfx = GetAudioChunk(component->audioPath);
-				Mix_Pause(component->cChannel);
-				//cout<<"test"<<endl;
+				if (component->isMusic)
+				{
+					Mix_HaltMusic();
+				}
+				else
+				{
+					Mix_HaltChannel(component->cChannel);
+				}
 			}
 			default:
 			{

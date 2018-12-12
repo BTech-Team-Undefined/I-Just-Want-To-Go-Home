@@ -18,6 +18,7 @@ public:
 	bool isMusic = true;
 	int FX_Type=-1;
 	bool playing = false;
+	bool repeat = true;
 
 	SoundComponent() : Component(std::type_index(typeid(SoundComponent)))
 	{

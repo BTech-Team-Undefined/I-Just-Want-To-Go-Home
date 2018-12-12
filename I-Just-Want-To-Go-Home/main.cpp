@@ -75,13 +75,7 @@ int main(int argc, char* args[])
 	Game::instance().addSystem(std::move(is), ThreadType::graphics);
 
 	auto ss = std::make_unique<SoundSystem>();
-	ss->loadBgm("");
 	Game::instance().addSystem(std::move(ss));
-	//auto es = std::make_unique<ExampleSystem>();
-	//Game::instance().addSystem(std::move(es));
-
-	//auto ss = std::make_unique<SimpleSystem>();
-	//Game::instance().addSystem(std::move(ss));
 
 	auto ps = std::make_unique<PhysicsSystem>();
 	Game::instance().addSystem(std::move(ps));
@@ -90,71 +84,11 @@ int main(int argc, char* args[])
 	Scene* scene = new Scene();
 	Game::instance().setActiveScene(scene);
 
-	// ===== Test Sound =====
-	/*gMusic = Mix_LoadMUS("Sound/BGM.ogg");
-	if (gMusic == NULL)
-	{
-		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
-	}
-	/*if (Mix_PlayingMusic() == 0) {
-		Mix_PlayMusic(gMusic, -1);
-	}*/
-	/*if (Mix_PlayingMusic() == 0) {		
-		if (Mix_FadeInMusic(gMusic, -1, 2000) == -1) {
-			printf("Mix_FadeInMusic: %s\n", Mix_GetError());
-		}
-	}
-	else {
-		if (Mix_SetMusicPosition(20.0) == -1) {
-			cout << "position:" << Mix_GetError();
-		}
-	}
-	cout << "Volume:" << Mix_VolumeMusic(32) << endl;*/
-	
-	// ===== Sound Effect=====
+	// ===== DEBUG Sound Effect=====
 	gCar_hit = Mix_LoadWAV("Sound/hit.wav");
 	if (gCar_hit == NULL) {
 		cout << "faild to load file :" << Mix_GetError() << endl;
 	}
-	//Mix_PlayChannel(2, gCar_hit, 0);
-	
-	// ===== PLAYER ENTITY ===== 
-	auto playerEntity = new Entity();
-	playerEntity->position = glm::vec3(-5, -2, -5);
-
-	const bool FLY_MODE = false;
-	
-	// physics 
-	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
-	vector<Point> e6ColliderBox;
-	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
-	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
-	e6ColliderBox.push_back(Point(0.25, 0.25)); // bottom right
-	e6ColliderBox.push_back(Point(-0.25, 0.25)); // bottom left
-	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
-	playerEntity->addComponent<PhysicsComponent>();
-	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
-	
-	pc6->isStatic = false;
-	pc6->directionalDrag = true;
-	if (!FLY_MODE)
-		pc6->AddCollider(e6Collider);
-	// input 
-	playerEntity->addComponent<DebugInputComponent>();
-	// visuals 
-	auto tankEntity = Game::instance().loader.LoadModel("Models/racingkit2/raceCarRed.obj");
-	tankEntity->rotation = glm::vec3(0, glm::radians(180.0f), 0);
-	// camera 
-	auto eCam = new Entity();
-	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
-	eCam->rotation = glm::vec3(-0.7, 3.141, 0);
-	eCam->addComponent<Camera>();
-	auto cam = eCam->getComponent<Camera>();
-	cam->aspect = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
-	cam->fov = 60.0f;
-	// compose player 
-	playerEntity->addChild(eCam);
-	playerEntity->addChild(tankEntity.get());
 
 	// ===== INIT DATA (FOR ENTITIES) ===== 
 	TextureInfo texture;
@@ -210,6 +144,99 @@ int main(int argc, char* args[])
 
 	// ===== LEVEL ENTITIES =====
 
+	// ===== AUDIO =====
+	auto eBgm = new Entity();
+	eBgm->addComponent<SoundComponent>();
+	auto cBgm = eBgm->getComponent<SoundComponent>();
+	cBgm->audioPath = "Sound/BGM.ogg";
+	cBgm->isMusic = true;
+	cBgm->cVolume = 0.25;
+	cBgm->PlayBgm();
+
+	auto eSfx = new Entity();
+	eSfx->addComponent<SoundComponent>();
+	auto cSound = eSfx->getComponent<SoundComponent>();
+	cSound->audioPath = "Sound/car_idle.wav";
+	cSound->isMusic = false;
+	cSound->cVolume = 1.0;
+	cSound->cChannel = 3;
+	cSound->FX_Type = 0;
+	// cSound->PlayFx();
+
+	auto eStartSfx = new Entity();
+	eStartSfx->addComponent<SoundComponent>();
+	auto cStartSound = eStartSfx->getComponent<SoundComponent>();
+	cStartSound->audioPath = "Sound/car_start.ogg";
+	cStartSound->isMusic = false;
+	cStartSound->repeat = false;
+	cStartSound->cVolume = 1.0;
+	cStartSound->cChannel = 4;
+	cStartSound->FX_Type = 0;
+	cStartSound->PlayFx();
+
+	auto eDriftSfx = new Entity();
+	eDriftSfx->addComponent<SoundComponent>();
+	auto cDriftSound = eDriftSfx->getComponent<SoundComponent>();
+	cDriftSound->audioPath = "Sound/drift.ogg";
+	cDriftSound->isMusic = false;
+	cDriftSound->cVolume = 1.0;
+	cDriftSound->cChannel = 5;
+	cDriftSound->FX_Type = 0;
+
+	auto eHitSfx = new Entity();
+	eHitSfx->addComponent<SoundComponent>();
+	auto cHitSound = eHitSfx->getComponent<SoundComponent>();
+	cHitSound->audioPath = "Sound/hit.wav";
+	cHitSound->isMusic = false;
+	cHitSound->repeat = false;
+	cHitSound->cVolume = 1.0;
+	cHitSound->cChannel = 6;
+	cHitSound->FX_Type = 0;
+
+	// ===== PLAYER ENTITY ===== 
+	auto playerEntity = new Entity();
+	playerEntity->position = glm::vec3(-5, -2, -5);
+
+	const bool FLY_MODE = false;
+
+	// physics 
+	auto e6Collider = std::make_shared<Collider2D>("Player");
+	vector<Point> e6ColliderBox;
+	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
+	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
+	e6ColliderBox.push_back(Point(0.25, 0.25)); // bottom right
+	e6ColliderBox.push_back(Point(-0.25, 0.25)); // bottom left
+	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
+	playerEntity->addComponent<PhysicsComponent>();
+	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
+
+	pc6->isStatic = false;
+	pc6->directionalDrag = true;
+	if (!FLY_MODE)
+		pc6->AddCollider(e6Collider);
+	// input 
+	playerEntity->addComponent<DebugInputComponent>();
+	auto playerController = playerEntity->getComponent<DebugInputComponent>();
+	playerController->engineSfx = cSound;
+	playerController->driftSfx = cDriftSound;
+	// visuals 
+	auto tankEntity = Game::instance().loader.LoadModel("Models/racingkit2/raceCarRed.obj");
+	tankEntity->rotation = glm::vec3(0, glm::radians(180.0f), 0);
+	// camera 
+	auto eCam = new Entity();
+	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
+	eCam->rotation = glm::vec3(-0.7, 3.141, 0);
+	eCam->addComponent<Camera>();
+	auto cam = eCam->getComponent<Camera>();
+	cam->aspect = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
+	cam->fov = 60.0f;
+	// compose player 
+	playerEntity->addChild(eCam);
+	playerEntity->addChild(tankEntity.get());
+
+
+
+	// ===== TRACK ======
 	const float ENTITY_SCALE = 10;
 	const float DECORATION_SCALE = 5;
 
@@ -260,7 +287,7 @@ int main(int argc, char* args[])
 			isFinishLine = tracks[i]["finish"].asBool();
 
 		Json::Value colliders = tracks[i]["colliders"];
-		const bool DEBUG_COLLIDER_VISUAL = true;
+		const bool DEBUG_COLLIDER_VISUAL = false;
 
 		if (colliders != NULL)
 		{
@@ -276,7 +303,10 @@ int main(int argc, char* args[])
 			{
 				Json::Value collider = colliders[i];
 
-				auto colliderReaction = [] { std::cout << "collision!"; };
+				auto colliderReaction = [&cHitSound] { 
+					std::cout << "collision!"; 
+					cHitSound->PlayFx();
+				};
 				auto finishLineReaction = [&eWinDisplay]
 				{
 					eWinDisplay->setEnabled(true);
@@ -450,24 +480,24 @@ int main(int argc, char* args[])
 	ePLightGateL->addComponent<PointLight>();
 	ePLightGateL->getComponent<PointLight>()->range = 0.8;
 	ePLightGateL->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
-	ePLightGateL->position = glm::vec3(-1.2, 0.9, 4);
+	ePLightGateL->position = glm::vec3(-2.4, 4, 9);
 
 	auto ePLightGateR = new Entity();
 	ePLightGateR->addComponent<PointLight>();
 	ePLightGateR->getComponent<PointLight>()->range = 0.8;
 	ePLightGateR->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
-	ePLightGateR->position = glm::vec3(-3.7, 0.9, 4);
+	ePLightGateR->position = glm::vec3(-7.5, 4, 9);
 
 	auto ePLightStartHolder = new Entity();
 	ePLightStartHolder->addChild(ePLightGateL);
 	ePLightStartHolder->addChild(ePLightGateR);
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		auto epLeft = new Entity();
 		auto epRight = new Entity();
-		epLeft->position = glm::vec3(-4.3, -0.5, 8 + i * 3);
-		epRight->position = glm::vec3(-0.2, -0.5, 8 + i * 3);
+		epLeft->position = glm::vec3(-8.9, -1.0, 8 + i * 3);
+		epRight->position = glm::vec3(-0.9, -1.0, 8 + i * 3);
 
 		epLeft->addComponent<PointLight>();
 		epLeft->getComponent<PointLight>()->color = (i % 2 == 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
@@ -570,29 +600,7 @@ int main(int argc, char* args[])
 	timeTextComponent->color = glm::vec3(1, 1, 1);
 	timeTextComponent->font = "fonts/futur.ttf";
 	timeTextComponent->alignment = TextAlignment::Center;
-
-	// ===== FREEZE OBJECTS ===== 
 	eTime->setStatic(true);
-
-	// ===== AUDIO =====
-	auto eBgm = new Entity();
-	eBgm->addComponent<SoundComponent>();
-	auto cBgm = eBgm->getComponent<SoundComponent>();
-	cBgm->audioPath = "Sound/BGM.ogg";
-	cBgm->isMusic = true;
-	cBgm->cVolume = 0.25;
-	cBgm->PlayBgm();
-
-	auto eSfx = new Entity();
-	eSfx->addComponent<SoundComponent>();
-	auto cSound = eSfx->getComponent<SoundComponent>();
-	cSound->audioPath = "Sound/car_launch-idle_01.wav";
-	cSound->isMusic = false;
-	cSound->cVolume = 1.0;
-	cSound->cChannel = 3;
-	cSound->FX_Type = 0;
-	cSound->PlayFx();
-	// cSound->Stop();
 
 
 	// ===== START GAME ======
@@ -613,8 +621,12 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
 	Game::instance().addEntity(eWinDisplay);
+
 	Game::instance().addEntity(eBgm);
 	Game::instance().addEntity(eSfx);
+	Game::instance().addEntity(eStartSfx);
+	Game::instance().addEntity(eDriftSfx);
+	Game::instance().addEntity(eHitSfx);
 
 	Game::instance().loop();
 
