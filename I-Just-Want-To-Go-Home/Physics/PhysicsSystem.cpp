@@ -76,8 +76,8 @@ void PhysicsSystem::CheckCollisions()
 			vector<Point> toPoints = toCollider->collider;
 
 			// radians
-			float fromRotation = fromCollider->GetRotationY();
-			float toRotation = toCollider->GetRotationY();
+			float fromRotation = -fromCollider->GetRotationY();
+			float toRotation = -toCollider->GetRotationY();
 
 			bool collision = false;
 			for (int fep = 0; fep < fromPoints.size(); ++fep)

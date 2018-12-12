@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "Entity.h"
 #include <SDL2/SDL.h>
 #include <unordered_map>
 #include <functional>
@@ -60,23 +61,20 @@ public:
 		};
 		
 	}
-	void update(float dt)
+	void notify(SDL_Event e, float dt)
 	{
-		//Event handler
-		SDL_Event e;
 		//Handle events on queue
-		while (SDL_PollEvent(&e) != 0)
+		auto it = _actions.find(e.type);
+		if (it != _actions.end())
 		{
-			//User requests quit
-			auto it = _actions.find(e.type);
-			if (it != _actions.end())
-			{
-				it->second(e);
-				return;
-			}
+			it->second(e);
 		}
-		getEntity()->position.x += xvel * dt * 2.0f;
-		getEntity()->position.y += yvel * dt * 2.0f;
+	}
+
+	void update(float dt) {
+		Entity* ent = getEntity();
+		ent->position.x += xvel * dt * 2.0f;
+		ent->position.y += yvel * dt * 2.0f;
 	}
 
 private:

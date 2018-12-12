@@ -47,6 +47,7 @@
     <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
     <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
     <ClCompile Include="Physics\Collision.cpp" />
+    <ClCompile Include="EntitySystems\InputSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -103,12 +104,14 @@
     <ClInclude Include="libs\json\writer.h" />
     <ClInclude Include="Physics\Trigger.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
+    <ClInclude Include="Core\ThreadType.h" />
     <ClInclude Include="Core\CpuProfiler.h" />
     <ClInclude Include="Rendering\PostProcess\PostProcess.h" />
     <ClInclude Include="Rendering\PostProcess\NegativePP.h" />
     <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
     <ClInclude Include="Physics\Collision.h" />
+    <ClInclude Include="EntitySystems\InputSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

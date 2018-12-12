@@ -17,9 +17,9 @@ public:
 	float elasticity = 0.35f;
 	float dragCoefficient = 0.05f;
 	float frictionCoefficient = 0.03f;
-	float latDragCoefficient = 0.25;
-	float latFricCoefficient = 0.8;
-	float rotDragCoefficient = 0.15;
+	float latDragCoefficient = 0.33;
+	float latFricCoefficient = 0.85;
+	float rotDragCoefficient = 0.35;
 	float rotFricCoefficient = 0.6;
 	bool isStatic = false;
 	bool hasPhysicsCollision = true;
