@@ -1,0 +1,2 @@
+DO NOTE DELETE. This is the default skybox.
+Feel free to swap this out with your own skybox.

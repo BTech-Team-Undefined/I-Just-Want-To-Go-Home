@@ -31,8 +31,10 @@ private:
 	static unsigned int _curID;
 	unsigned int _id = 0;
 	bool _enabled = true;
+	bool _static = false;
 
-	ComponentMap _components;
+	ComponentMap _components;					// component map 
+	std::vector<Component*> _componentStorage;	// component storage
 	std::vector<Entity*> _children;
 	Entity* _parent;
 
@@ -43,6 +45,8 @@ private:
 	glm::vec3 _worldPosition;
 	glm::vec3 _worldRotation;
 	glm::vec3 _worldScale;
+
+	glm::mat4 _worldTransformation;
 
 	// may want to store world position,scale,rotation for optimization
 
@@ -90,6 +94,7 @@ public:
 	void addComponent() {
 		_components[typeid(T)] = std::make_unique<T>();
 		_components[typeid(T)]->setEntity(this);
+		_componentStorage.push_back(_components[typeid(T)].get());
 	}
 
 	// Returns a pointer to specified component. 
@@ -100,16 +105,9 @@ public:
 	}
 
 	// Returns a copy of all components attached to this entity. 
-	std::vector<Component*> getComponents()
+	const std::vector<Component*> getComponents()
 	{
-		std::vector<Component*> components;
-
-		for (ComponentMap::iterator it = _components.begin(); it != _components.end(); ++it)
-		{
-			components.push_back(it->second.get());
-		}
-
-		return components;
+		return _componentStorage;
 	}
 
 	// Remove and destroy a component attached to this entity. 
@@ -121,6 +119,7 @@ public:
 		if (getComponent<T>() != nullptr)
 		{
 			getComponent<T>()->Kill();
+			_componentStorage.erase(_components[typeid(T)].get());
 			_components.erase(typeid(T));
 		}
 	}
@@ -160,6 +159,20 @@ public:
 	// Sets local scale via a world scale.
 	// TODO: implement
 	void setWorldScale(glm::vec3 scale);
+
+	// precompute the world transformation matrix given a parent transformation. 
+	void configureTransform(glm::mat4 parent);
+
+	// precompute the world transformation matrix by automatically retrieving it's parent.
+	void configureTransform();
+
+	// gets the entity's static status. 
+	bool getStatic() const;
+
+	// Sets the static flag on this entity. Setting this to true will completely freeze all transforms 
+	// on this entity and it's children. Moving the parent (even if not static) will not move this entity.
+	// ONLY call when you're done configuring it.
+	void setStatic(bool torf);
 
 	// Inform this entity to destroy itself. 
 	void destroy();
