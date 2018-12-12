@@ -8,7 +8,6 @@
 #include "View.h"
 // shader
 
-enum class TextAlignment { Left, Center, Right };
 
 // Display a text message. Always renders on top. 
 // Adjust entity's position to move component. rotation and scale do nothing.
@@ -40,8 +39,6 @@ public:
 	// color of the text. 
 	glm::vec3 color;
 
-	TextAlignment alignment = TextAlignment::Left;
-	
 	// custom shader for this text. leave as nullptr to use default shader.
 	// Shader* customShader;
 

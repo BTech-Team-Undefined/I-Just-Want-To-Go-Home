@@ -205,6 +205,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Physics\Collision.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
     <ClInclude Include="libs\json\allocator.h" />

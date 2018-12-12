@@ -10,28 +10,13 @@ uniform sampler2D u_ColTex;
 uniform sampler2D u_DphTex;
 uniform sampler2D u_ShadowMap;
 
-// Debug control 
-uniform bool u_DisplayPos; 
-uniform bool u_DisplayNrm; 
-uniform bool u_DisplayCol; 
-uniform bool u_DisplayDph;
-uniform bool u_DisplayNoS;
-
 out layout(location = 0) vec4 o_Col;
 
 // Lighting 
-#define MAX_LIGHTS 32
-#define ATTENUATION 0.05
-struct Light 
-{
-    vec3 Position;
-    vec3 Color;
-};
 uniform float u_AmbientIntensity = 1.0;
-uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_ViewPosition;
 // Shadows 
-uniform mat4 u_LightSpaceMatrix;    // todo: I need to do the shadow mapping calculations here (b/c i don't have a frag in vertex quad)
+uniform mat4 u_LightSpaceMatrix;    
 uniform vec3 u_LightPos;
 uniform vec3 u_LightDir;
 

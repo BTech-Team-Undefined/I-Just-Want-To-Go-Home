@@ -2,6 +2,7 @@
 
 #include "../Shader.h"
 #include "../Material.h"
+#include <memory>
 
 class PostProcess
 {

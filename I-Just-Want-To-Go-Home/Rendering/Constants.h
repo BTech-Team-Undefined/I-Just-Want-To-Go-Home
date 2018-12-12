@@ -21,6 +21,10 @@ extern const std::string SHADER_TEX_NORMAL;
 extern const std::string SHADER_TEX_HEIGHT;
 extern const std::string SHADER_TEX_CUBEMAP;
 // Lighting 
+extern const std::string SHADER_LIGHT_POS;
+extern const std::string SHADER_LIGHT_COLOR;
+extern const std::string SHADER_LIGHT_INTENSITY;
+extern const std::string SHADER_LIGHT_RANGE;
 extern const std::string SHADER_LIGHT_D_POS;
 extern const std::string SHADER_LIGHT_D_DIR;
 extern const std::string SHADER_LIGHT_D_COLOR;
