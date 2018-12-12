@@ -151,6 +151,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="EntitySystems\Component.cpp" />
     <ClCompile Include="EntitySystems\Entity.cpp" />
     <ClCompile Include="EntitySystems\Examples\SimpleSystem.cpp" />
+    <ClCompile Include="EntitySystems\InputSystem.cpp" />
     <ClCompile Include="EntitySystems\System.cpp" />
     <ClCompile Include="EntitySystems\Examples\ExampleSystem.cpp" />
     <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
@@ -198,11 +199,13 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Core\ThreadType.h" />
     <ClInclude Include="Core\CpuProfiler.h" />
     <ClInclude Include="DebugInputComponent.h" />
     <ClInclude Include="EntitySystems\DestructionComponent.h" />
     <ClInclude Include="EntitySystems\Examples\SimpleSystem.h" />
     <ClInclude Include="EntitySystems\InputComponent.h" />
+    <ClInclude Include="EntitySystems\InputSystem.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
     <ClInclude Include="Physics\Collision.h" />

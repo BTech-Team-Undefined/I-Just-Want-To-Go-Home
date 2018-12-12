@@ -162,6 +162,32 @@ glm::vec3 Entity::getWorldScale()
 	return ret;
 }
 
+glm::mat4 Entity::getLatestWorldTransformation()
+{
+	return _worldTransformationLatest;
+}
+
+glm::vec3 Entity::getLatestWorldPosition()
+{
+	return glm::vec3(
+		_worldTransformationLatest[3][0],
+		_worldTransformationLatest[3][1],
+		_worldTransformationLatest[3][2]
+	);
+}
+
+glm::vec3 Entity::getLatestWorldRotation()
+{
+	std::cerr << "ERROR: getLatestWorldRotation() not implemented." << std::endl;
+	return glm::vec3();
+}
+
+glm::vec3 Entity::getLatestWorldScale()
+{
+	std::cerr << "ERROR: getLatestWorldScale() not implemented." << std::endl;
+	return glm::vec3();
+}
+
 void Entity::setLocalTransform(glm::mat4 matrix)
 {
 	// warning: assuming matrix bottom-right value is 1. If not divide everything in matrix by that value. 
@@ -179,13 +205,18 @@ std::vector<Entity*> const& Entity::getChildren() const
 
 void Entity::configureTransform(glm::mat4 parent)
 {
-	_worldTransformation = parent * getLocalTransformation();
+	_worldTransformationLatest = parent * getLocalTransformation();
 }
 
 void Entity::configureTransform()
 {
 	glm::mat4 transform = getLocalTransformation();
-	_worldTransformation = (getParent() == nullptr) ? transform : getParent()->getWorldTransformation() * transform;
+	_worldTransformationLatest = (getParent() == nullptr) ? transform : getParent()->getLatestWorldTransformation() * transform;
+}
+
+void Entity::updateTransform()
+{
+	_worldTransformation = _worldTransformationLatest;
 }
 
 bool Entity::getStatic() const
@@ -198,6 +229,8 @@ void Entity::setStatic(bool torf)
 	if (torf)
 	{
 		configureTransform();		// save transformation 
+		_worldTransformation = _worldTransformationLatest;
+
 		_static = true;				// freeze data 
 		for (auto& e : _children)	// apply to all children 
 			e->setStatic(true);

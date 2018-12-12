@@ -101,22 +101,18 @@ public:
 	}
 	void update(float dt)
 	{
-		//Event handler
-		SDL_Event e;
-		//Handle events on queue
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
+	}
+
+	void notify(vector<SDL_Event>* events, float dt)
+	{
+		//User requests quit
+		for (auto ep = events->begin(); ep < events->end(); ep++) {
+			auto e = *ep;
+			cout << "Respond Event " << e.type << endl;
 			auto it = _actions.find(e.type);
 			if (it != _actions.end())
 			{
 				it->second(e);
-				return;
-			}
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return;
 			}
 		}
 		Entity* ent = getEntity();
