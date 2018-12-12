@@ -46,7 +46,8 @@ private:
 	glm::vec3 _worldRotation;
 	glm::vec3 _worldScale;
 
-	glm::mat4 _worldTransformation;
+	glm::mat4 _worldTransformation;			// precomputed worldtransform for graphics 
+	glm::mat4 _worldTransformationLatest;	// precomputed worldtransform for physics. will always have the most recent data. 
 
 	// may want to store world position,scale,rotation for optimization
 
@@ -124,12 +125,11 @@ public:
 		}
 	}
 
-	// Returns the local transformation matrix.
-	glm::mat4 getLocalTransformation();
+#pragma region Graphics_Frame_Data 
 
 	// Returns the world transformation matrix (model matrix).
 	glm::mat4 getWorldTransformation();
-	
+
 	// Returns the world position of the entity.
 	glm::vec3 getWorldPosition();
 
@@ -138,6 +138,28 @@ public:
 
 	// Returns the world scale of the entity;
 	glm::vec3 getWorldScale();
+
+	// Updates the precomputed world transformation matrix for rendering 
+	void updateTransform();
+
+#pragma endregion
+
+#pragma region Game_Frame_Data
+
+	// Calculates and returns the local transformation matrix.
+	glm::mat4 getLocalTransformation();
+
+	// Returns the latest world transformation
+	glm::mat4 getLatestWorldTransformation();
+
+	// Returns the latest world position of the entity.
+	glm::vec3 getLatestWorldPosition();
+
+	// Returns the latest world rotation of the entity.
+	glm::vec3 getLatestWorldRotation();
+
+	// Returns the latest world scale of the entity;
+	glm::vec3 getLatestWorldScale();
 
 	// Sets local transformation properties via a model matrix. 
 	// Note: This uses experimental GLM functions and has edge cases. 
@@ -165,6 +187,8 @@ public:
 
 	// precompute the world transformation matrix by automatically retrieving it's parent.
 	void configureTransform();
+
+#pragma endregion
 
 	// gets the entity's static status. 
 	bool getStatic() const;

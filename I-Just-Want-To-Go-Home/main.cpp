@@ -5,6 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <thread>
 #include <fstream>
 // Using SDL 
 #include <SDL2\SDL.h>
@@ -23,6 +24,7 @@
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
 #include "EntitySystems\Component.h"
+#include "EntitySystems\InputSystem.h"
 #include "Rendering\Shader.h"
 #include "Rendering\Renderable.h"
 #include "Rendering\RenderingSystem.h"
@@ -67,7 +69,9 @@ int main(int argc, char* args[])
 	// ===== INIT SYSTEMS =====
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	Game::instance().addSystem(std::move(rs));
+	Game::instance().addSystem(std::move(rs), ThreadType::graphics);
+	auto is = std::make_unique<InputSystem>();
+	Game::instance().addSystem(std::move(is), ThreadType::graphics);
 
 	//auto es = std::make_unique<ExampleSystem>();
 	//Game::instance().addSystem(std::move(es));
@@ -220,6 +224,7 @@ int main(int argc, char* args[])
 
 		Json::Value colliders = tracks[i]["colliders"];
 		const bool DEBUG_COLLIDER_VISUAL = false;
+
 		if (colliders != NULL)
 		{
 			trackEntities[currentIndex]->addComponent<PhysicsComponent>();
@@ -304,7 +309,6 @@ int main(int argc, char* args[])
 		decorationEntities[currentIndex]->setStatic(true);
 		Game::instance().addEntity(decorationEntities[currentIndex].get());
 	}
-
 	/*
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
