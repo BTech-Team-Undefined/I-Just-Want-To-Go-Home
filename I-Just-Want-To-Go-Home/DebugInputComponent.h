@@ -1,6 +1,7 @@
 #pragma once
 #include "./EntitySystems/Component.h"
 #include "./Physics/PhysicsComponent.h"
+#include "Sound/SoundComponent.h"
 #include <SDL2/SDL.h>
 #include <unordered_map>
 #include <functional>
@@ -119,17 +120,28 @@ public:
 			};
 		};
 	}
-	void update(float dt) {
+	void update(float dt) 
+	{
+		if (getEntity()->getComponent<PhysicsComponent>()->velocity.length() > 2)
+		{
+			engineSfx->PlayFx();
+		}
+		else
+		{
+			engineSfx->Stop();
+		}
 	}
 
 	void notify(vector<SDL_Event>* events, float dt)
 	{
-    if (drift)
+		if (drift)
 		{
+			driftSfx->PlayFx();
 			driftTime += dt;
 		}
 		else
 		{
+			driftSfx->Stop();
 			driftTime = 0;
 		}
 		if (driftTime >= maxDriftTime)
@@ -151,6 +163,10 @@ public:
 		ent->getComponent<PhysicsComponent>()->force.x = std::sin(dir) * thrust + std::sin(dir - 1.57) ;//* sideThrust;
 		ent->getComponent<PhysicsComponent>()->force.y = std::cos(dir) * thrust + std::cos(dir - 1.57) ;//* sideThrust;
 	}
+
+public:
+	SoundComponent* engineSfx; 
+	SoundComponent* driftSfx; 
 
 private:
 	std::unordered_map<Uint32, std::function<void(SDL_Event e)>> _actions;

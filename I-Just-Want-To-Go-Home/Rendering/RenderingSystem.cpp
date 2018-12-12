@@ -65,12 +65,20 @@ RenderingSystem::RenderingSystem() : System()
 	fogPp->enabled = false;
 	addPostProcess("Fog", std::move(fogPp));
 	// outline
-
 	auto outlinePp = std::make_unique<PostProcess>();	// too lazy to make a dedicated class
 	outlinePp->shader = std::make_unique<Shader>("shaders/pp_base_vertex.glsl", "shaders/pp_outline_fragment.glsl");
 	outlinePp->settings = std::make_unique<Material>();	// u_FogDensity, u_FogStart, u_FogColor
 	outlinePp->enabled = true;
 	addPostProcess("Outline", std::move(outlinePp));
+	// blur 
+	auto blurHPp = std::make_unique<BlurPP>();
+	blurHPp->settings->SetBool("u_Horizontal", true);
+	blurHPp->enabled = false;
+	addPostProcess("BlurH", std::move(blurHPp));
+	auto blurVPp = std::make_unique<BlurPP>();
+	blurVPp->settings->SetBool("u_Horizontal", false);
+	blurVPp->enabled = false;
+	addPostProcess("BlurV", std::move(blurVPp));
 
 	// default skybox 
 	std::vector<std::string> skyboxFaces = {
