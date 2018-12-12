@@ -38,6 +38,8 @@
 #include "Physics\Point.h"
 #include "Physics\PhysicsVector.h"
 #include "DebugInputComponent.h"
+#include "EntitySystems\MenuInputComponent.h"
+
 #include "EntitySystems/Transform.h"
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
@@ -80,17 +82,47 @@ int main(int argc, char* args[])
 
 	// ===== INIT SCENE =====
 	Scene* scene = new Scene();
-	Game::instance().setActiveScene(scene);
+
+	Scene* scene2 = new Scene();
+	Game::instance().setActiveScene(scene2);
+
+	auto eCam2 = new Entity();
+	eCam2->position = glm::vec3(0, 0, 0); //replace the camera position back if finished.
+	eCam2->rotation = glm::vec3(0, 0, 0);
+	eCam2->addComponent<Camera>();
+	auto cam2 = eCam2->getComponent<Camera>();
+	cam2->aspect = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
+	cam2->fov = 60.0f;
+
+	auto pe = new Entity();
+	pe->position = glm::vec3(0, 0, 0);
+	pe->addComponent<MenuInputComponent>();
+
+	auto eGameTitle = new Entity();
+	eGameTitle->position = glm::vec3(0, SCREEN_HEIGHT, 0);
+	eGameTitle->addComponent<TextComponent>();
+	auto GameTitle = eGameTitle->getComponent<TextComponent>();
+	GameTitle->setText("POTATOES!");
+	GameTitle->color = glm::vec3(0.0f, 97.0f, 255.0f);
+	GameTitle->font = "fonts/futur.tff";
+
+
+
+	Game::instance().addEntity(eGameTitle);
+	Game::instance().addEntity(pe);
+	Game::instance().addEntity(eCam2);
+	Game::instance().loop();
+//	Game::instance().setActiveScene(scene);
 
 	// ===== Test Sound =====
-	gMusic = Mix_LoadMUS("Sound/BGM.wav");
-	if (gMusic == NULL)
-	{
-		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
-	}
-	if (Mix_PlayingMusic() == 0) {
-		Mix_PlayMusic(gMusic, -1);
-	}
+	//gMusic = Mix_LoadMUS("Sound/BGM.wav");
+	//if (gMusic == NULL)
+	//{
+	//	printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+	//}
+	//if (Mix_PlayingMusic() == 0) {
+	//	Mix_PlayMusic(gMusic, -1);
+	//}
 
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
@@ -200,6 +232,8 @@ int main(int argc, char* args[])
 		trackEntities[currentIndex]->setStatic(true);
 		Game::instance().addEntity(trackEntities[currentIndex].get());
 	}
+
+
 	/*
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();

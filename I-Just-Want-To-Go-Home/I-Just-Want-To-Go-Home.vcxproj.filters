@@ -107,6 +107,7 @@
     <ClInclude Include="Rendering\PostProcess\NegativePP.h" />
     <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
+    <ClInclude Include="EntitySystems\MenuInputComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
