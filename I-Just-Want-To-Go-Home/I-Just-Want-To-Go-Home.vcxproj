@@ -187,6 +187,8 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
+    <ClCompile Include="Sound\SoundComponent.cpp" />
+    <ClCompile Include="Sound\SoundSystem.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
     <ClCompile Include="Rendering\UI\TextComponent.cpp" />
     <ClCompile Include="Rendering\UI\View.cpp" />
@@ -265,7 +267,13 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   <ItemGroup>
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="Game\SpeedDisplayComponent.h" />
+    <ClInclude Include="Sound\SoundComponent.h" />
+    <ClInclude Include="Sound\SoundSystem.h" />
     <ClInclude Include="TestableClass.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Sound\car_idle.wav" />
+    <Media Include="Sound\car_launch-idle_01.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
