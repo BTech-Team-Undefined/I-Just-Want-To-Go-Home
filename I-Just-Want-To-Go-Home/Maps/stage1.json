@@ -446,6 +446,34 @@
             "model": "camera_exclusive",
             "position": [-9, 0, 8.5],
             "rotation": [0, 75, 0]
+        },
+        {
+            "model": "treeLarge",
+            "position": [-1, 0, 2]
+        },
+        {
+            "model": "treeLarge",
+            "position": [3, 0, 3]
+        },
+        {
+            "model": "treeLarge",
+            "position": [5, 0, 3]
+        },
+        {
+            "model": "treeLarge",
+            "position": [7, 0, 7]
+        },
+        {
+            "model": "treeLarge",
+            "position": [5, 0, 1]
+        },
+        {
+            "model": "treeLarge",
+            "position": [-3, 0, 7]
+        },
+        {
+            "model": "treeLarge",
+            "position": [-1, 0, 5]
         }
     ]
 }
