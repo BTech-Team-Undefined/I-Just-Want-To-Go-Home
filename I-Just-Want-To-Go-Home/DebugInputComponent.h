@@ -26,62 +26,57 @@ public:
 				//e4->position = glm::vec3(e4->position.x, e4->position.y, e4->position.z + 0.1f);
 				thrust = -7.0;
 				break;
+			//moving left or right; only when moving forward
+			case SDLK_a:
+				//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
+				//e6->getComponent<PhysicsComponent>()->force.x = -10;
+				getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? 2 : 1.75) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length()) + 7;
+
+				break;
+			case SDLK_d:
+				//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
+				//e6->getComponent<PhysicsComponent>()->force.x = 10;
+				getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? -2 : -1.75) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length()) - 7;
+				break;
+			}
+			//}
+			//drifting
+			//if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
+			if (e.key.keysym.sym == SDLK_LSHIFT) {
+				drift = true;
+				//if (getEntity()->getComponent<PhysicsComponent>()->angularForce >= 0) { //going left
+				//	//getEntity()->getComponent<PhysicsComponent>()->angularForce += (0.25 * driftTime);
+				//	getEntity()->getComponent<PhysicsComponent>()->angularForce = 7;
+				//}
+				//else { //going right
+				//	//getEntity()->getComponent<PhysicsComponent>()->angularForce += (-0.25 * driftTime);
+				//	getEntity()->getComponent<PhysicsComponent>()->angularForce = -7;
+				//}
+				//boost = 1 * sqrt(driftTime);
+				//std::cout << "Boost: " << boost << std::endl;
+			//}
+			//else {
+			//	drift = false;
+			//	thrust += boost;
+			//	boost -= 0.05;
+			//	if (boost < 0) {
+			//		boost = 0;
+			//	}
+			//	std::cout << "Boost: " << boost << "   |    Thrust: " << thrust << std::endl;
+			//}
 			}
 
-			//moving left or right; only when moving forward
-			if (getEntity()->getComponent<PhysicsComponent>()->velocity.length() > 1) {
-				switch (e.key.keysym.sym) {
-				case SDLK_a:
-					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
-					//e6->getComponent<PhysicsComponent>()->force.x = -10;
-					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? 3 : 2) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length()) + 2;
-
-					break;
-				case SDLK_d:
-					//e4->position = glm::vec3(e4->position.x + 0.1f, e4->position.y, e4->position.z);
-					//e6->getComponent<PhysicsComponent>()->force.x = 10;
-					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? -3 : -2) * sqrt(getEntity()->getComponent<PhysicsComponent>()->velocity.length()) - 2;
-					break;
-				}
-				//}
-				//drifting
-				//if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
-				if (e.key.keysym.sym == SDLK_LSHIFT) {
-					drift = true;
-					//if (getEntity()->getComponent<PhysicsComponent>()->angularForce >= 0) { //going left
-					//	//getEntity()->getComponent<PhysicsComponent>()->angularForce += (0.25 * driftTime);
-					//	getEntity()->getComponent<PhysicsComponent>()->angularForce = 7;
-					//}
-					//else { //going right
-					//	//getEntity()->getComponent<PhysicsComponent>()->angularForce += (-0.25 * driftTime);
-					//	getEntity()->getComponent<PhysicsComponent>()->angularForce = -7;
-					//}
-					//boost = 1 * sqrt(driftTime);
-					//std::cout << "Boost: " << boost << std::endl;
-				//}
-				//else {
-				//	drift = false;
-				//	thrust += boost;
-				//	boost -= 0.05;
-				//	if (boost < 0) {
-				//		boost = 0;
-				//	}
-				//	std::cout << "Boost: " << boost << "   |    Thrust: " << thrust << std::endl;
-				//}
-				}
-
-				switch (e.key.keysym.sym) {
-				case SDLK_SPACE:
-					getEntity()->position.x = 0;
-					getEntity()->position.z = 0;
-					getEntity()->rotation.y = 0;
-					getEntity()->getComponent<PhysicsComponent>()->force.x = 0;
-					getEntity()->getComponent<PhysicsComponent>()->force.y = 0;
-					thrust = 0;
-					boost = 0;
-					break;
-				}
-			};
+			switch (e.key.keysym.sym) {
+			case SDLK_SPACE:
+				getEntity()->position.x = 0;
+				getEntity()->position.z = 0;
+				getEntity()->rotation.y = 0;
+				getEntity()->getComponent<PhysicsComponent>()->force.x = 0;
+				getEntity()->getComponent<PhysicsComponent>()->force.y = 0;
+				thrust = 0;
+				boost = 0;
+				break;
+			}
 
 			_actions[SDL_EventType::SDL_KEYUP] = [this](SDL_Event e)
 			{
@@ -145,7 +140,6 @@ public:
 		//User requests quit
 		for (auto ep = events->begin(); ep < events->end(); ep++) {
 			auto e = *ep;
-			cout << "Respond Event " << e.type << endl;
 			auto it = _actions.find(e.type);
 			if (it != _actions.end())
 			{

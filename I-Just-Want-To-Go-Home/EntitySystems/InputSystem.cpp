@@ -13,7 +13,6 @@ void InputSystem::update(float dt) {
 			return;
 		}
 		else {
-			cout << "Capture Event " << e.type << endl;
 			events->push_back(e);
 		}
 	}
