@@ -13,6 +13,7 @@ public:
 
 	DebugInputComponent() : Component(std::type_index(typeid(DebugInputComponent)))
 	{
+		this->engineSFX = Mix_LoadWAV("Sound/engine.wav");
 		_actions[SDL_EventType::SDL_KEYDOWN] = [this](SDL_Event e)
 		{
 
@@ -125,6 +126,13 @@ public:
 		};
 	}
 	void update(float dt) {
+		if (getEntity()->getComponent<PhysicsComponent>()->velocity.length() > 2)
+		{
+			if (Mix_Playing(1) == 0)
+				Mix_PlayChannel(1, this->engineSFX, 0);
+		}
+		if (getEntity()->getComponent<PhysicsComponent>()->velocity.length() <= 0.5)
+			Mix_HaltChannel(1);
 	}
 
 	void notify(vector<SDL_Event>* events, float dt)
@@ -166,4 +174,5 @@ private:
 	float boost;
 	bool enableBoost = false;
 	bool drift;
+	Mix_Chunk *engineSFX;
 };

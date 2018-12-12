@@ -87,6 +87,8 @@ int main(int argc, char* args[])
 	Game::instance().setActiveScene(scene);
 
 	// ===== Test Sound =====
+	Mix_AllocateChannels(8);
+
 	gMusic = Mix_LoadMUS("Sound/BGM.wav");
 	if (gMusic == NULL)
 	{
@@ -95,6 +97,8 @@ int main(int argc, char* args[])
 	if (Mix_PlayingMusic() == 0) {
 		Mix_PlayMusic(gMusic, -1);
 	}
+
+	auto collisionSFX = Mix_LoadWAV("Sound/collision.wav");
 
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
@@ -239,7 +243,7 @@ int main(int argc, char* args[])
 			{
 				Json::Value collider = colliders[i];
 
-				auto colliderReaction = [] { std::cout << "collision!"; };
+				auto colliderReaction = [collisionSFX] { Mix_PlayChannel(4, collisionSFX, 0); };
 				auto finishLineReaction = [] { std::cout << "finish!"; };
 
 				auto colliderObj = isFinishLine ? std::make_shared<Trigger>(finishLineReaction) : std::make_shared<Trigger>(colliderReaction);
