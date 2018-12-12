@@ -151,6 +151,8 @@ void Game::loop(ThreadType type)
 
 		_profiler.StartTimer(2);
 		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
+		if (_isPause)
+			frameDelta = std::chrono::nanoseconds(0);
 		timeSinceLastUpdate += frameDelta;
 		while (timeSinceLastUpdate > _frameTime)
 		{
@@ -166,9 +168,13 @@ void Game::loop(ThreadType type)
 			// 3. fixed system update 
 			for (int i = 0; i < _systems[type].size(); i++)
 			{
-				_systems[type][i]->update(dt.count());
-				_systems[type][i]->clearComponents();	// cleanup for next iteration
+				_systems[i]->update(dt.count());
 			}
+		}
+		// 3. fixed system update 
+		for (int i = 0; i < _systems.size(); i++)
+		{
+			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
 		_profiler.StopTimer(2);
 
@@ -190,6 +196,11 @@ void Game::loop(ThreadType type)
 void Game::stop(ThreadType type)
 {
 	_running[type] = false;
+}
+
+void Game::pause(bool p)
+{
+	_isPause = p;
 }
 
 // will update all components in an entity, children in entity, and notify systems
@@ -221,27 +232,39 @@ void Game::resolveAdditionDeletion(Entity *entity) {
 	int id = entity->getID();
 
 	// check if branch should be deleted
-	auto toDelete = _deletionList.find(id);
-	if (toDelete != _deletionList.end())
+	if (_deletionList.size() > 0)
 	{
-		entity->release();
-		_deletionList.erase(toDelete);
-		return;
+		auto toDelete = _deletionList.find(id);
+		if (toDelete != _deletionList.end())
+		{
+			entity->release();
+			_deletionList.erase(toDelete);
+			return;
+		}
 	}
 
 	// check if something should be added 
-	for (auto& entry : _additionList)
+	if (_additionList.size() > 0)
 	{
-		if (entry.target == id)
+		bool updateList = false;
+
+		for (auto& entry : _additionList)
 		{
-			std::cout << "Adding entity " << entry.entity->getID() << " to parent entity " << id << std::endl;
-			entity->addChild(entry.entity);
+			if (entry.target == id)
+			{
+				std::cout << "Adding entity " << entry.entity->getID() << " to parent entity " << id << std::endl;
+				entity->addChild(entry.entity);
+				updateList = true;
+			}
+		}
+
+		if (updateList)
+		{
+			_additionList.erase(
+				std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
+				_additionList.end());
 		}
 	}
-	// this is pretty efficient apparently. 
-	_additionList.erase(
-		std::remove_if(_additionList.begin(), _additionList.end(), [id](const EntityAction& e) { return e.target == id; }),
-		_additionList.end());
 
 	// go thru remaining children 
 	auto children = entity->getChildren();
@@ -262,18 +285,22 @@ void Game::resolveEntities(Entity * entity, bool collectComponents, ThreadType t
 		// precalculate world transformation matrix 
 		if (entity->getEnabled() && !entity->getStatic())
 			entity->configureTransform();
-		// for all components notify systems 
-		auto components = entity->getComponents();
-		for (int i = 0; i < components.size(); i++)
+		
+		if (entity->getEnabled())
 		{
-			// ... ensure it is enabled ...
-			if (!components[i]->getEnabled()) continue;
-			// ... and notify systems
-			auto componentType = std::type_index(typeid(*components[i]));
-			for (int j = 0; j < _systems[type].size(); j++)
-				_systems[type][j]->addComponent(componentType, components[i]);
-			for (int j = 0; j < _frameSystems[type].size(); j++)
-				_frameSystems[type][j]->addComponent(componentType, components[i]);
+			// for all components notify systems 
+			auto components = entity->getComponents();
+			for (int i = 0; i < components.size(); i++)
+			{
+				// ... ensure it is enabled ...
+				if (!components[i]->getEnabled()) continue;
+				// ... and notify systems
+				auto type = std::type_index(typeid(*components[i]));
+				for (int j = 0; j < _systems.size(); j++)
+					_systems[j]->addComponent(type, components[i]);
+				for (int j = 0; j < _frameSystems.size(); j++)
+					_frameSystems[j]->addComponent(type, components[i]);
+			}
 		}
 	}
 

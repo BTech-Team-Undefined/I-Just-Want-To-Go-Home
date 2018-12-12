@@ -106,6 +106,7 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)SDL2.dll" "$(TargetDir)"
+xcopy "$(ProjectDir)SDL2_mixer.dll" "$(TargetDir)"
 xcopy "$(ProjectDir)glew32.dll" "$(TargetDir)"
 xcopy "$(ProjectDir)Textures" "$(TargetDir)Textures" /s /i /e /y
 xcopy "$(ProjectDir)Models" "$(TargetDir)Models" /s /i /e /y
@@ -205,6 +206,7 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClInclude Include="EntitySystems\InputComponent.h" />
     <ClInclude Include="EntitySystems\RootEntity.h" />
     <ClInclude Include="EntitySystems\Examples\ExampleSystem.h" />
+    <ClInclude Include="Physics\Collision.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
     <ClInclude Include="Game\StickyTransformComponent.h" />
     <ClInclude Include="libs\json\allocator.h" />

@@ -98,6 +98,9 @@ public:
 	// Stops a game loop.
 	void stop(ThreadType type = ThreadType::primary);
 
+	//pauses / unpauses the game
+	void pause(bool pause);
+
 	// Properly dispose an entity in the next frame. 
 	// Note: Better to call Entity.delete() as there may be some custom funtionality.
 	void deleteEntity(int id)
@@ -133,5 +136,7 @@ private:
 
 	// cleans up any remaining entities to be deleted or added
 	void resolveCleanup();
+
+	bool _isPause = false;
 };
 

@@ -10,6 +10,7 @@
 #include "../Camera.h"
 #include "Lighting\Light.h"
 #include "Lighting\DirectionalLight.h"
+#include "Lighting\PointLight.h"
 #include "../EntitySystems/System.h"
 #include "UI\View.h"
 #include "UI\ImageComponent.h"
@@ -42,7 +43,8 @@ class RenderingSystem : public System
 public:
 	Camera* activeCamera; 
 	Shader* geometryShader;		// default geometry shader 
-	Shader* compositionShader;	// default composition shader 
+	Shader* compDLightShader;	// default composition shader for directional lights
+	Shader* compPLightShader;	// default composition shader for point lights
 	Shader* shadowmapShader;	// default shadowmap shader 
 	Shader* textShader;			// default text shader 
 	Shader* imageShader;		// default UI shader 
@@ -70,11 +72,15 @@ private:
 	std::map<std::string, FontInfo> fonts;
 	std::vector<RenderComponent*> _components;
 	std::vector<DirectionalLight *> _dlights;
+	std::vector<PointLight *> _plights;
 	std::vector<Camera*> _cameras;
 	std::vector<TextComponent*> _texts;
 	std::vector<ImageComponent*> _images; 
 
 	std::map<std::string, std::unique_ptr<PostProcess>> _postProcesses;
+
+	glm::mat4 projection;
+	glm::mat4 view;
 
 
 public:
@@ -92,7 +98,23 @@ public:
 	void setSkybox(unsigned int cubemapId);
 
 private: 
+	
 	void RenderGeometryPass();
+
+	void RenderDirectionalLightingPass();	// composition
+		
+	void RenderPointLightingPass();			// composition 
+
+	void RenderShadowMapsPass();
+
+	void RenderSkyboxPass();
+
+	void RenderPostProcessPass();
+
+	void RenderUIImagesPass();
+
+	void RenderUITextPass();
+
 	void RenderEntityGeometry(Entity* e, glm::mat4 transform);
 	void RenderCompositionPass();
 	void RenderText(Shader &s, std::string text, TextAlignment alignment, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, std::string font = RENDERING_SYSTEM_DEFAULT_FONT);
