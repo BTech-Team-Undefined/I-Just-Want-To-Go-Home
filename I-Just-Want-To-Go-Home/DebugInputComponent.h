@@ -29,7 +29,7 @@ public:
 			}
 
 			//moving left or right; only when moving forward
-			if (thrust != 0) {
+			//if (thrust != 0) {
 				switch (e.key.keysym.sym) {
 				case SDLK_a:
 					//e4->position = glm::vec3(e4->position.x - 0.1f, e4->position.y, e4->position.z);
@@ -43,7 +43,7 @@ public:
 					getEntity()->getComponent<PhysicsComponent>()->angularForce = -10;
 					break;
 				}
-			}
+			//}
 			//drifting
 			if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
 				if (e.key.keysym.sym == SDLK_LSHIFT) {
