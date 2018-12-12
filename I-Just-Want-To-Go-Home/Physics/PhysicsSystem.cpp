@@ -36,7 +36,7 @@ void PhysicsSystem::update(float dt)
 
 void PhysicsSystem::CheckCollisions()
 {
-	map<string, pair<Entity*, Entity*>> collisions = {};
+	map<string, Collision*> collisions = {};
 	const float NEAR_THRESHOLD = 0.02f;
 
 	this->_justChecked.clear();
@@ -255,13 +255,21 @@ void PhysicsSystem::CheckCollisions()
 				int toID = toCollider->GetEntity()->getID();
 				Entity* higher = fromID > toID ? fromCollider->GetEntity() : toCollider->GetEntity();
 				Entity* lower = fromID > toID ? toCollider->GetEntity() : fromCollider->GetEntity();
-				if (collisions.count(lower->getID() + "x" + higher->getID()) == 0 && lower != higher) {
-					collisions.insert(
-						pair<string, pair<Entity*, Entity*>>(
-							lower->getID() + "x" + higher->getID(),
-							pair<Entity*, Entity*>(lower, higher)
-						)
-					);
+				if (lower != higher) {
+					if (collisions.count(lower->getID() + "x" + higher->getID()) == 0) {
+						collisions.insert(
+							pair<string, Collision*>(
+								lower->getID() + "x" + higher->getID(),
+								new Collision(pair<Entity*, Entity*>(lower, higher),
+									pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>(fromCollider, toCollider))
+								)
+						);
+					}
+					else {
+						collisions[lower->getID() + "x" + higher->getID()]->colliders.push_back(
+							pair<shared_ptr<Collider2D>, shared_ptr<Collider2D>>(fromCollider, toCollider)
+						);
+					}
 				}
 				if (find(fromCollider->collidingIds.begin(), fromCollider->collidingIds.end(), toCollider->colliderId) == fromCollider->collidingIds.end())
 				{
@@ -282,7 +290,7 @@ void PhysicsSystem::CheckCollisions()
 		}
 	}
 	for (auto i = collisions.begin(); i != collisions.end(); i++) {
-		ResolveCollision(i->second.first, i->second.second);
+		ResolveCollision(i->second);
 	}
 }
 
@@ -360,7 +368,11 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	e->rotation = glm::vec3(e->rotation.x, rot, e->rotation.z);
 }
 
-void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
+
+
+void PhysicsSystem::ResolveCollision(Collision* c) {
+	auto e1 = c->entities.first;
+	auto e2 = c->entities.second;
 	auto pc1 = e1->getComponent<PhysicsComponent>();
 	auto pc2 = e2->getComponent<PhysicsComponent>();
 	if (pc1->isStatic && pc2->isStatic || !pc1->hasPhysicsCollision || !pc2->hasPhysicsCollision) {
@@ -376,12 +388,17 @@ void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	if (pc2->isStatic) {
 		im2 = 0;
 	}
-	PhysicsVector dist = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z);
+
+	// For now just assume the first collision is the only one that needs to be corrected
+	Point center1 = c->colliders[0].first->GetCenter();
+	Point center2 = c->colliders[0].second->GetCenter();
+	PhysicsVector dist = PhysicsVector(center2.x - center1.x, center2.y - center1.y);
 	PhysicsVector n = dist.unit();
+
 	// Bad positional correction
-	const float ratio = 0.035;
-	PhysicsVector corr1 = -n * ratio * im1;
-	PhysicsVector corr2 = n * ratio * im2;
+	const float ratio = 0.025;
+	PhysicsVector corr1 = -n * ratio * im1 * pc1->velocity.length();
+	PhysicsVector corr2 = n * ratio * im2 * pc2->velocity.length();
 	e1->position = glm::vec3(e1->position.x + corr1.x, e1->position.y, e1->position.z + corr1.y);
 	e2->position = glm::vec3(e2->position.x + corr2.x, e2->position.y, e2->position.z + corr2.y);
 	float vNorm = (pc2->velocity - pc1->velocity).dot(n);

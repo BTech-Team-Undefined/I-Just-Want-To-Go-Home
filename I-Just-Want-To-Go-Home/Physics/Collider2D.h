@@ -5,7 +5,6 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "Point.h"
-#include "PhysicsSystem.h"
 #include "..\EntitySystems\Entity.h"
 
 using namespace std;
@@ -45,6 +44,10 @@ public:
 	void SetCollider(vector<Point> vertices, Point roughCenter, float roughRadius);
 
 	Point GetOrigin();
+
+	Point GetCenter();
+
+	Point GetLocalCenter();
 
 	float GetRotationY();
 
