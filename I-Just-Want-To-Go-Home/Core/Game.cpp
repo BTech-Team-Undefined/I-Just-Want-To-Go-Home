@@ -144,6 +144,8 @@ void Game::loop()
 
 		_profiler.StartTimer(2);
 		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
+		if (_isPause)
+			frameDelta = std::chrono::nanoseconds(0);
 		timeSinceLastUpdate += frameDelta;
 		while (timeSinceLastUpdate > _frameTime)
 		{
@@ -157,8 +159,12 @@ void Game::loop()
 			for (int i = 0; i < _systems.size(); i++)
 			{
 				_systems[i]->update(dt.count());
-				_systems[i]->clearComponents();	// cleanup for next iteration
 			}
+		}
+		// 3. fixed system update 
+		for (int i = 0; i < _systems.size(); i++)
+		{
+			_systems[i]->clearComponents();	// cleanup for next iteration
 		}
 		_profiler.StopTimer(2);
 
@@ -180,6 +186,11 @@ void Game::loop()
 void Game::stop()
 {
 	_running = false;
+}
+
+void Game::pause(bool p)
+{
+	_isPause = p;
 }
 
 // will update all components in an entity, children in entity, and notify systems
@@ -251,18 +262,22 @@ void Game::resolveEntities(Entity * entity, bool parentEnabled)
 		// precalculate world transformation matrix 
 		if (entity->getEnabled() && !entity->getStatic())
 			entity->configureTransform();
-		// for all components notify systems 
-		auto components = entity->getComponents();
-		for (int i = 0; i < components.size(); i++)
+		
+		if (entity->getEnabled())
 		{
-			// ... ensure it is enabled ...
-			if (!components[i]->getEnabled()) continue;
-			// ... and notify systems
-			auto type = std::type_index(typeid(*components[i]));
-			for (int j = 0; j < _systems.size(); j++)
-				_systems[j]->addComponent(type, components[i]);
-			for (int j = 0; j < _frameSystems.size(); j++)
-				_frameSystems[j]->addComponent(type, components[i]);
+			// for all components notify systems 
+			auto components = entity->getComponents();
+			for (int i = 0; i < components.size(); i++)
+			{
+				// ... ensure it is enabled ...
+				if (!components[i]->getEnabled()) continue;
+				// ... and notify systems
+				auto type = std::type_index(typeid(*components[i]));
+				for (int j = 0; j < _systems.size(); j++)
+					_systems[j]->addComponent(type, components[i]);
+				for (int j = 0; j < _frameSystems.size(); j++)
+					_frameSystems[j]->addComponent(type, components[i]);
+			}
 		}
 	}
 

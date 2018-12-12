@@ -123,14 +123,19 @@ glm::mat4 Entity::getWorldTransformation()
 
 glm::vec3 Entity::getWorldPosition()
 {
-	auto ret = position;
+	return glm::vec3(
+		_worldTransformation[3][0],
+		_worldTransformation[3][1],
+		_worldTransformation[3][2]
+	);
+	/*auto ret = position;
 	auto e = getParent();
 	while (e != nullptr)
 	{
 		ret += e->position;
 		e = e->getParent();
 	}
-	return ret;
+	return ret;*/
 }
 
 glm::vec3 Entity::getWorldRotation()
