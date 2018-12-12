@@ -171,6 +171,21 @@ int main(int argc, char* args[])
 	colBox.push_back(Point(1, 1));
 	colBox.push_back(Point(-1, 1));
 
+	// win text 
+	auto eWinDisplay = new Entity();
+	eWinDisplay->setEnabled(false);
+	eWinDisplay->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0);
+	eWinDisplay->addComponent<ImageComponent>();
+	eWinDisplay->addComponent<TextComponent>();
+	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
+	cWinBg->loadImage("textures/UI/grey_panel.png");
+	cWinBg->width = 400;
+	cWinBg->height = 300;
+	auto cWinText = eWinDisplay->getComponent<TextComponent>();
+	cWinText->setText("FINISHED");
+	cWinText->font = "fonts/futur.ttf";
+	cWinText->alignment = TextAlignment::Center;
+
 	// ===== LEVEL ENTITIES =====
 
 	const float ENTITY_SCALE = 10;
@@ -240,7 +255,11 @@ int main(int argc, char* args[])
 				Json::Value collider = colliders[i];
 
 				auto colliderReaction = [] { std::cout << "collision!"; };
-				auto finishLineReaction = [] { std::cout << "finish!"; };
+				auto finishLineReaction = [&eWinDisplay]
+				{
+					eWinDisplay->setEnabled(true);
+					Game::instance().pause(true);
+				};
 
 				auto colliderObj = isFinishLine ? std::make_shared<Trigger>(finishLineReaction) : std::make_shared<Trigger>(colliderReaction);
 				colliderObj->hasPhysics = !isFinishLine;
@@ -533,41 +552,6 @@ int main(int argc, char* args[])
 	// ===== FREEZE OBJECTS ===== 
 	eTime->setStatic(true);
 
-	// win text 
-	auto eWinDisplay = new Entity();
-	eWinDisplay->setEnabled(false);
-	eWinDisplay->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0);
-	eWinDisplay->addComponent<ImageComponent>();
-	eWinDisplay->addComponent<TextComponent>();
-	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
-	cWinBg->loadImage("textures/UI/grey_panel.png");
-	cWinBg->width = 400;
-	cWinBg->height = 300;
-	auto cWinText = eWinDisplay->getComponent<TextComponent>();
-	cWinText->setText("FINISHED");
-	cWinText->font = "fonts/futur.ttf";
-	cWinText->alignment = TextAlignment::Center;
-
-	// goal collider
-	auto eGoal = new Entity();
-	eGoal->position = glm::vec3(-3, -2, 25);
-	eGoal->addComponent<PhysicsComponent>();
-	eGoal->addComponent<RenderComponent>();
-	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
-	cGoalPhys->hasPhysicsCollision = false;
-	auto tGoalTrigger = std::make_shared<Trigger>(
-	[&eWinDisplay]
-	{		
-		eWinDisplay->setEnabled(true);
-		Game::instance().pause(true);
-	});
-	//std::bind(&Entity::setEnabled, eWinDisplay, true)
-	
-	tGoalTrigger->SetCollider(colBox, Point(0, 0), 1.5f);
-	cGoalPhys->AddCollider(tGoalTrigger);
-	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
-	cGoalRdr->addRenderable(cubeRenderable);
-
 	// ===== START GAME ======
 	// Game::instance().addEntity(eLight);
 	// Game::instance().addEntity(eLight2);
@@ -586,7 +570,6 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
 	Game::instance().addEntity(eWinDisplay);
-	Game::instance().addEntity(eGoal);
 
 	Game::instance().loop();
 
