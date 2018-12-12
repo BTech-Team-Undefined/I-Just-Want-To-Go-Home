@@ -19,15 +19,9 @@ public:
 	// pass the components you would like to listen for
 	SoundSystem() : System({
 		std::type_index(typeid(SoundComponent))
-		}) {};
+	}) {};
 	~SoundSystem() {};
 
-	Mix_Music *gMusic = NULL;
-	Mix_Chunk *gSound = NULL;
-	void playSound(const char* fSource) {
-		gSound = Mix_LoadWAV(fSource);
-		cout << "soundtest:" << fSource << endl;
-	}
 
 	virtual void update(float dt) override
 	{
@@ -35,30 +29,72 @@ public:
 		auto components = GetComponents<SoundComponent>();
 
 		// operate on the components
-		// ===== Test Sound =====
-		cout << "Sound Update" << endl;
-		playSound("file.test");
-		gMusic = Mix_LoadMUS("Sound/BGM.wav");
-		if (gMusic == NULL)
-		{
-			printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
-		}
-		if (Mix_PlayingMusic() == 0) {
-			Mix_PlayMusic(gMusic, -1);
-		}
-		//playSound("");
-
 		for (SoundComponent* component : components)
 		{
-			if (!component->playing)
+			auto action = component->GetAction();
+
+			switch (action)
 			{
-				cout << "Sound Update" << endl;
-				playSound(component->audioPath.c_str());
-				// load audio ( component -> audioPath );
-				// play audio 
+			case AudioAction::REQUEST_PLAY:
+			{
+				// load:   
+				auto sfx = GetAudioChunk(component->audioPath);
+				// play:    
+				Mix_PlayChannel(_currentChannel, sfx, 0);
+				// increment 
+				_currentChannel++;
+				// clear component
+				component->SetAction(AudioAction::NOTHING);
+			}
+			case AudioAction::REQUEST_STOP:
+			{
+				// STOP AUDIO HERE 
+			}
+			default:
+			{
+
+			}
 			}
 		}
 	}
 
+	void loadBgm(std::string path)
+	{
+		std::cout << "Loading BGM at " << path << std::endl;
+		gMusic = Mix_LoadMUS(path.c_str());
+
+		// check if failed to load 
+		if (gMusic == NULL)
+		{
+			printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+		}
+
+		// load new bgm 
+		Mix_PlayMusic(gMusic, -1);
+
+		// if (Mix_PlayingMusic() == 0) {}
+	}
+
+private:
+	Mix_Music *gMusic = NULL;
+	Mix_Chunk *gSound = NULL;
+	std::unordered_map<std::string, Mix_Chunk*> _sfx;
+	int _currentChannel = 1;
+
+	Mix_Chunk* GetAudioChunk(std::string path)
+	{
+		// if chunk is unloaded - load 
+		if (_sfx.find(path) == _sfx.end())
+		{
+			Mix_Chunk* chk = Mix_LoadWAV(path.c_str());
+			_sfx[path] = chk;
+			return chk;
+		}
+		// else return loaded chunk
+		else
+		{
+			return _sfx[path];
+		}
+	}
 };
 

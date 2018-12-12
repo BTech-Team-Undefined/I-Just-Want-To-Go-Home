@@ -8,6 +8,7 @@
 #include "Collider2D.h"
 #include "PhysicsVector.h"
 #include "PhysicsComponent.h"
+#include "Collision.h"
 #include "../EntitySystems/System.h"
 
 class Collider2D;
@@ -33,7 +34,7 @@ public:
 private:
 	vector<string> _justChecked;
 	void CheckCollisions();
-	void ResolveCollision(Entity* e1, Entity* e2);
+	void ResolveCollision(Collision* c);
 	void RemoveCollision(shared_ptr<Collider2D> colliderA, shared_ptr<Collider2D> colliderB);
 
 	

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 // Using SDL 
 #include <SDL2\SDL.h>
 #include <stb\stb_image.h>	// this is part of stb 
@@ -15,6 +16,9 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
+// jsoncpp
+#include "libs/json/json.h"
+#include "libs/json/value.h"
 // Engine objects 
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
@@ -38,6 +42,7 @@
 #include "EntitySystems/DestructionComponent.h"
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
+#include "SoundSystem.h"
 #include "Physics\Trigger.h"
 
 #include "Rendering\UI\ImageComponent.h"
@@ -74,6 +79,10 @@ int main(int argc, char* args[])
 	auto ps = std::make_unique<PhysicsSystem>();
 	Game::instance().addSystem(std::move(ps));
 
+	auto ss = std::make_unique<SoundSystem>();
+	ss->loadBgm("Sound/BGM.wav");
+	Game::instance().addSystem(std::move(ss));
+
 	// ===== INIT SCENE =====
 	Scene* scene = new Scene();
 	Game::instance().setActiveScene(scene);
@@ -85,23 +94,24 @@ int main(int argc, char* args[])
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
 	
 	// physics 
-	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
+	auto e6Collider = std::make_shared<Collider2D>("Player");
 	vector<Point> e6ColliderBox;
-	e6ColliderBox.push_back(Point(-1, -1)); // top left
-	e6ColliderBox.push_back(Point(1, -1)); // top right
-	e6ColliderBox.push_back(Point(1, 1)); // bottom right
-	e6ColliderBox.push_back(Point(-1, 1)); // bottom left
+	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
+	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
+	e6ColliderBox.push_back(Point(0.25, 0.25)); // bottom right
+	e6ColliderBox.push_back(Point(-0.25, 0.25)); // bottom left
 	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
 	playerEntity->addComponent<PhysicsComponent>();
 	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
+	
 	pc6->isStatic = false;
 	pc6->directionalDrag = true;
 	pc6->AddCollider(e6Collider);
 	// input 
 	playerEntity->addComponent<DebugInputComponent>();
 	// visuals 
-	auto tankEntity = Game::instance().loader.LoadModel("Models/tank/M11_39.obj");
-	tankEntity->rotation = glm::vec3(glm::radians(-90.0f), 0, 0);
+	auto tankEntity = Game::instance().loader.LoadModel("Models/racingkit2/raceCarRed.obj");
+	tankEntity->rotation = glm::vec3(0, glm::radians(180.0f), 0);
 	// camera 
 	auto eCam = new Entity();
 	eCam->position = glm::vec3(0, 10, -8); //replace the camera position back if finished.
@@ -144,13 +154,95 @@ int main(int argc, char* args[])
 	planeRenderable->mesh = planeMesh;
 	planeRenderable->material = material1;
 
+	// create generic colliders 
+	std::vector<Point> colBox;
+	colBox.push_back(Point(-1, -1));
+	colBox.push_back(Point(1, -1));
+	colBox.push_back(Point(1, 1));
+	colBox.push_back(Point(-1, 1));
+
 	// ===== LEVEL ENTITIES =====
+
+	const float ENTITY_SCALE = 5;
+
+	const string MDL_ROAD_START = "Models/racingkit2/roadStart.obj";
+	const string MDL_ROAD_STRAIGHT = "Models/racingkit2/roadStraight.obj";
+	const string MDL_ROAD_STRAIGHT_LONG = "Models/racingkit2/roadStraightLong.obj";
+	const string MDL_ROAD_CORNER_SMALL = "Models/racingkit2/roadCornerSmall.obj";
+	const string MDL_ROAD_CORNER_SMALL_WALL = "Models/racingkit2/roadCornerSmallWall.obj";
+	const string MDL_ROAD_CORNER_LARGE = "Models/racingkit2/roadCornerLarge.obj";
+	const string MDL_ROAD_CORNER_LARGE_WALL = "Models/racingkit2/roadCornerLargeWall.obj";
+	const string MDL_ROAD_CORNER_LARGE_WALL_INNER = "Models/racingkit2/roadCornerLargeWallInner.obj";
+
+	Json::Value stageData;
+	std::ifstream stage_file("Maps/stage1.json", std::ifstream::binary);
+	stage_file >> stageData;
+
+	vector<unique_ptr<Entity>> trackEntities;
+	Json::Value tracks = stageData["tracks"];
+	for (int i = 0; i < tracks.size(); ++i)
+	{
+		string modelName = tracks[i]["model"].asString();
+		trackEntities.push_back(Game::instance().loader.LoadModel("Models/racingkit2/" + modelName + ".obj"));
+		int currentIndex = trackEntities.size() - 1;
+
+		trackEntities[currentIndex]->setStatic(true);
+
+		Json::Value position = tracks[i]["position"];
+		double posX = position[0].asDouble();
+		double posY = position[1].asDouble();
+		double posZ = position[2].asDouble();
+		trackEntities[currentIndex]->position = glm::vec3(posX * ENTITY_SCALE, -2 + posY * ENTITY_SCALE, posZ * ENTITY_SCALE);
+
+		Json::Value rotation = tracks[i]["rotation"];
+		if (rotation != NULL)
+		{
+			double rotX = rotation[0].asDouble();
+			double rotY = rotation[1].asDouble();
+			double rotZ = rotation[2].asDouble();
+			trackEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));
+		}
+
+		Json::Value colliders = tracks[i]["colliders"];
+		if (colliders != NULL)
+		{
+			trackEntities[currentIndex]->addComponent<PhysicsComponent>();
+			auto trackPhysics = trackEntities[currentIndex]->getComponent<PhysicsComponent>();
+			trackPhysics->isStatic = true;
+			trackPhysics->directionalDrag = false;
+
+			for (int i = 0; i < colliders.size(); ++i)
+			{
+				Json::Value collider = colliders[i];
+				Json::Value topLeft = collider[0];
+				Json::Value topRight = collider[1];
+				Json::Value bottomRight = collider[2];
+				Json::Value bottomLeft = collider[3];
+
+				auto colliderObj = std::make_shared<Trigger>([] {std::cout << "collision!"; });
+				vector<Point> colliderBox;
+
+				colliderBox.push_back(Point(topLeft[0].asDouble() * ENTITY_SCALE, topLeft[1].asDouble() * ENTITY_SCALE)); // top left
+				colliderBox.push_back(Point(topRight[0].asDouble() * ENTITY_SCALE, topRight[1].asDouble() * ENTITY_SCALE)); // top right
+				colliderBox.push_back(Point(bottomRight[0].asDouble() * ENTITY_SCALE, bottomRight[1].asDouble() * ENTITY_SCALE)); // bottom right
+				colliderBox.push_back(Point(bottomLeft[0].asDouble() * ENTITY_SCALE, bottomLeft[1].asDouble() * ENTITY_SCALE)); // bottom left
+
+				colliderObj->SetCollider(colliderBox, Point(0, 0), 4.0f * ENTITY_SCALE);
+				trackPhysics->AddCollider(colliderObj);
+			}
+		}
+		
+		trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);
+		trackEntities[currentIndex]->setStatic(true);
+		Game::instance().addEntity(trackEntities[currentIndex].get());
+	}
+
+	/*
 	auto e1 = new Entity();
 	e1->addComponent<RenderComponent>();
 	auto rc1 = e1->getComponent<RenderComponent>();
 	rc1->renderables.push_back(cubeRenderable);	// use std::move(r1) if you don't want to reference it here 
 	e1->position = glm::vec3(-2, 0, -2);
-	e1->rotation = glm::vec3(glm::radians(30.0f), 0, 0);
 
 	auto e1Collider = std::make_shared<Trigger>([] {std::cout << "this is a test" << endl; });
 	vector<Point> e1ColliderBox;
@@ -215,6 +307,7 @@ int main(int argc, char* args[])
 	e4->addComponent<PhysicsComponent>();
 	auto pc4 = e4->getComponent<PhysicsComponent>();
 	pc4->AddCollider(e4Collider);
+	*/
 
 	// ===== LIGHT ENTITIES ====
 	auto eLight = new Entity();
@@ -232,7 +325,48 @@ int main(int argc, char* args[])
 	eLightHolder->addComponent<StickyTransformComponent>();
 	eLightHolder->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
 	eLightHolder->addChild(eLight);
-	eLightHolder->addChild(eLight2);
+	//eLightHolder->addChild(eLight2);
+
+	auto ePLight1 = new Entity();
+	ePLight1->addComponent<PointLight>();
+	ePLight1->getComponent<PointLight>()->range = 1;
+	ePLight1->getComponent<PointLight>()->color = glm::vec3(1,0,0);
+	ePLight1->position = glm::vec3(-1, -0.5, 10);
+
+	auto ePLightGateL = new Entity();
+	ePLightGateL->addComponent<PointLight>();
+	ePLightGateL->getComponent<PointLight>()->range = 0.8;
+	ePLightGateL->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
+	ePLightGateL->position = glm::vec3(-1.2, 0.9, 4);
+
+	auto ePLightGateR = new Entity();
+	ePLightGateR->addComponent<PointLight>();
+	ePLightGateR->getComponent<PointLight>()->range = 0.8;
+	ePLightGateR->getComponent<PointLight>()->color = glm::vec3(0, 1, 0);
+	ePLightGateR->position = glm::vec3(-3.7, 0.9, 4);
+
+	auto ePLightStartHolder = new Entity();
+	ePLightStartHolder->addChild(ePLightGateL);
+	ePLightStartHolder->addChild(ePLightGateR);
+
+	for (int i = 0; i < 4; i++)
+	{
+		auto epLeft = new Entity();
+		auto epRight = new Entity();
+		epLeft->position = glm::vec3(-4.3, -0.5, 8 + i * 3);
+		epRight->position = glm::vec3(-0.2, -0.5, 8 + i * 3);
+
+		epLeft->addComponent<PointLight>();
+		epLeft->getComponent<PointLight>()->color = (i % 2 == 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
+		epLeft->getComponent<PointLight>()->range = 1.0;
+		epRight->addComponent<PointLight>();
+		epRight->getComponent<PointLight>()->color = (i % 2 != 0) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 1);
+		epRight->getComponent<PointLight>()->range = 1.0;
+
+		ePLightStartHolder->addChild(epLeft);
+		ePLightStartHolder->addChild(epRight);
+	}
+
 
 	// ===== TEXT =====
 	auto eText1 = new Entity();
@@ -324,20 +458,61 @@ int main(int argc, char* args[])
 	timeTextComponent->font = "fonts/futur.ttf";
 	timeTextComponent->alignment = TextAlignment::Center;
 
-	auto eTest = new Entity();
-	eTest->addComponent<RenderComponent>();
-	eTest->getComponent<RenderComponent>()->renderables.push_back(cubeRenderable);
-	eTest->addComponent<StickyTransformComponent>();
-	eTest->getComponent<StickyTransformComponent>()->setTarget(playerEntity);
+	// ===== FREEZE OBJECTS ===== 
+	eTime->setStatic(true);
+
+	// win text 
+	auto eWinDisplay = new Entity();
+	eWinDisplay->setEnabled(false);
+	eWinDisplay->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0);
+	eWinDisplay->addComponent<ImageComponent>();
+	eWinDisplay->addComponent<TextComponent>();
+	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
+	cWinBg->loadImage("textures/UI/grey_panel.png");
+	cWinBg->width = 400;
+	cWinBg->height = 300;
+	auto cWinText = eWinDisplay->getComponent<TextComponent>();
+	cWinText->setText("FINISHED");
+	cWinText->font = "fonts/futur.ttf";
+	cWinText->alignment = TextAlignment::Center;
+
+	// goal collider
+	auto eGoal = new Entity();
+	eGoal->position = glm::vec3(-3, -2, 25);
+	eGoal->addComponent<PhysicsComponent>();
+	eGoal->addComponent<RenderComponent>();
+	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
+	cGoalPhys->hasPhysicsCollision = false;
+	auto tGoalTrigger = std::make_shared<Trigger>(
+	[&eWinDisplay]
+	{		
+		eWinDisplay->setEnabled(true);
+		Game::instance().pause(true);
+	});
+	//std::bind(&Entity::setEnabled, eWinDisplay, true)
+	
+	tGoalTrigger->SetCollider(colBox, Point(0, 0), 1.5f);
+	cGoalPhys->AddCollider(tGoalTrigger);
+	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
+	cGoalRdr->addRenderable(cubeRenderable);
+
+	// ===== AUDIO =====
+	auto eSfx = new Entity();
+	eSfx->addComponent<SoundComponent>();
+	auto cSound = eSfx->getComponent<SoundComponent>();
+	cSound->audioPath = "Sound/firework.wav";
+	cSound->Play();
 
 	// ===== START GAME ======
-	//Game::instance().addEntity(eLight);
-	//Game::instance().addEntity(eLight2);
+	// Game::instance().addEntity(eLight);
+	// Game::instance().addEntity(eLight2);
+	// Game::instance().addEntity(e1);
+	// Game::instance().addEntity(e2);
+	// Game::instance().addEntity(e3);
+	// Game::instance().addEntity(e4);
 	Game::instance().addEntity(eLightHolder);
-	Game::instance().addEntity(e1);
-	Game::instance().addEntity(e2);
-	Game::instance().addEntity(e3);
-	Game::instance().addEntity(e4);
+	Game::instance().addEntity(ePLightStartHolder);
+	Game::instance().addEntity(ePLight1);
 	Game::instance().addEntity(playerEntity);
 	// Game::instance().addEntity(eText1);
 	// Game::instance().addEntity(eText3);
@@ -345,7 +520,9 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
-	Game::instance().addEntity(eTest);
+	Game::instance().addEntity(eWinDisplay);
+	Game::instance().addEntity(eGoal);
+	Game::instance().addEntity(eSfx);
 
 	Game::instance().loop();
 
