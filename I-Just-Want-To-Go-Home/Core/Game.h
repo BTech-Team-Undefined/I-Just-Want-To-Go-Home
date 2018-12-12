@@ -76,6 +76,10 @@ private:
 	bool _initialized = false;
 	bool _running[THREAD_TYPES];
 	CpuProfiler _profiler;
+	
+	// multi-threading control 
+	std::mutex _entitiesMtx;
+	std::mutex _precomputeMtx;
 
 // functions 
 public:
@@ -122,6 +126,18 @@ public:
 	// Properly add an entity to a specified parent in the next frame.
 	// Note: you can directly add an entity with entity->addChild(e*) if you know what you're doing.
 	void addEntity(Entity* entity, int parent);
+
+	// precomputes all the entities world transformation
+	void resolvePrecompute(Entity* entity);
+
+	// saves the precomputed world transformation for rendering
+	void resolvePrecomputeFreeze(Entity* entity);
+
+	void resolveSystemNotification(Entity* entity, ThreadType threadType);
+
+	void ui_loop();
+
+	void primary_loop();
 
 private: 
 

@@ -520,10 +520,7 @@ int main(int argc, char* args[])
 	Game::instance().addEntity(eWinDisplay);
 	Game::instance().addEntity(eGoal);
 
-	std::thread graphicsThread([] {
-		Game::instance().loop(ThreadType::primary);
-	});
-	Game::instance().loop(ThreadType::graphics);
+	Game::instance().loop();
 
 	return 0;
 }

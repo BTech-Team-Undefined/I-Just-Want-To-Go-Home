@@ -121,76 +121,13 @@ void Game::loop(ThreadType type)
 {
 	_running[type] = true;
 
-	// ===== PERFORMANCE MEASUREMENTS =====
-		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
-	std::chrono::nanoseconds timeSinceLastUpdate = std::chrono::nanoseconds(0);
-	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
-	std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
+	// background thread 
+	std::thread primaryThread(&Game::primary_loop, this);
+	// current thread (for SDL context)
+	ui_loop();	// blocking
 
-	int frame = 0;
-
-	while (_running[type])
-	{
-		frame++;
-		previous = current;
-		current = std::chrono::high_resolution_clock::now();
-
-		// 1. entity addition & deletion
-		// Only the main thread should do this
-		if (type == ThreadType::primary) {
-			resolveAdditionDeletion(activeScene->rootEntity.get());
-		}
-		// System component notification
-		resolveEntities(activeScene->rootEntity.get(), true, type);
-		// Deleted entity cleanup
-		// Once again only the main thread should do this
-		if (type == ThreadType::primary) {
-			resolveCleanup();
-		}
-
-
-		_profiler.StartTimer(2);
-		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
-		if (_isPause)
-			frameDelta = std::chrono::nanoseconds(0);
-		timeSinceLastUpdate += frameDelta;
-		while (timeSinceLastUpdate > _frameTime)
-		{
-			// std::cout << "updated on frame: " << frame << std::endl;
-			timeSinceLastUpdate -= _frameTime;
-			std::chrono::duration<double> dt = (_frameTime);
-			// 2. entity update
-			// Only the main thread should do this
-			if (type == ThreadType::primary) {
-				updateEntity(activeScene->rootEntity.get(), dt.count());
-			}
-
-			// 3. fixed system update 
-			for (int i = 0; i < _systems[type].size(); i++)
-			{
-				_systems[i]->update(dt.count());
-			}
-		}
-		// 3. fixed system update 
-		for (int i = 0; i < _systems.size(); i++)
-		{
-			_systems[i]->clearComponents();	// cleanup for next iteration
-		}
-		_profiler.StopTimer(2);
-
-		// 3. frame system update 
-		for (int i = 0; i < _frameSystems[type].size(); i++)
-		{
-			_frameSystems[type][i]->update(frameDelta.count() / 1000000);
-			_frameSystems[type][i]->clearComponents();	// cleanup for next iteration
-		}
-		_profiler.StopTimer(3);
-
-		// SDL actions should only happen in the graphics thread
-		if (type == ThreadType::graphics) {
-			SDL_GL_SwapWindow(_window);
-		}
-	}
+	// ensure both threads are dead 
+	primaryThread.join();
 }
 
 void Game::stop(ThreadType type)
@@ -201,6 +138,131 @@ void Game::stop(ThreadType type)
 void Game::pause(bool p)
 {
 	_isPause = p;
+}
+
+void Game::ui_loop()
+{
+	_running[ThreadType::graphics] = true;
+
+	// ===== PERFORMANCE MEASUREMENTS =====
+	// This is only to measure CPU performance. For GPU use OpenGLProfiler.
+	std::chrono::nanoseconds timeSinceLastUpdate = std::chrono::nanoseconds(0);
+	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
+
+	int frame = 0;
+
+	while (_running[ThreadType::graphics])
+	{
+		frame++;
+		previous = current;
+		current = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> dt = current - previous;
+
+		//Event handler
+		SDL_Event e;
+		//Handle events on queue
+		while (SDL_PollEvent(&e) != 0)
+		{
+			//User requests quit
+			if (e.type == SDL_QUIT)
+			{
+				SDL_Quit();
+				return;
+			}
+		}
+
+		_entitiesMtx.lock();
+
+		// freeze transforms for entities 
+		_precomputeMtx.lock();
+		resolvePrecomputeFreeze(activeScene->rootEntity.get());
+		_precomputeMtx.unlock();
+
+		// notify UI systems 
+		resolveSystemNotification(activeScene->rootEntity.get(), ThreadType::graphics);
+
+		// system update 
+		for (int i = 0; i < _systems[ThreadType::graphics].size(); i++)
+		{
+			_systems[ThreadType::graphics][i]->update(dt.count());
+			_systems[ThreadType::graphics][i]->clearComponents();
+		}
+		for (int i = 0; i < _frameSystems[ThreadType::graphics].size(); i++)
+		{
+			_frameSystems[ThreadType::graphics][i]->update(dt.count());
+			_frameSystems[ThreadType::graphics][i]->clearComponents();	// cleanup for next iteration
+		}
+
+		// TODO
+		// _isPause
+
+		_entitiesMtx.unlock();
+
+		// SDL actions should only happen in the graphics thread
+		SDL_GL_SwapWindow(_window);
+	}
+}
+
+void Game::primary_loop()
+{
+	_running[ThreadType::primary] = true;
+
+	// ===== PERFORMANCE MEASUREMENTS =====
+		// This is only to measure CPU performance. For GPU use OpenGLProfiler.
+	std::chrono::nanoseconds timeSinceLastUpdate = std::chrono::nanoseconds(0);
+	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
+
+	int frame = 0;
+
+	while (_running[ThreadType::primary])
+	{
+		frame++;
+		previous = current;
+		current = std::chrono::high_resolution_clock::now();
+
+		auto frameDelta = std::chrono::duration_cast<std::chrono::nanoseconds>(current - previous);
+		timeSinceLastUpdate += frameDelta;
+
+		while (timeSinceLastUpdate > _frameTime)
+		{
+			timeSinceLastUpdate -= _frameTime;
+			std::chrono::duration<double> dt = (_frameTime);
+			
+			// check for entity addition/deletion 
+			if (_additionList.size() > 0 || _deletionList.size() > 0)
+			{
+				_entitiesMtx.lock();
+				resolveAdditionDeletion(activeScene->rootEntity.get());
+				resolveCleanup();
+				_entitiesMtx.unlock();
+			}
+
+			// precompute transforms 
+			_precomputeMtx.lock();
+			resolvePrecompute(activeScene->rootEntity.get());
+			_precomputeMtx.unlock();
+			
+			// system notification 
+			resolveSystemNotification(activeScene->rootEntity.get(), ThreadType::primary);
+
+			// entity update 
+			updateEntity(activeScene->rootEntity.get(), dt.count());
+
+			// system update 
+			for (int i = 0; i < _systems[ThreadType::primary].size(); i++)
+			{
+				_systems[ThreadType::primary][i]->update(dt.count());
+				_systems[ThreadType::primary][i]->clearComponents();
+			}
+			for (int i = 0; i < _frameSystems[ThreadType::primary].size(); i++)
+			{
+				_frameSystems[ThreadType::primary][i]->update(dt.count());
+				_frameSystems[ThreadType::primary][i]->clearComponents();	// cleanup for next iteration
+			}
+		}
+	}
 }
 
 // will update all components in an entity, children in entity, and notify systems
@@ -229,6 +291,7 @@ void Game::updateEntity(Entity * entity, float dt)
 }
 
 void Game::resolveAdditionDeletion(Entity *entity) {
+	
 	int id = entity->getID();
 
 	// check if branch should be deleted
@@ -277,6 +340,8 @@ void Game::resolveAdditionDeletion(Entity *entity) {
 
 void Game::resolveEntities(Entity * entity, bool collectComponents, ThreadType type)
 {
+	std::cerr << "ERROR: YOU ARE CALLING A DEPRECATED FUNCTION" << std::endl;
+	/*
 	int id = entity->getID();
 
 	// for all components notify systems 
@@ -310,6 +375,62 @@ void Game::resolveEntities(Entity * entity, bool collectComponents, ThreadType t
 	{
 		resolveEntities(children[i], collectComponents && entity->getEnabled(), type);
 	}
+	*/
+}
+
+void Game::resolvePrecompute(Entity* entity)
+{
+	if (!entity->getEnabled())
+		return;
+
+	// precalculate world transformation matrix 
+	if (!entity->getStatic())
+		entity->configureTransform();
+
+	// go thru remaining children 
+	auto children = entity->getChildren();
+	for (int i = 0; i < children.size(); i++)
+		resolvePrecompute(children[i]);
+}
+
+void Game::resolvePrecomputeFreeze(Entity* entity)
+{
+	if (!entity->getEnabled())
+		return;
+
+	// freeze the world transformation for the renderer 
+	if (!entity->getStatic())
+		entity->updateTransform();
+
+	// go thru remaining children 
+	auto children = entity->getChildren();
+	for (int i = 0; i < children.size(); i++)
+		resolvePrecomputeFreeze(children[i]);
+}
+
+void Game::resolveSystemNotification(Entity* entity, ThreadType threadType)
+{
+	if (!entity->getEnabled())
+		return;
+
+	// for all components notify systems 
+	auto components = entity->getComponents();
+	for (int i = 0; i < components.size(); i++)
+	{
+		// ... ensure it is enabled ...
+		if (!components[i]->getEnabled()) continue;
+		// ... and notify systems
+		auto type = std::type_index(typeid(*components[i]));
+		for (int j = 0; j < _systems[threadType].size(); j++)
+			_systems[threadType][j]->addComponent(type, components[i]);
+		for (int j = 0; j < _frameSystems[threadType].size(); j++)
+			_frameSystems[threadType][j]->addComponent(type, components[i]);
+	}
+
+	// go thru remaining children 
+	auto children = entity->getChildren();
+	for (int i = 0; i < children.size(); i++)
+		resolveSystemNotification(children[i], threadType);
 }
 
 void Game::resolveCleanup()
