@@ -98,16 +98,46 @@ int main(int argc, char* args[])
 	pe->position = glm::vec3(0, 0, 0);
 	pe->addComponent<MenuInputComponent>();
 
+	auto eTeam = new Entity();
+	eTeam->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 0);
+	eTeam->addComponent<TextComponent>();
+	auto Team = eTeam->getComponent<TextComponent>();
+	Team->setText("Team [Undefined]");
+	Team->color = glm::vec3(0.0f, 0.0f, 0.0f);
+	Team->font = "fonts/futur.ttf";
+	Team->alignment = TextAlignment::Center;
+	Team->scale = 0.5f;
+
 	auto eGameTitle = new Entity();
-	eGameTitle->position = glm::vec3(0, SCREEN_HEIGHT, 0);
+	eGameTitle->position = glm::vec3(SCREEN_WIDTH/2, SCREEN_HEIGHT - 100, 0);
 	eGameTitle->addComponent<TextComponent>();
 	auto GameTitle = eGameTitle->getComponent<TextComponent>();
-	GameTitle->setText("POTATOES!");
-	GameTitle->color = glm::vec3(0.0f, 97.0f, 255.0f);
-	GameTitle->font = "fonts/futur.tff";
+	GameTitle->setText("I Just Want To Go Home!");
+	GameTitle->color = glm::vec3(0.0f,0.0f, 0.0f);
+	GameTitle->font = "fonts/futur.ttf";
+	GameTitle->alignment = TextAlignment::Center;
 
+	auto ePlay = new Entity();
+	ePlay->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 550, 0);
+	ePlay->addComponent<TextComponent>();
+	auto Play = ePlay->getComponent<TextComponent>();
+	Play->setText("PLAY");
+	Play->color = glm::vec3(0.0f, 0.0f, 0.0f);
+	Play->font = "fonts/futur.ttf";
+	Play->alignment = TextAlignment::Center;
 
+	auto eQuit= new Entity();
+	eQuit->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 625, 0);
+	eQuit->addComponent<TextComponent>();
+	auto Quit = eQuit->getComponent<TextComponent>();
+	Quit->setText("QUIT");
+	Quit->color = glm::vec3(0.0f, 0.0f, 0.0f);
+	Quit->font = "fonts/futur.ttf";
+	Quit->alignment = TextAlignment::Center;
 
+	Game::instance().addEntity(eQuit);
+	Game::instance().addEntity(eTeam);
+	Game::instance().addEntity(ePlay);
 	Game::instance().addEntity(eGameTitle);
 	Game::instance().addEntity(pe);
 	Game::instance().addEntity(eCam2);
