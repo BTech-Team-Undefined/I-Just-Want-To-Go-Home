@@ -97,7 +97,7 @@ int main(int argc, char* args[])
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
 	
 	// physics 
-	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
+	auto e6Collider = std::make_shared<Collider2D>("Player");
 	vector<Point> e6ColliderBox;
 	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
 	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
@@ -106,6 +106,7 @@ int main(int argc, char* args[])
 	e6Collider->SetCollider(e6ColliderBox, Point(0, 0), 1.5f); // collider points and center point are relative to the origin
 	playerEntity->addComponent<PhysicsComponent>();
 	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
+	
 	pc6->isStatic = false;
 	pc6->directionalDrag = true;
 	pc6->AddCollider(e6Collider);
@@ -155,6 +156,13 @@ int main(int argc, char* args[])
 	auto planeRenderable = std::make_shared<Renderable>();	// plane 
 	planeRenderable->mesh = planeMesh;
 	planeRenderable->material = material1;
+
+	// create generic colliders 
+	std::vector<Point> colBox;
+	colBox.push_back(Point(-1, -1));
+	colBox.push_back(Point(1, -1));
+	colBox.push_back(Point(1, 1));
+	colBox.push_back(Point(-1, 1));
 
 	// ===== LEVEL ENTITIES =====
 
@@ -456,6 +464,41 @@ int main(int argc, char* args[])
 	// ===== FREEZE OBJECTS ===== 
 	eTime->setStatic(true);
 
+	// win text 
+	auto eWinDisplay = new Entity();
+	eWinDisplay->setEnabled(false);
+	eWinDisplay->position = glm::vec3(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0);
+	eWinDisplay->addComponent<ImageComponent>();
+	eWinDisplay->addComponent<TextComponent>();
+	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
+	cWinBg->loadImage("textures/UI/grey_panel.png");
+	cWinBg->width = 400;
+	cWinBg->height = 300;
+	auto cWinText = eWinDisplay->getComponent<TextComponent>();
+	cWinText->setText("FINISHED");
+	cWinText->font = "fonts/futur.ttf";
+	cWinText->alignment = TextAlignment::Center;
+
+	// goal collider
+	auto eGoal = new Entity();
+	eGoal->position = glm::vec3(-3, -2, 25);
+	eGoal->addComponent<PhysicsComponent>();
+	eGoal->addComponent<RenderComponent>();
+	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
+	cGoalPhys->hasPhysicsCollision = false;
+	auto tGoalTrigger = std::make_shared<Trigger>(
+	[&eWinDisplay]
+	{		
+		eWinDisplay->setEnabled(true);
+		Game::instance().pause(true);
+	});
+	//std::bind(&Entity::setEnabled, eWinDisplay, true)
+	
+	tGoalTrigger->SetCollider(colBox, Point(0, 0), 1.5f);
+	cGoalPhys->AddCollider(tGoalTrigger);
+	auto cGoalRdr = eGoal->getComponent<RenderComponent>();
+	cGoalRdr->addRenderable(cubeRenderable);
+
 	// ===== START GAME ======
 	// Game::instance().addEntity(eLight);
 	// Game::instance().addEntity(eLight2);
@@ -473,6 +516,8 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
+	Game::instance().addEntity(eWinDisplay);
+	Game::instance().addEntity(eGoal);
 
 	Game::instance().loop();
 
