@@ -59,12 +59,12 @@ extern "C" {
 
 /*Mix_Music *gMusic = NULL;
 Mix_Chunk *gCar_idle = NULL;*/
+Mix_Chunk *gCar_hit = NULL;
 
 int main(int argc, char* args[])
 {
 	// ===== INITIALIZE CORE GAME ENGINE =====
 	Game::instance().initialize();
-
 	// ===== INIT SYSTEMS =====
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -73,7 +73,6 @@ int main(int argc, char* args[])
 	auto ss = std::make_unique<SoundSystem>();
 	ss->loadBgm("");
 	Game::instance().addSystem(std::move(ss));
-
 	//auto es = std::make_unique<ExampleSystem>();
 	//Game::instance().addSystem(std::move(es));
 
@@ -109,18 +108,21 @@ int main(int argc, char* args[])
 	cout << "Volume:" << Mix_VolumeMusic(32) << endl;*/
 	
 	// ===== Sound Effect=====
-	/*gCar_idle = Mix_LoadWAV("Sound/car_launch-idle_01.ogg");
-	if (gCar_idle == NULL) {
+	gCar_hit = Mix_LoadWAV("Sound/hit.wav");
+	if (gCar_hit == NULL) {
 		cout << "faild to load file :" << Mix_GetError() << endl;
 	}
-	//Mix_PlayChannel(1, gCar_idle, 0);
-	*/
+	//Mix_PlayChannel(2, gCar_hit, 0);
+	
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
 	
 	// physics 
-	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
+	auto e6Collider = std::make_shared<Trigger>([] {
+		std::cout << "theory tested!";
+		
+	});
 	vector<Point> e6ColliderBox;
 	e6ColliderBox.push_back(Point(-0.25, -0.25)); // top left
 	e6ColliderBox.push_back(Point(0.25, -0.25)); // top right
@@ -240,7 +242,12 @@ int main(int argc, char* args[])
 				Json::Value bottomRight = collider[2];
 				Json::Value bottomLeft = collider[3];
 
-				auto colliderObj = std::make_shared<Trigger>([] {std::cout << "collision!"; });
+				auto colliderObj = std::make_shared<Trigger>([] {
+					std::cout << "collision!";
+					if (Mix_Playing(2) == 0) {
+						Mix_PlayChannel(2, gCar_hit, 0);
+					}
+				});
 				vector<Point> colliderBox;
 
 				colliderBox.push_back(Point(topLeft[0].asDouble() * ENTITY_SCALE, topLeft[1].asDouble() * ENTITY_SCALE)); // top left
@@ -459,8 +466,8 @@ int main(int argc, char* args[])
 	auto cBgm = eBgm->getComponent<SoundComponent>();
 	cBgm->audioPath = "Sound/BGM.ogg";
 	cBgm->isMusic = true;
-	cBgm->cVolume = 32;
-	cBgm->Play();
+	cBgm->cVolume = 16;
+	cBgm->PlayBgm();
 
 	auto eSfx = new Entity();
 	eSfx->addComponent<SoundComponent>();
@@ -468,8 +475,14 @@ int main(int argc, char* args[])
 	cSound->audioPath = "Sound/car_launch-idle_01.wav";
 	cSound->isMusic = false;
 	cSound->cVolume = 128;
-	cSound->cChannel = 1;
-	cSound->Play();
+	cSound->cChannel = 3;
+	cSound->FX_Type = 0;
+	cSound->PlayFx();
+
+
+
+	
+
 
 	// ===== START GAME ======
 	// Game::instance().addEntity(eLight);

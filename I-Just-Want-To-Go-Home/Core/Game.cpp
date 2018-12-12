@@ -71,7 +71,7 @@ void Game::initialize()
 	glEnable(GL_CULL_FACE);
 
 	 //initialize SDL sound mixer context
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0) {
 		printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
 		return;
 	}

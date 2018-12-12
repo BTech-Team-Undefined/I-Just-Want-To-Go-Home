@@ -9,13 +9,16 @@
 #include <iostream>
 using namespace std;
 
+
 /**
 Example of a simple system. Components are automatically registered and cleared.
 This method is less efficient than ExampleSystem.
 */
 class SoundSystem : public System
 {
+
 public:
+	bool playable=false;
 	// pass the components you would like to listen for
 	SoundSystem() : System({
 		std::type_index(typeid(SoundComponent))
@@ -26,14 +29,17 @@ public:
 	{
 		// remember to cache the results!
 		auto components = GetComponents<SoundComponent>();
+		auto test1 = new Entity();
 
 		// operate on the components
 		for (SoundComponent* component : components)
 		{
 			auto action = component->GetAction();
+			
 			switch (action)
 			{
-			case AudioAction::REQUEST_PLAY:
+			
+			case AudioAction::REQUEST_PLAYMUSIC:
 			{
 				// load:   
 				if (component->isMusic == true) {
@@ -44,22 +50,31 @@ public:
 					Mix_VolumeMusic(sVolume);
 					component->SetAction(AudioAction::NOTHING);
 				}
-				else {
-					cout << "sound" << endl;
-					auto sfx = GetAudioChunk(component->audioPath);
-					int sChannel = component->cChannel;
-					int sVolume = component->cVolume;
-					// play:    
-					Mix_PlayChannel(sChannel, sfx, -1);
-					// increment 
-					//_currentChannel++;
-					// clear component
-					component->SetAction(AudioAction::NOTHING);
-				}
+				
 			}
+			break;
+			case AudioAction::REQUEST_PLAYFX: {
+				cout << "sound" << endl;
+				auto sfx = GetAudioChunk(component->audioPath);
+				int sChannel = component->cChannel;
+				int sVolume = component->cVolume;
+				// play:
+				
+					sfx = GetAudioChunk("Sound/car_idle1.wav");
+					Mix_PlayChannel(sChannel, sfx, -1);
+					Mix_Volume(1, MIX_MAX_VOLUME*0.25);
+
+				
+				// increment 
+				//_currentChannel++;
+				// clear component
+				component->SetAction(AudioAction::NOTHING);
+				break;
+			}
+			
 			case AudioAction::REQUEST_STOP:
 			{
-				// STOP AUDIO HERE 
+				//cout<<"test"<<endl;
 			}
 			default:
 			{
@@ -106,19 +121,19 @@ private:
 			return _sfx[path];
 		}
 	}
-	Mix_Music* GetBgm(std::string path)
+	Mix_Music* GetBgm(std::string pathbgm)
 	{
 		// if chunk is unloaded - load 
-		if (_bgm.find(path) == _bgm.end())
+		if (_bgm.find(pathbgm) == _bgm.end())
 		{
-			Mix_Music* msc = Mix_LoadMUS(path.c_str());
-			_bgm[path] = msc;
+			Mix_Music* msc = Mix_LoadMUS(pathbgm.c_str());
+			_bgm[pathbgm] = msc;
 			return  msc;
 		}
 		// else return loaded chunk
 		else
 		{
-			return _bgm[path];
+			return _bgm[pathbgm];
 		}
 	}
 };
