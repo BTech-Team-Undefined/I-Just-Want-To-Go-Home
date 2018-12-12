@@ -159,15 +159,13 @@ int main(int argc, char* args[])
 	// ===== LEVEL ENTITIES =====
 
 	const float ENTITY_SCALE = 10;
+	const float DECORATION_SCALE = 5;
 
-	const string MDL_ROAD_START = "Models/racingkit2/roadStart.obj";
-	const string MDL_ROAD_STRAIGHT = "Models/racingkit2/roadStraight.obj";
-	const string MDL_ROAD_STRAIGHT_LONG = "Models/racingkit2/roadStraightLong.obj";
-	const string MDL_ROAD_CORNER_SMALL = "Models/racingkit2/roadCornerSmall.obj";
-	const string MDL_ROAD_CORNER_SMALL_WALL = "Models/racingkit2/roadCornerSmallWall.obj";
-	const string MDL_ROAD_CORNER_LARGE = "Models/racingkit2/roadCornerLarge.obj";
-	const string MDL_ROAD_CORNER_LARGE_WALL = "Models/racingkit2/roadCornerLargeWall.obj";
-	const string MDL_ROAD_CORNER_LARGE_WALL_INNER = "Models/racingkit2/roadCornerLargeWallInner.obj";
+	auto grass = Game::instance().loader.LoadModel("Models/racingkit2/grass.obj");
+	grass->position = glm::vec3(200, -2, -100);
+	grass->scale = glm::vec3(400, 1, 400);
+	grass->setStatic(true);
+	Game::instance().addEntity(grass.get());
 
 	Json::Value stageData;
 	std::ifstream stage_file("Maps/stage1.json", std::ifstream::binary);
@@ -230,6 +228,36 @@ int main(int argc, char* args[])
 		trackEntities[currentIndex]->scale = glm::vec3(ENTITY_SCALE, ENTITY_SCALE, ENTITY_SCALE);
 		trackEntities[currentIndex]->setStatic(true);
 		Game::instance().addEntity(trackEntities[currentIndex].get());
+	}
+
+	vector<unique_ptr<Entity>> decorationEntities;
+	Json::Value decorations = stageData["decorations"];
+	for (int i = 0; i < decorations.size(); ++i)
+	{
+		string modelName = decorations[i]["model"].asString();
+		decorationEntities.push_back(Game::instance().loader.LoadModel("Models/racingkit2/" + modelName + ".obj"));
+		int currentIndex = decorationEntities.size() - 1;
+
+		decorationEntities[currentIndex]->setStatic(true);
+
+		Json::Value position = decorations[i]["position"];
+		double posX = position[0].asDouble();
+		double posY = position[1].asDouble();
+		double posZ = position[2].asDouble();
+		decorationEntities[currentIndex]->position = glm::vec3(posX * ENTITY_SCALE, -2 + posY * ENTITY_SCALE, posZ * ENTITY_SCALE);
+
+		Json::Value rotation = decorations[i]["rotation"];
+		if (rotation != NULL)
+		{
+			double rotX = rotation[0].asDouble();
+			double rotY = rotation[1].asDouble();
+			double rotZ = rotation[2].asDouble();
+			decorationEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));
+		}
+
+		decorationEntities[currentIndex]->scale = glm::vec3(DECORATION_SCALE, DECORATION_SCALE, DECORATION_SCALE);
+		decorationEntities[currentIndex]->setStatic(true);
+		Game::instance().addEntity(decorationEntities[currentIndex].get());
 	}
 
 	/*

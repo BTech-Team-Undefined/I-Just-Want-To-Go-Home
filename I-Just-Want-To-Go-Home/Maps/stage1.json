@@ -65,7 +65,7 @@
             "rotation": [0, -90, 0],
             "colliders":
             [
-                [[0, 1.05], [-0.2, 1.05], [-0.2, -0.05], [0, -0.05]]
+                [[1, 0], [1, 2], [-1, 2], [-1, 1.8], [0, 1.8], [0.4, 1.7], [0.6, 1.4], [0.8, 1], [0.8, 0]]
             ]
         },
         {
@@ -324,5 +324,68 @@
             ]
         }
     ],
-    "obstacles": []
+    "obstacles": [],
+    "decorations":
+    [
+        {
+            "model": "camera_exclusive",
+            "position": [0, 0, 0.5],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "billboardDouble_exclusive",
+            "position": [-1, 0, 3.3],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [0.1, 0, 3],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [0.1, 0, 3.5],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [0.1, 0, 4],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [0.1, 0, 4.5],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [0.1, 0, 5],
+            "rotation": [0, 90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [-1.1, 0, 4],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [-1.1, 0, 4.5],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "grandStandCovered",
+            "position": [-1.1, 0, 5],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "pitsOfficeCorner",
+            "position": [-1.1, 0, 6.5],
+            "rotation": [0, -90, 0]
+        },
+        {
+            "model": "pitsOfficeRoof",
+            "position": [-1.1, 0, 7],
+            "rotation": [0, -90, 0]
+        }
+    ]
 }
