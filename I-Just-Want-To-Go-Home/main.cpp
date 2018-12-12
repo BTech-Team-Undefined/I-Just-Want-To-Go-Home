@@ -158,7 +158,7 @@ int main(int argc, char* args[])
 
 	// ===== LEVEL ENTITIES =====
 
-	const float ENTITY_SCALE = 5;
+	const float ENTITY_SCALE = 10;
 
 	const string MDL_ROAD_START = "Models/racingkit2/roadStart.obj";
 	const string MDL_ROAD_STRAIGHT = "Models/racingkit2/roadStraight.obj";
