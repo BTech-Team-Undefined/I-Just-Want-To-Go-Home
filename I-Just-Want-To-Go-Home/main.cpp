@@ -223,7 +223,7 @@ int main(int argc, char* args[])
 			isFinishLine = tracks[i]["finish"].asBool();
 
 		Json::Value colliders = tracks[i]["colliders"];
-		const bool DEBUG_COLLIDER_VISUAL = false;
+		const bool DEBUG_COLLIDER_VISUAL = true;
 
 		if (colliders != NULL)
 		{

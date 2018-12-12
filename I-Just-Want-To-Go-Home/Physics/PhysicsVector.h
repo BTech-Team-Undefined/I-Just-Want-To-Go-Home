@@ -10,7 +10,7 @@ public:
 	PhysicsVector();
 	PhysicsVector(float x, float y);
 	PhysicsVector(const PhysicsVector& v);
-	PhysicsVector operator=(const PhysicsVector &v) const;
+	PhysicsVector operator=(const PhysicsVector &v);
 	PhysicsVector operator+(const PhysicsVector& v) const;
 	PhysicsVector operator-(const PhysicsVector& v) const;
 	PhysicsVector operator-() const;

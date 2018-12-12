@@ -10,10 +10,11 @@ PhysicsVector::PhysicsVector(const PhysicsVector& v)
 	this->y = v.y;
 }
 
-PhysicsVector PhysicsVector::operator=(const PhysicsVector& v2) const
+PhysicsVector PhysicsVector::operator=(const PhysicsVector& v2)
 {
-	PhysicsVector v(v2.x, v2.y);
-	return v;
+	this->x = v2.x;
+	this->y = v2.y;
+	return *this;
 }
 
 PhysicsVector PhysicsVector::operator+(const PhysicsVector& v2) const
