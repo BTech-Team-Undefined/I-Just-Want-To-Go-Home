@@ -204,6 +204,9 @@ int main(int argc, char* args[])
 			trackPhysics->isStatic = true;
 			trackPhysics->directionalDrag = false;
 
+			trackEntities[currentIndex]->addComponent<RenderComponent>();
+			auto trackRdr = trackEntities[currentIndex]->getComponent<RenderComponent>();
+			
 			for (int i = 0; i < colliders.size(); ++i)
 			{
 				Json::Value collider = colliders[i];
@@ -222,6 +225,18 @@ int main(int argc, char* args[])
 
 				colliderObj->SetCollider(colliderBox, Point(0, 0), 4.0f * ENTITY_SCALE);
 				trackPhysics->AddCollider(colliderObj);
+
+				// unscaled!
+				vector<Point> visualBox;
+				visualBox.push_back(Point(topLeft[0].asDouble() , topLeft[1].asDouble() )); // top left
+				visualBox.push_back(Point(topRight[0].asDouble() , topRight[1].asDouble() )); // top right
+				visualBox.push_back(Point(bottomRight[0].asDouble() , bottomRight[1].asDouble() )); // bottom right
+				visualBox.push_back(Point(bottomLeft[0].asDouble() , bottomLeft[1].asDouble() )); // bottom left
+
+				auto r = make_shared<Renderable>();
+				r->material = material1;
+				r->mesh = make_shared<Mesh>(visualBox);
+				trackRdr->addRenderable(r);
 			}
 		}
 		

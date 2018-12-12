@@ -42,6 +42,68 @@ Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> idx)
 	glBindVertexArray(0);
 }
 
+Mesh::Mesh(std::vector<Point> colliderPoints)
+{
+	int i = 0;
+	auto x = colliderPoints[i].x;
+	auto y = colliderPoints[i].y;
+	this->vertices.push_back(Vertex(x, -1, y, 0, 0, x, -1, y));
+	this->vertices.push_back(Vertex(x, 1, y, 0, 0, x, 1, y));
+
+	for (int i = 1; i < colliderPoints.size(); i++)
+	{
+		auto x = colliderPoints[i].x;
+		auto y = colliderPoints[i].y;
+		this->vertices.push_back(Vertex(x, -1, y, 0, 0, x, -1, y));
+		this->vertices.push_back(Vertex(x,  1, y, 0, 0, x,  1, y));
+		// stuff here 
+		this->indices.push_back(i * 2 - 2);
+		this->indices.push_back(i * 2 - 1);
+		this->indices.push_back(i * 2 + 0);
+		this->indices.push_back(i * 2 + 1);
+		this->indices.push_back(i * 2 + 0);
+		this->indices.push_back(i * 2 - 1);
+	}
+	this->indices.push_back(vertices.size() - 2);
+	this->indices.push_back(vertices.size() - 1);
+	this->indices.push_back(0);
+	this->indices.push_back(1);
+	this->indices.push_back(0);
+	this->indices.push_back(vertices.size() - 1);
+
+	// initialize opengl data 
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * this->vertices.size(), &this->vertices[0], GL_STATIC_DRAW);
+	// position attribute 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(0));
+	glEnableVertexAttribArray(0);
+	// uv attribute 
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Uv)));
+	glEnableVertexAttribArray(1);
+	// normal attribute 
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Normal)));
+	glEnableVertexAttribArray(2);
+	// tangent attribute  
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Tangent)));
+	glEnableVertexAttribArray(3);
+	// bitangent attribute 
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Bitangent)));
+	glEnableVertexAttribArray(4);
+
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * this->indices.size(), &this->indices[0], GL_STATIC_DRAW);
+
+	// finished - unbind
+	glBindVertexArray(0);
+}
+
 Mesh::~Mesh()
 {
 	// this also deletes the buffers (in fact it's the only way to - http://alex-charlton.com/posts/When_is_it_okay_to_delete_an_OpenGL_buffer/)

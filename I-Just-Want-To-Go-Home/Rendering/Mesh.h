@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Physics/Point.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -55,6 +56,7 @@ public:
 public:
 	Mesh(std::vector<Vertex> vertices, 
 		std::vector<unsigned int> indices);
+	Mesh(std::vector<Point> colliderPoints);
 	~Mesh();
 };
 
