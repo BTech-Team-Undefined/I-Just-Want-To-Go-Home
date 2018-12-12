@@ -46,6 +46,8 @@
     <ClCompile Include="Rendering\PostProcess\NegativePP.cpp" />
     <ClCompile Include="Rendering\PostProcess\BlurPP.cpp" />
     <ClCompile Include="Rendering\PostProcess\FxaaPP.cpp" />
+    <ClCompile Include="Sound\SoundComponent.cpp" />
+    <ClCompile Include="Sound\SoundSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetLoader.h" />
@@ -108,6 +110,8 @@
     <ClInclude Include="Rendering\PostProcess\BlurPP.h" />
     <ClInclude Include="Rendering\PostProcess\FxaaPP.h" />
     <ClInclude Include="Physics\Collision.h" />
+    <ClInclude Include="Sound\SoundComponent.h" />
+    <ClInclude Include="Sound\SoundSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -115,5 +119,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Rendering\DOCUMENTATION.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Sound\car_idle.wav" />
+    <Media Include="Sound\car_launch-idle_01.wav" />
   </ItemGroup>
 </Project>

@@ -43,6 +43,7 @@
 #include "EntitySystems\Examples\ExampleSystem.h"
 #include "EntitySystems\Examples\SimpleSystem.h"
 #include "Physics\Trigger.h"
+#include "Sound\SoundSystem.h"
 
 #include "Rendering\UI\ImageComponent.h"
 #include "Rendering\UI\TextComponent.h"
@@ -52,12 +53,12 @@
 #include "Game\TimeDisplayComponent.h"
 #include "Game\StickyTransformComponent.h"
 
-
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-Mix_Music *gMusic = NULL;
+/*Mix_Music *gMusic = NULL;
+Mix_Chunk *gCar_idle = NULL;*/
 
 int main(int argc, char* args[])
 {
@@ -68,6 +69,10 @@ int main(int argc, char* args[])
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	Game::instance().addSystem(std::move(rs));
+
+	auto ss = std::make_unique<SoundSystem>();
+	ss->loadBgm("");
+	Game::instance().addSystem(std::move(ss));
 
 	//auto es = std::make_unique<ExampleSystem>();
 	//Game::instance().addSystem(std::move(es));
@@ -83,15 +88,33 @@ int main(int argc, char* args[])
 	Game::instance().setActiveScene(scene);
 
 	// ===== Test Sound =====
-	gMusic = Mix_LoadMUS("Sound/BGM.wav");
+	/*gMusic = Mix_LoadMUS("Sound/BGM.ogg");
 	if (gMusic == NULL)
 	{
 		printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
 	}
-	if (Mix_PlayingMusic() == 0) {
+	/*if (Mix_PlayingMusic() == 0) {
 		Mix_PlayMusic(gMusic, -1);
+	}*/
+	/*if (Mix_PlayingMusic() == 0) {		
+		if (Mix_FadeInMusic(gMusic, -1, 2000) == -1) {
+			printf("Mix_FadeInMusic: %s\n", Mix_GetError());
+		}
 	}
-
+	else {
+		if (Mix_SetMusicPosition(20.0) == -1) {
+			cout << "position:" << Mix_GetError();
+		}
+	}
+	cout << "Volume:" << Mix_VolumeMusic(32) << endl;*/
+	
+	// ===== Sound Effect=====
+	/*gCar_idle = Mix_LoadWAV("Sound/car_launch-idle_01.ogg");
+	if (gCar_idle == NULL) {
+		cout << "faild to load file :" << Mix_GetError() << endl;
+	}
+	//Mix_PlayChannel(1, gCar_idle, 0);
+	*/
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
 	playerEntity->position = glm::vec3(-2.5, -2, -5);
@@ -430,6 +453,24 @@ int main(int argc, char* args[])
 	// ===== FREEZE OBJECTS ===== 
 	eTime->setStatic(true);
 
+	// ===== AUDIO =====
+	auto eBgm = new Entity();
+	eBgm->addComponent<SoundComponent>();
+	auto cBgm = eBgm->getComponent<SoundComponent>();
+	cBgm->audioPath = "Sound/BGM.ogg";
+	cBgm->isMusic = true;
+	cBgm->cVolume = 32;
+	cBgm->Play();
+
+	auto eSfx = new Entity();
+	eSfx->addComponent<SoundComponent>();
+	auto cSound = eSfx->getComponent<SoundComponent>();
+	cSound->audioPath = "Sound/car_launch-idle_01.wav";
+	cSound->isMusic = false;
+	cSound->cVolume = 128;
+	cSound->cChannel = 1;
+	cSound->Play();
+
 	// ===== START GAME ======
 	// Game::instance().addEntity(eLight);
 	// Game::instance().addEntity(eLight2);
@@ -445,6 +486,9 @@ int main(int argc, char* args[])
 	// Game::instance().addEntity(eImage2);
 	Game::instance().addEntity(eSpeed);
 	Game::instance().addEntity(eTime);
+	
+	Game::instance().addEntity(eBgm);
+	Game::instance().addEntity(eSfx);
 
 	Game::instance().loop();
 

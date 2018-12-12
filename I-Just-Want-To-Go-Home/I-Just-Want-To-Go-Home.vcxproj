@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{4B6144D8-A164-4BCC-9CD0-52C3332B01F5}</ProjectGuid>
     <RootNamespace>IJustWantToGoHome</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -184,6 +184,8 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Core\Scene.cpp" />
     <ClCompile Include="Game\SpeedDisplayComponent.cpp" />
+    <ClCompile Include="Sound\SoundComponent.cpp" />
+    <ClCompile Include="Sound\SoundSystem.cpp" />
     <ClCompile Include="stb_image_config.cpp" />
     <ClCompile Include="Rendering\UI\TextComponent.cpp" />
     <ClCompile Include="Rendering\UI\View.cpp" />
@@ -260,7 +262,13 @@ xcopy "$(ProjectDir)fonts" "$(TargetDir)fonts" /s /i /e /y
   <ItemGroup>
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="Game\SpeedDisplayComponent.h" />
+    <ClInclude Include="Sound\SoundComponent.h" />
+    <ClInclude Include="Sound\SoundSystem.h" />
     <ClInclude Include="TestableClass.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Sound\car_idle.wav" />
+    <Media Include="Sound\car_launch-idle_01.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
