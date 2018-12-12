@@ -316,14 +316,14 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	float av = pc->angularVelocity;
 
 	if (v.length() > 0) {
-		float drag = -v.dot(v) * pc->mass * pc->dragCoefficient;
-		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		float drag = -v.dot(v) * pc->mass * pc->getDrag();
+		float fric = -pc->mass * gravity * pc->getFriction();
 		f += (drag + fric) * v.unit(); // fric is already negative so we don't need to worry about sign
 	}
 
 	if (av != 0) {
-		float adrag = -av * av * pc->mass * pc->dragCoefficient;
-		float fric = -pc->mass * gravity * pc->frictionCoefficient;
+		float adrag = -av * av * pc->mass * pc->getRotationDrag();
+		float fric = -pc->mass * gravity * pc->getRotationFriction();
 		af += (adrag + fric) * (av > 0 ? 1 : -1);
 	}
 
@@ -337,6 +337,18 @@ void PhysicsSystem::physicsUpdate(Entity* e, float delta) {
 	float rot = e->rotation.y;
 	rot += av * delta + 0.5 * aa * delta * delta;
 	av += aa * delta;
+
+	if (av < 0.05 && av > -0.05) {
+		av = 0.0f;
+	}
+
+	if (pc->velocity.x < 0.05 && pc->velocity.x > -0.05) {
+		pc->velocity.x = 0.0f;
+	}
+
+	if (pc->velocity.y < 0.05 && pc->velocity.y > -0.05) {
+		pc->velocity.y = 0.0f;
+	}
 
 	pc->velocity.x = v.x;
 	pc->velocity.y = v.y;
@@ -360,7 +372,14 @@ void PhysicsSystem::ResolveCollision(Entity* e1, Entity* e2) {
 	if (pc2->isStatic) {
 		im2 = 0;
 	}
-	PhysicsVector n = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z).unit();
+	PhysicsVector dist = PhysicsVector(e2->position.x - e1->position.x, e2->position.z - e1->position.z);
+	PhysicsVector n = dist.unit();
+	// Bad positional correction
+	const float ratio = 0.035;
+	PhysicsVector corr1 = -n * ratio * im1;
+	PhysicsVector corr2 = n * ratio * im2;
+	e1->position = glm::vec3(e1->position.x + corr1.x, e1->position.y, e1->position.z + corr1.y);
+	e2->position = glm::vec3(e2->position.x + corr2.x, e2->position.y, e2->position.z + corr2.y);
 	float vNorm = (pc2->velocity - pc1->velocity).dot(n);
 	if (vNorm > 0) {
 		return;

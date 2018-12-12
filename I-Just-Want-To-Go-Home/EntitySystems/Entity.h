@@ -31,6 +31,7 @@ private:
 	static unsigned int _curID;
 	unsigned int _id = 0;
 	bool _enabled = true;
+	bool _static = false;
 
 	ComponentMap _components;
 	std::vector<Entity*> _children;
@@ -43,6 +44,8 @@ private:
 	glm::vec3 _worldPosition;
 	glm::vec3 _worldRotation;
 	glm::vec3 _worldScale;
+
+	glm::mat4 _worldTransformation;
 
 	// may want to store world position,scale,rotation for optimization
 
@@ -131,6 +134,15 @@ public:
 	// Returns the world transformation matrix (model matrix).
 	glm::mat4 getWorldTransformation();
 	
+	// Returns the world position of the entity.
+	glm::vec3 getWorldPosition();
+
+	// Returns the world rotation of the entity.
+	glm::vec3 getWorldRotation();
+
+	// Returns the world scale of the entity;
+	glm::vec3 getWorldScale();
+
 	// Sets local transformation properties via a model matrix. 
 	// Note: This uses experimental GLM functions and has edge cases. 
 	void setLocalTransform(glm::mat4 matrix);
@@ -151,6 +163,20 @@ public:
 	// Sets local scale via a world scale.
 	// TODO: implement
 	void setWorldScale(glm::vec3 scale);
+
+	// precompute the world transformation matrix given a parent transformation. 
+	void configureTransform(glm::mat4 parent);
+
+	// precompute the world transformation matrix by automatically retrieving it's parent.
+	void configureTransform();
+
+	// gets the entity's static status. 
+	bool getStatic() const;
+
+	// Sets the static flag on this entity. Setting this to true will completely freeze all transforms 
+	// on this entity and it's children. Moving the parent (even if not static) will not move this entity.
+	// ONLY call when you're done configuring it.
+	void setStatic(bool torf);
 
 	// Inform this entity to destroy itself. 
 	void destroy();
