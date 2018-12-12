@@ -67,6 +67,9 @@ int main(int argc, char* args[])
 	// ===== INIT SYSTEMS =====
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	auto ppBlurH = rs->getPostProcess("BlurH");
+	auto ppBlurV = rs->getPostProcess("BlurV");
+	auto ppOutline = rs->getPostProcess("Outline");
 	Game::instance().addSystem(std::move(rs));
 
 	//auto es = std::make_unique<ExampleSystem>();
@@ -472,10 +475,10 @@ int main(int argc, char* args[])
 	eWinDisplay->addComponent<TextComponent>();
 	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
 	cWinBg->loadImage("textures/UI/grey_panel.png");
-	cWinBg->width = 400;
-	cWinBg->height = 300;
+	cWinBg->width = 500;
+	cWinBg->height = 250;
 	auto cWinText = eWinDisplay->getComponent<TextComponent>();
-	cWinText->setText("FINISHED");
+	cWinText->setText("FINISHED!");
 	cWinText->font = "fonts/futur.ttf";
 	cWinText->alignment = TextAlignment::Center;
 
@@ -487,9 +490,12 @@ int main(int argc, char* args[])
 	auto cGoalPhys = eGoal->getComponent<PhysicsComponent>();
 	cGoalPhys->hasPhysicsCollision = false;
 	auto tGoalTrigger = std::make_shared<Trigger>(
-	[&eWinDisplay]
+	[&eWinDisplay, &ppBlurH, &ppBlurV, &ppOutline]
 	{		
 		eWinDisplay->setEnabled(true);
+		ppBlurH->enabled = true;
+		ppBlurV->enabled = true;
+		ppOutline->enabled = false;
 		Game::instance().pause(true);
 	});
 	//std::bind(&Entity::setEnabled, eWinDisplay, true)
