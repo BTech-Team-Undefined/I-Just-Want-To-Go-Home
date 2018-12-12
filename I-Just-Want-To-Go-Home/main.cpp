@@ -24,6 +24,7 @@
 #include "Camera.h"
 #include "EntitySystems\Entity.h"
 #include "EntitySystems\Component.h"
+#include "EntitySystems\InputSystem.h"
 #include "Rendering\Shader.h"
 #include "Rendering\Renderable.h"
 #include "Rendering\RenderingSystem.h"
@@ -69,6 +70,8 @@ int main(int argc, char* args[])
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	Game::instance().addSystem(std::move(rs), ThreadType::graphics);
+	auto is = std::make_unique<InputSystem>();
+	Game::instance().addSystem(std::move(is), ThreadType::graphics);
 
 	//auto es = std::make_unique<ExampleSystem>();
 	//Game::instance().addSystem(std::move(es));
