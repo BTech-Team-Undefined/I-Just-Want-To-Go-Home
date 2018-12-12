@@ -159,19 +159,6 @@ void Game::ui_loop()
 		current = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> dt = current - previous;
 
-		//Event handler
-		SDL_Event e;
-		//Handle events on queue
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return;
-			}
-		}
-
 		_entitiesMtx.lock();
 
 		// freeze transforms for entities 
@@ -183,11 +170,6 @@ void Game::ui_loop()
 		resolveSystemNotification(activeScene->rootEntity.get(), ThreadType::graphics);
 
 		// system update 
-		for (int i = 0; i < _systems[ThreadType::graphics].size(); i++)
-		{
-			_systems[ThreadType::graphics][i]->update(dt.count());
-			_systems[ThreadType::graphics][i]->clearComponents();
-		}
 		for (int i = 0; i < _frameSystems[ThreadType::graphics].size(); i++)
 		{
 			_frameSystems[ThreadType::graphics][i]->update(dt.count());
@@ -255,11 +237,6 @@ void Game::primary_loop()
 			{
 				_systems[ThreadType::primary][i]->update(dt.count());
 				_systems[ThreadType::primary][i]->clearComponents();
-			}
-			for (int i = 0; i < _frameSystems[ThreadType::primary].size(); i++)
-			{
-				_frameSystems[ThreadType::primary][i]->update(dt.count());
-				_frameSystems[ThreadType::primary][i]->clearComponents();	// cleanup for next iteration
 			}
 		}
 	}
