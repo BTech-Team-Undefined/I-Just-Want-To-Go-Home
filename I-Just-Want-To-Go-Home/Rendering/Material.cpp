@@ -20,17 +20,17 @@ Material::~Material()
 void Material::LoadMaterial(const Shader* shader)
 {
 	// load all uniform data 
-	for (auto& elem : uniformsVec3)
+	for (const auto& elem : uniformsVec3)
 	{
 		shader->setVec3(elem.first, elem.second);
 	}
 
-	for (auto& elem : uniformsFloat)
+	for (const auto& elem : uniformsFloat)
 	{
 		shader->setFloat(elem.first, elem.second);
 	}
 
-	for (auto& elem : uniformsInt)
+	for (const auto& elem : uniformsInt)
 	{
 		shader->setInt(elem.first, elem.second);
 	}

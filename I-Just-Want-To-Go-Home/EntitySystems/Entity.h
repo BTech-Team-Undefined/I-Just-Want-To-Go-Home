@@ -33,7 +33,8 @@ private:
 	bool _enabled = true;
 	bool _static = false;
 
-	ComponentMap _components;
+	ComponentMap _components;					// component map 
+	std::vector<Component*> _componentStorage;	// component storage
 	std::vector<Entity*> _children;
 	Entity* _parent;
 
@@ -93,6 +94,7 @@ public:
 	void addComponent() {
 		_components[typeid(T)] = std::make_unique<T>();
 		_components[typeid(T)]->setEntity(this);
+		_componentStorage.push_back(_components[typeid(T)].get());
 	}
 
 	// Returns a pointer to specified component. 
@@ -103,16 +105,9 @@ public:
 	}
 
 	// Returns a copy of all components attached to this entity. 
-	std::vector<Component*> getComponents()
+	const std::vector<Component*> getComponents()
 	{
-		std::vector<Component*> components;
-
-		for (ComponentMap::iterator it = _components.begin(); it != _components.end(); ++it)
-		{
-			components.push_back(it->second.get());
-		}
-
-		return components;
+		return _componentStorage;
 	}
 
 	// Remove and destroy a component attached to this entity. 
@@ -124,6 +119,7 @@ public:
 		if (getComponent<T>() != nullptr)
 		{
 			getComponent<T>()->Kill();
+			_componentStorage.erase(_components[typeid(T)].get());
 			_components.erase(typeid(T));
 		}
 	}
