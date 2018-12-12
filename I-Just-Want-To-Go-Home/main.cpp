@@ -197,7 +197,7 @@ int main(int argc, char* args[])
 		}
 
 		Json::Value colliders = tracks[i]["colliders"];
-		const bool DEBUG_COLLIDER_VISUAL = false;
+		const bool DEBUG_COLLIDER_VISUAL = true;
 		if (colliders != NULL)
 		{
 			trackEntities[currentIndex]->addComponent<PhysicsComponent>();
