@@ -417,9 +417,9 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 			}
 		}
 		else {
-			if (relVel.dot(n) > 0) {
-				continue;
-			}
+			//if (relVel.dot(n) > 0) {
+				//continue;
+			//}
 		}
 
 		float vNorm = relVel.dot(n);
@@ -427,7 +427,7 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 			continue;
 		}
 
-		// Bad positional correction
+		// Better positional correction
 		const float velRatio = 0.002;
 		const float minRatio = 0.07;
 		PhysicsVector corr1 = -n * (minRatio + velRatio * pc1->velocity.length()) * im1;

@@ -4,8 +4,8 @@ vector<Point>* Collision::getCollisionPoints(int collNum) {
 	auto colliderB = colliders[collNum].second;
 	Point aOrigin = colliderA->GetOrigin();
 	Point bOrigin = colliderB->GetOrigin();
-	float rotationA = colliderA->GetRotationY();
-	float rotationB = colliderB->GetRotationY();
+	float rotationA = -colliderA->GetRotationY();
+	float rotationB = -colliderB->GetRotationY();
 
 	/*
 	cout << "===COLLIDER A===" << endl;
