@@ -43,7 +43,7 @@ public:
 					getEntity()->getComponent<PhysicsComponent>()->angularForce = (drift ? -1.0 : -.75) * getEntity()->getComponent<PhysicsComponent>()->velocity.length();
 					break;
 				}
-			}
+			//}
 			//drifting
 			//if (getEntity()->getComponent<PhysicsComponent>()->angularForce != 0) {
 				if (e.key.keysym.sym == SDLK_LSHIFT) {
@@ -125,8 +125,11 @@ public:
 
 	}
 	void update(float dt)
-	{//instance var, number 
-		if (drift)
+	}
+
+	void notify(vector<SDL_Event>* events, float dt)
+	{
+    if (drift)
 		{
 			driftTime += dt;
 		}
@@ -139,22 +142,14 @@ public:
 			driftTime = 0;
 			enableBoost = true;
 		}
-		//Event handler
-		SDL_Event e;
-		//Handle events on queue
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
+		//User requests quit
+		for (auto ep = events->begin(); ep < events->end(); ep++) {
+			auto e = *ep;
+			cout << "Respond Event " << e.type << endl;
 			auto it = _actions.find(e.type);
 			if (it != _actions.end())
 			{
 				it->second(e);
-				return;
-			}
-			if (e.type == SDL_QUIT)
-			{
-				SDL_Quit();
-				return;
 			}
 		}
 		Entity* ent = getEntity();

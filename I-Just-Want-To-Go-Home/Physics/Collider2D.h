@@ -5,7 +5,6 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "Point.h"
-#include "PhysicsSystem.h"
 #include "..\EntitySystems\Entity.h"
 
 using namespace std;
@@ -18,6 +17,7 @@ public:
 	// relative to the origin of the renderable object
 	Point roughCenter = Point(0, 0);
 	float roughRadius = 0;
+	bool hasPhysics = true;
 	// relative to the origin of the renderable object
 	vector<Point> collider;
 	vector<int> collidingIds;
@@ -44,6 +44,10 @@ public:
 	void SetCollider(vector<Point> vertices, Point roughCenter, float roughRadius);
 
 	Point GetOrigin();
+
+	Point GetCenter();
+
+	Point GetLocalCenter();
 
 	float GetRotationY();
 

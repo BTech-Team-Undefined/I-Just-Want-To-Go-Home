@@ -33,7 +33,8 @@ private:
 	bool _enabled = true;
 	bool _static = false;
 
-	ComponentMap _components;
+	ComponentMap _components;					// component map 
+	std::vector<Component*> _componentStorage;	// component storage
 	std::vector<Entity*> _children;
 	Entity* _parent;
 
@@ -45,7 +46,8 @@ private:
 	glm::vec3 _worldRotation;
 	glm::vec3 _worldScale;
 
-	glm::mat4 _worldTransformation;
+	glm::mat4 _worldTransformation;			// precomputed worldtransform for graphics 
+	glm::mat4 _worldTransformationLatest;	// precomputed worldtransform for physics. will always have the most recent data. 
 
 	// may want to store world position,scale,rotation for optimization
 
@@ -93,6 +95,7 @@ public:
 	void addComponent() {
 		_components[typeid(T)] = std::make_unique<T>();
 		_components[typeid(T)]->setEntity(this);
+		_componentStorage.push_back(_components[typeid(T)].get());
 	}
 
 	// Returns a pointer to specified component. 
@@ -103,16 +106,9 @@ public:
 	}
 
 	// Returns a copy of all components attached to this entity. 
-	std::vector<Component*> getComponents()
+	const std::vector<Component*> getComponents()
 	{
-		std::vector<Component*> components;
-
-		for (ComponentMap::iterator it = _components.begin(); it != _components.end(); ++it)
-		{
-			components.push_back(it->second.get());
-		}
-
-		return components;
+		return _componentStorage;
 	}
 
 	// Remove and destroy a component attached to this entity. 
@@ -124,16 +120,16 @@ public:
 		if (getComponent<T>() != nullptr)
 		{
 			getComponent<T>()->Kill();
+			_componentStorage.erase(_components[typeid(T)].get());
 			_components.erase(typeid(T));
 		}
 	}
 
-	// Returns the local transformation matrix.
-	glm::mat4 getLocalTransformation();
+#pragma region Graphics_Frame_Data 
 
 	// Returns the world transformation matrix (model matrix).
 	glm::mat4 getWorldTransformation();
-	
+
 	// Returns the world position of the entity.
 	glm::vec3 getWorldPosition();
 
@@ -142,6 +138,28 @@ public:
 
 	// Returns the world scale of the entity;
 	glm::vec3 getWorldScale();
+
+	// Updates the precomputed world transformation matrix for rendering 
+	void updateTransform();
+
+#pragma endregion
+
+#pragma region Game_Frame_Data
+
+	// Calculates and returns the local transformation matrix.
+	glm::mat4 getLocalTransformation();
+
+	// Returns the latest world transformation
+	glm::mat4 getLatestWorldTransformation();
+
+	// Returns the latest world position of the entity.
+	glm::vec3 getLatestWorldPosition();
+
+	// Returns the latest world rotation of the entity.
+	glm::vec3 getLatestWorldRotation();
+
+	// Returns the latest world scale of the entity;
+	glm::vec3 getLatestWorldScale();
 
 	// Sets local transformation properties via a model matrix. 
 	// Note: This uses experimental GLM functions and has edge cases. 
@@ -169,6 +187,8 @@ public:
 
 	// precompute the world transformation matrix by automatically retrieving it's parent.
 	void configureTransform();
+
+#pragma endregion
 
 	// gets the entity's static status. 
 	bool getStatic() const;

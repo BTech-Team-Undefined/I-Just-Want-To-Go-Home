@@ -19,6 +19,11 @@ struct LightSimple
 class Light : public Component
 {
 public:
+	glm::vec3 color = glm::vec3(1.0, 1.0, 1.0);
+	float intensity = 1.0;
+	float range = 5.0;
+
+public:
 	Light(std::type_index t) : Component(t) {};
 	
 	virtual void LoadUniforms(Shader* shader)	  = 0;

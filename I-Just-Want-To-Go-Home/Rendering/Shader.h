@@ -75,5 +75,11 @@ public:
 	{
 		glUniformMatrix4fv(glGetUniformLocation(programId, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 	}
+
+	// This method is ever so slightly faster but also more inconsistent
+	//void setMat4c(const GLchar* name, const glm::mat4 &mat) const
+	//{
+	//	glUniformMatrix4fv(glGetUniformLocation(programId, name), 1, GL_FALSE, &mat[0][0]);
+	//}
 };
 

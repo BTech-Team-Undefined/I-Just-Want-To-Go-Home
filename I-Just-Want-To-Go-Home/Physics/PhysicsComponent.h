@@ -22,6 +22,7 @@ public:
 	float rotDragCoefficient = 0.35;
 	float rotFricCoefficient = 0.6;
 	bool isStatic = false;
+	bool hasPhysicsCollision = true;
 	PhysicsVector velocity;
 	PhysicsVector force;
 	float angularForce;
