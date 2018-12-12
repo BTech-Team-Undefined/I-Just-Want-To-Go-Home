@@ -94,7 +94,9 @@ int main(int argc, char* args[])
 
 	// ===== PLAYER ENTITY ===== 
 	auto playerEntity = new Entity();
-	playerEntity->position = glm::vec3(-2.5, -2, -5);
+	playerEntity->position = glm::vec3(-5, -2, -5);
+
+	const bool FLY_MODE = false;
 	
 	// physics 
 	auto e6Collider = std::make_shared<Trigger>([] {std::cout << "theory tested!"; });
@@ -108,7 +110,8 @@ int main(int argc, char* args[])
 	auto pc6 = playerEntity->getComponent<PhysicsComponent>();
 	pc6->isStatic = false;
 	pc6->directionalDrag = true;
-	pc6->AddCollider(e6Collider);
+	if (!FLY_MODE)
+		pc6->AddCollider(e6Collider);
 	// input 
 	playerEntity->addComponent<DebugInputComponent>();
 	// visuals 
@@ -171,6 +174,13 @@ int main(int argc, char* args[])
 	std::ifstream stage_file("Maps/stage1.json", std::ifstream::binary);
 	stage_file >> stageData;
 
+	Json::Value player = stageData["player"];
+	Json::Value playerPosition = player["position"];
+	if (playerPosition != NULL)
+	{
+		playerEntity->position = glm::vec3(playerPosition[0].asDouble(), playerPosition[1].asDouble(), playerPosition[2].asDouble());
+	}
+
 	vector<unique_ptr<Entity>> trackEntities;
 	Json::Value tracks = stageData["tracks"];
 	for (int i = 0; i < tracks.size(); ++i)
@@ -196,20 +206,31 @@ int main(int argc, char* args[])
 			trackEntities[currentIndex]->rotation = glm::vec3(glm::radians(rotX), glm::radians(rotY), glm::radians(rotZ));
 		}
 
+		bool isFinishLine = false;
+		if (tracks[i]["finish"] != NULL)
+			isFinishLine = tracks[i]["finish"].asBool();
+
 		Json::Value colliders = tracks[i]["colliders"];
-		const bool DEBUG_COLLIDER_VISUAL = true;
+		const bool DEBUG_COLLIDER_VISUAL = false;
 		if (colliders != NULL)
 		{
 			trackEntities[currentIndex]->addComponent<PhysicsComponent>();
 			auto trackPhysics = trackEntities[currentIndex]->getComponent<PhysicsComponent>();
 			trackPhysics->isStatic = true;
 			trackPhysics->directionalDrag = false;
+
+			if (isFinishLine)
+				trackPhysics->hasPhysicsCollision = false;
 			
 			for (int i = 0; i < colliders.size(); ++i)
 			{
 				Json::Value collider = colliders[i];
 
-				auto colliderObj = std::make_shared<Trigger>([] {std::cout << "collision!"; });
+				auto colliderReaction = [] { std::cout << "collision!"; };
+				auto finishLineReaction = [] { std::cout << "finish!"; };
+
+				auto colliderObj = isFinishLine ? std::make_shared<Trigger>(finishLineReaction) : std::make_shared<Trigger>(colliderReaction);
+				colliderObj->hasPhysics = !isFinishLine;
 				vector<Point> colliderBox;
 				vector<Point> visualBox;
 
