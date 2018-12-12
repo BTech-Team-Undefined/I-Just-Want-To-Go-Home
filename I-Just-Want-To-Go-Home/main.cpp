@@ -70,6 +70,9 @@ int main(int argc, char* args[])
 	// ===== INIT SYSTEMS =====
 	auto rs = std::make_unique<RenderingSystem>();
 	rs->SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	auto ppBlurH = rs->getPostProcess("BlurH");
+	auto ppBlurV = rs->getPostProcess("BlurV");
+	auto ppOutline = rs->getPostProcess("Outline");
 	Game::instance().addSystem(std::move(rs), ThreadType::graphics);
 	auto is = std::make_unique<InputSystem>();
 	Game::instance().addSystem(std::move(is), ThreadType::graphics);
@@ -135,8 +138,8 @@ int main(int argc, char* args[])
 	eWinDisplay->addComponent<TextComponent>();
 	auto cWinBg = eWinDisplay->getComponent<ImageComponent>();
 	cWinBg->loadImage("textures/UI/grey_panel.png");
-	cWinBg->width = 400;
-	cWinBg->height = 300;
+	cWinBg->width = 500;
+	cWinBg->height = 250;
 	auto cWinText = eWinDisplay->getComponent<TextComponent>();
 	cWinText->setText("FINISHED");
 	cWinText->font = "fonts/futur.ttf";
@@ -307,9 +310,12 @@ int main(int argc, char* args[])
 					std::cout << "collision!"; 
 					cHitSound->PlayFx();
 				};
-				auto finishLineReaction = [&eWinDisplay]
+				auto finishLineReaction = [&eWinDisplay, &ppBlurH, &ppBlurV, &ppOutline]
 				{
 					eWinDisplay->setEnabled(true);
+					ppBlurH->enabled = true;
+					ppBlurV->enabled = true;
+					ppOutline->enabled = false;
 					Game::instance().pause(true);
 				};
 
