@@ -407,7 +407,7 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 			Point endPt = (*collPoints)[1];
 			PhysicsVector normUnnormalized = PhysicsVector(endPt.y - startPt.y, startPt.x - endPt.x);
 			PhysicsVector tmp = normUnnormalized.unit();
-			if (normUnnormalized.dot(n) > 0) {
+			if (normUnnormalized.dot(relVel) < 0) {
 				// If the normal is already facing away from the center, just use it
 				n = tmp;
 			}
@@ -415,6 +415,7 @@ void PhysicsSystem::ResolveCollision(Collision* c) {
 				// Otherwise use the opposite
 				n = -tmp;
 			}
+			cout << tmp.x << ", " << tmp.y << endl;
 		}
 		else {
 			//if (relVel.dot(n) > 0) {
