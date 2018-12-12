@@ -197,46 +197,47 @@ int main(int argc, char* args[])
 		}
 
 		Json::Value colliders = tracks[i]["colliders"];
+		const bool DEBUG_COLLIDER_VISUAL = false;
 		if (colliders != NULL)
 		{
 			trackEntities[currentIndex]->addComponent<PhysicsComponent>();
 			auto trackPhysics = trackEntities[currentIndex]->getComponent<PhysicsComponent>();
 			trackPhysics->isStatic = true;
 			trackPhysics->directionalDrag = false;
-
-			trackEntities[currentIndex]->addComponent<RenderComponent>();
-			auto trackRdr = trackEntities[currentIndex]->getComponent<RenderComponent>();
 			
 			for (int i = 0; i < colliders.size(); ++i)
 			{
 				Json::Value collider = colliders[i];
-				Json::Value topLeft = collider[0];
-				Json::Value topRight = collider[1];
-				Json::Value bottomRight = collider[2];
-				Json::Value bottomLeft = collider[3];
 
 				auto colliderObj = std::make_shared<Trigger>([] {std::cout << "collision!"; });
 				vector<Point> colliderBox;
+				vector<Point> visualBox;
 
-				colliderBox.push_back(Point(topLeft[0].asDouble() * ENTITY_SCALE, topLeft[1].asDouble() * ENTITY_SCALE)); // top left
-				colliderBox.push_back(Point(topRight[0].asDouble() * ENTITY_SCALE, topRight[1].asDouble() * ENTITY_SCALE)); // top right
-				colliderBox.push_back(Point(bottomRight[0].asDouble() * ENTITY_SCALE, bottomRight[1].asDouble() * ENTITY_SCALE)); // bottom right
-				colliderBox.push_back(Point(bottomLeft[0].asDouble() * ENTITY_SCALE, bottomLeft[1].asDouble() * ENTITY_SCALE)); // bottom left
+				for (int j = 0; j < collider.size(); ++j)
+				{
+					colliderBox.push_back(Point(collider[j][0].asDouble() * ENTITY_SCALE, collider[j][1].asDouble() * ENTITY_SCALE));
+
+					if (DEBUG_COLLIDER_VISUAL)
+						visualBox.push_back(Point(collider[j][0].asDouble() * ENTITY_SCALE, collider[j][1].asDouble() * ENTITY_SCALE));
+				}
 
 				colliderObj->SetCollider(colliderBox, Point(0, 0), 4.0f * ENTITY_SCALE);
 				trackPhysics->AddCollider(colliderObj);
 
-				// unscaled!
-				vector<Point> visualBox;
-				visualBox.push_back(Point(topLeft[0].asDouble() , topLeft[1].asDouble() )); // top left
-				visualBox.push_back(Point(topRight[0].asDouble() , topRight[1].asDouble() )); // top right
-				visualBox.push_back(Point(bottomRight[0].asDouble() , bottomRight[1].asDouble() )); // bottom right
-				visualBox.push_back(Point(bottomLeft[0].asDouble() , bottomLeft[1].asDouble() )); // bottom left
-
-				auto r = make_shared<Renderable>();
-				r->material = material1;
-				r->mesh = make_shared<Mesh>(visualBox);
-				trackRdr->addRenderable(r);
+				if (DEBUG_COLLIDER_VISUAL)
+				{
+					auto visualEntity = new Entity();
+					visualEntity->position = glm::vec3(posX * ENTITY_SCALE, -1 + posY * ENTITY_SCALE, posZ * ENTITY_SCALE);
+					visualEntity->rotation = trackEntities[currentIndex]->rotation;
+					visualEntity->scale = glm::vec3(1, 1, 1);
+					visualEntity->addComponent<RenderComponent>();
+					auto trackRdr = visualEntity->getComponent<RenderComponent>();
+					auto r = make_shared<Renderable>();
+					r->material = material1;
+					r->mesh = make_shared<Mesh>(visualBox);
+					trackRdr->addRenderable(r);
+					Game::instance().addEntity(visualEntity);
+				}
 			}
 		}
 		
